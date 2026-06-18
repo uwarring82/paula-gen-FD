@@ -158,31 +158,60 @@
   status: provisional
 
 - name: hyperfine_a_constant_25mg
-  value: 5.97e8                   # |A| = splitting / 3  (interval rule, 2S_1/2)
+  value: -5.96254376e8            # A = -596.254376(54) MHz (negative for 25Mg+)
+  units: Hz
+  kind: input
+  uncertainty: {value: 5.4e1, type: statistical}   # 54 Hz: the (54) on the last two digits
+  source:
+    ref: itano_wineland_1981
+    loc: "Abstract (p. 1364) and Eq. (2) (p. 1371)"
+    extraction_note: >-
+      Magnetic-dipole hyperfine constant of the 25Mg+ 3s 2S_1/2 ground state,
+      A = -596.254 376(54) MHz — the primary precision measurement, stated
+      identically in the Abstract and Eq. (2). The (54) is the 1-sigma
+      uncertainty on the last two digits (54 Hz, NOT 54 kHz). Sign is negative:
+      the manifold is inverted (F=3 lies below F=2).
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  configuration: null
+  caveats: >-
+    Primary literature constant (the hyperfine reference UW added). Apparatus-
+    independent. Supersedes the earlier ledger estimate |A| = Delta/3 from the
+    coarse Clos splitting.
+  status: confirmed
+
+- name: hyperfine_splitting_calc_25mg
+  value: 1.788763128e9           # Delta = 3|A| (Landé interval rule, 2S_1/2)
   units: Hz
   kind: input                     # derived purely from an input -> stays input
-  uncertainty: {value: 1.7e6, type: systematic}
+  uncertainty: {value: 1.62e2, type: statistical}   # 3 x 54 Hz
   source:
-    ref: clos2017
-    loc: "derived from hyperfine_splitting_25mg_f2_f3 (Sec. 3.1, p. 33)"
+    ref: itano_wineland_1981
+    loc: "derived: Delta = 3|A| from A in Eq. (2)"
     extraction_note: >-
-      Magnetic-dipole hyperfine constant magnitude |A| of the 25Mg+ 3s 2S_1/2
-      state, computed from the F=2/F=3 splitting via the Landé interval rule:
-      for a 2S_1/2 state (J=1/2) only the magnetic-dipole term contributes and
-      Delta = 3|A|, so |A| = Delta/3. Not stated explicitly in any thesis (only
-      the splitting is quoted) — this is a ledger-internal derivation.
+      25Mg+ ground-state F=2<->F=3 hyperfine splitting computed from the primary
+      hyperfine constant via the Landé interval rule: for a 2S_1/2 state (J=1/2)
+      only the magnetic-dipole term contributes, so Delta = 3|A| = 1788.763 MHz.
+      A ledger-internal derivation (the original paper reports A and the
+      Zeeman-resolved transitions, not Delta directly).
     extracted_by: claude-agent
     extracted_on: 2026-06-18
   scope: {isotope: 25Mg, subsystem: internal_state}
   observation_type: derived
-  derived_from: [hyperfine_splitting_25mg_f2_f3]
+  derived_from: [hyperfine_a_constant_25mg]
   generation: legacy
   configuration: null
   caveats: >-
-    Demonstrates the 'derived' machinery and benchmark-inheritance (closure is
-    all-input -> stays input). A is NEGATIVE for 25Mg+ (manifold inverted); the
-    magnitude is recorded here. Value inherits the coarse precision of the
-    quoted splitting (true |A| ~ 596.25 MHz from Itano & Wineland 1981).
+    Demonstrates the 'derived' machinery + benchmark-inheritance (closure is
+    all-input -> stays input). TENSION: this derived zero-field splitting
+    (1788.763 MHz) sits ~69 kHz BELOW the in-house measured clock_transition_25mg
+    (1788.8322 MHz). Likely the Doerr value is at finite field (not truly
+    zero-field) or a mis-extraction — flagged for reconciliation. This is exactly
+    the input-vs-benchmark discrepancy the wall is meant to surface.
   status: provisional
 
 # --- BENCHMARK side of the wall: in-house measured clock transition ----------
@@ -215,5 +244,8 @@
     the twin must reproduce this measured value; it must NEVER be fed in.
     measured_on is a PLACEHOLDER for the Doerr-2024 measurement period — replace
     with the exact logbook date before status: confirmed. The b_field slot
-    'nominal' is a placeholder label pending confirmation.
+    'nominal' is a placeholder label pending confirmation. TENSION: this value
+    is ~69 kHz ABOVE the zero-field splitting 3|A| = 1788.763 MHz derived from
+    Itano & Wineland (see hyperfine_splitting_calc_25mg) — reconcile (finite-
+    field shift vs mis-extraction) before relying on it.
   status: provisional

@@ -7,6 +7,57 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later) — Source corpus expansion, consistent PDF naming, primary hyperfine reference
+
+**Trigger.** UW added a reference PDF for the hyperfine constant (Itano &
+Wineland 1981) plus a set of key journal papers, and asked to rename the PDFs
+consistently.
+
+**Identification (verified).** A multi-agent workflow (identify → adversarial
+verify per PDF, 27 agents) identified all 13 added journal-paper PDFs by reading
+each PDF first page AND cross-checking Crossref. Every verifier agreed. Results
+registered in `sources.yaml` (11 new keys; `clos2016` already present):
+`friedenauer2006/2008`, `schmitz2009`, `schneider2012` (review), `clos2014`,
+`clos2016_suppmat`, `wittemer2018/2019_prl/2020`, `hasse2024`, `colla2025`. All
+`verified: true` (PDF + DOI). Schema change: added `review` to the sources
+`degree` enum.
+
+**Naming convention adopted: `filename == citation key`.** All 25 local PDFs
+renamed to `<key>.pdf`, so a record's `source.ref` maps 1:1 to its local file
+(see `sources/pdf/README.md`). Notable: `wittemer2019` (PhD thesis) vs
+`wittemer2019_prl` (PRL 123, 180502, same year) disambiguated; `enderlein2013`
+corrects the old `..._2012` filename.
+
+**Primary hyperfine reference wired in.** `hyperfine_a_constant_25mg` rewritten
+from the earlier derived estimate (|A| = Δ/3 from the coarse Clos splitting) to
+the PRIMARY value from Itano & Wineland: **A = -596.254376(54) MHz**, quoted from
+the Abstract and Eq. (2); `observation_type: fitted`, `status: confirmed`. Added
+`hyperfine_splitting_calc_25mg` = 3|A| (derived) to keep the derived/inheritance
+demonstration on real numbers.
+
+**Integrity catches.**
+- The extraction agent's uncertainty was off by ×1000 (it reported 54 kHz); the
+  printed "(54)" on `-596.254376` is **54 Hz**. Corrected on intake.
+- **TENSION (flagged for reconciliation):** the derived zero-field splitting
+  3|A| = 1788.763 MHz sits ~69 kHz BELOW the in-house measured
+  `clock_transition_25mg` (Doerr, 1788.8322 MHz). Either the Doerr value is at
+  finite field (not truly zero-field) or it is mis-extracted. This is precisely
+  the input-vs-benchmark discrepancy the wall exists to surface — noted in both
+  records' caveats.
+
+**Validator.** Green: `pytest` 8/8; `python validator/validate.py` exit 0, 13
+records, 1 warning (`doerr2024` still has no resolvable identifier). The Itano
+warning cleared (now `verified: true`).
+
+**Next steps (added).**
+- [ ] Reconcile the ~69 kHz clock-transition tension — re-verify Doerr Fig. 2.13
+  (field conditions / exact digits).
+- [ ] The 11 new journal papers are registered but not yet cited by any record;
+  mine them for further input/benchmark values (e.g. beam waists/powers,
+  decoherence rates from wittemer2018/clos2016).
+
+---
+
 ## 2026-06-18 — Repository bootstrap and first extraction pass
 
 **Goal.** Stand up the source-of-truth repository and structured parameter layer
