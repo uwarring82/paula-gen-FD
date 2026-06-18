@@ -7,6 +7,40 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 7) — Second engine: axial normal modes
+
+UW chose the self-contained "normal-mode (mode ratios)" shape for the second
+engine (no trap-geometry extraction needed).
+
+**`spike.engines.modes`** — axial normal modes of an N-ion chain. From the COM
+secular frequency it computes mode frequencies sqrt(lambda_p)*omega_z, with
+lambda_p the eigenvalues of the dimensionless axial Hessian at the ion
+equilibrium positions (James 1998). Equilibrium via Newton, eigenvalues via a
+pure-Python cyclic-Jacobi solver in `spike/linalg.py` (still no numpy).
+
+Validation: COM (`input`, 1.30 MHz) -> predicted 2-ion stretch sqrt(3)*COM =
+2.2517 MHz vs the measured stretch (`benchmark`, Wittemer Table 3.2, 2.23 MHz).
+Added `omega_z_axial_stretch_2ion_25mg` as a benchmark. Residual +21.7 kHz =
+2.17 sigma -> CONSISTENT; the sqrt(3) relation holds to ~1% in the 3-sig-fig data.
+
+**Adversarial review** (3 agents). Physics verdict **correct** — equilibrium,
+Hessian, and eigenvalues independently reproduced via scipy/numpy/sympy:
+positions match to <6e-15, lambda_1=1 and lambda_2=3 PROVEN universal (exact
+eigenvectors), N=3 -> {1,3,29/5}, N=4/5 match the literature, pure-Python eigvalsh
+agrees with numpy to <5e-14, sqrt(3) confirmed for equal masses. Numerics
+verdict correct_with_caveats; hardened the (engine-unreachable) edge cases:
+- Newton now uses an N-independent max-component |g| criterion and RAISES on
+  non-convergence (previously returned silently; N>=40 had a 2-norm noise floor —
+  now converges).
+- eigvalsh: scale-relative convergence + RAISES if max_sweeps is exhausted.
+- axial_mode_eigenvalues guards against a negative eigenvalue before sqrt().
+- solve() validates shape; docstrings corrected ("sqrt(3) analytically exact,
+  ~1e-15 numerically"). +4 robustness tests.
+
+Tests 36 -> 50; both engines CONSISTENT; substrate green.
+
+---
+
 ## 2026-06-18 (later 6) — Full wall coverage: every engine input via the ledger
 
 Two review-driven refinements so that *every* quantity the engine consumes —

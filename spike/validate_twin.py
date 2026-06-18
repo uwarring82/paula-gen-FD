@@ -14,6 +14,7 @@ import sys
 
 from .constants import GAUSS, MHZ
 from .engines.levels import GroundStateZeeman
+from .engines.modes import AxialModes
 from .ledger import Ledger
 
 
@@ -66,10 +67,36 @@ def check_clock(ledger: Ledger) -> bool:
     return ok
 
 
+def check_modes(ledger: Ledger) -> bool:
+    com = ledger.input_quantity("omega_z_axial_com_25mg")
+    bench = ledger.benchmark_quantity("omega_z_axial_stretch_2ion_25mg")
+
+    eng = AxialModes.from_ledger(ledger)
+    predicted = eng.stretch_frequency(2)            # sqrt(3) * COM
+    sigma_pred = abs(
+        AxialModes(com.value + com.sigma).stretch_frequency(2)
+        - AxialModes(com.value - com.sigma).stretch_frequency(2)
+    ) / 2.0
+    residual = predicted - bench.value
+    sigma_res = (sigma_pred ** 2 + bench.sigma ** 2) ** 0.5
+    nsig = abs(residual) / sigma_res if sigma_res else float("inf")
+    ok = nsig <= 3.0
+
+    print("MODES ENGINE — 2-ion 25Mg+ axial stretch mode (out-of-phase)")
+    print("  inputs (consumed):")
+    print(f"    omega_z (COM) = {com.value / MHZ:.4f} +/- {com.sigma / 1e3:.1f} kHz   (omega_z_axial_com_25mg)")
+    print(f"  axial eigenvalue ratios (N=2)   = 1, 3  -> stretch = sqrt(3)*COM")
+    print(f"  predicted stretch               = {predicted / MHZ:.4f} MHz  (+/- {sigma_pred / 1e3:.1f} kHz)")
+    print(f"  benchmark (measured, Wittemer)  = {bench.value / MHZ:.4f} MHz  (+/- {bench.sigma / 1e3:.1f} kHz)")
+    print(f"  residual (pred - meas)          = {residual / 1e3:+.1f} kHz  = {nsig:.2f} sigma")
+    print(f"  --> {'CONSISTENT' if ok else 'TENSION'} within combined uncertainty\n")
+    return ok
+
+
 def main(argv=None) -> int:
     ledger = Ledger.load()
-    ok = check_clock(ledger)
-    return 0 if ok else 1
+    results = [check_clock(ledger), check_modes(ledger)]
+    return 0 if all(results) else 1
 
 
 if __name__ == "__main__":

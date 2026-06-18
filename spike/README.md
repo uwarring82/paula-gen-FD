@@ -36,16 +36,39 @@ LEVELS ENGINE — 25Mg+ ground-state clock transition |F=3,mF=0> <-> |F=2,mF=0>
   --> CONSISTENT within combined uncertainty
 ```
 
+## Second engine: `modes` (axial normal modes)
+
+[`engines/modes.py`](engines/modes.py) computes the axial normal modes of an
+N-ion chain from a single secular frequency (the COM): the mode frequencies are
+`sqrt(lambda_p) * omega_z` with `lambda_p` the eigenvalues of the dimensionless
+axial Hessian at the ion equilibrium positions (James 1998). It consumes the COM
+(`input`) and reproduces the 2-ion axial stretch (`benchmark`):
+
+```
+MODES ENGINE — 2-ion 25Mg+ axial stretch mode (out-of-phase)
+  input:    omega_z (COM) = 1.3000 MHz   (omega_z_axial_com_25mg)
+  eigenvalue ratios (N=2) = 1, 3  ->  stretch = sqrt(3)*COM
+  predicted stretch               = 2.2517 MHz
+  benchmark (measured, Wittemer)  = 2.2300 MHz
+  residual = +21.7 kHz = 2.17 sigma  -->  CONSISTENT (sqrt(3) holds to ~1%)
+```
+
+The equilibrium solve (Newton) and the symmetric eigensolver (cyclic Jacobi)
+live in [`linalg.py`](linalg.py) — pure Python, to keep the spike numpy-free.
+
 ## Layout
 
 ```
 spike/
   constants.py      CODATA constants + 25Mg atomic g-factors (sourced)
   ledger.py         loads records/*.yaml into a queryable Ledger (pyyaml only)
+  linalg.py         tiny pure-Python solve() + eigvalsh() (Jacobi)
   engines/
     levels.py       2S_1/2 hyperfine+Zeeman engine (closed-form Breit-Rabi)
-  validate_twin.py  predict from inputs, compare to the benchmark, report residual
-  test_levels.py    physics limits + benchmark reproduction + wall enforcement
+    modes.py        axial normal modes (equilibrium + Hessian eigenvalues)
+  validate_twin.py  predict from inputs, compare to benchmarks, report residuals
+  test_levels.py    levels physics limits + benchmark + wall
+  test_modes.py     modes eigenvalues + benchmark + wall + linalg robustness
 ```
 
 ## Run
