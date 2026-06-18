@@ -101,6 +101,26 @@ class Ledger:
     def value(self, name: str) -> float:
         return float(self._records[name]["value"])
 
+    def input_quantity(self, name: str) -> Quantity:
+        """A quantity that MUST be `kind: input` — the wall: engines consume only
+        inputs. Raises if the record is a benchmark (or has no/!=input kind)."""
+        q = self.quantity(name)
+        if q.kind != "input":
+            raise ValueError(
+                f"'{name}' must be kind:input to be consumed by an engine, but kind={q.kind!r}"
+            )
+        return q
+
+    def benchmark_quantity(self, name: str) -> Quantity:
+        """A quantity that MUST be `kind: benchmark` — a validation target, never
+        consumed. Raises if the record is not a benchmark."""
+        q = self.quantity(name)
+        if q.kind != "benchmark":
+            raise ValueError(
+                f"'{name}' must be kind:benchmark to be a validation target, but kind={q.kind!r}"
+            )
+        return q
+
     def names(self):
         return list(self._records)
 

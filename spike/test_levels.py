@@ -110,3 +110,18 @@ def test_clock_requires_half_integer_spin():
 def test_rejects_nonfinite_A():
     with pytest.raises(ValueError):
         GroundStateZeeman(A_hz=float("nan"), I=2.5)
+
+
+def test_input_quantity_refuses_benchmark():
+    ledger = Ledger.load()
+    # the wall, at the ledger boundary: a benchmark cannot be consumed as an input
+    with pytest.raises(ValueError):
+        ledger.input_quantity("clock_transition_25mg")
+    assert ledger.input_quantity("b_field_quantization_freddy").kind == "input"
+
+
+def test_benchmark_quantity_refuses_input():
+    ledger = Ledger.load()
+    with pytest.raises(ValueError):
+        ledger.benchmark_quantity("hyperfine_a_constant_25mg")
+    assert ledger.benchmark_quantity("clock_transition_25mg").kind == "benchmark"

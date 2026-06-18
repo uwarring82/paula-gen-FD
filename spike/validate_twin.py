@@ -22,10 +22,12 @@ def _fmt_mhz(hz: float) -> str:
 
 
 def check_clock(ledger: Ledger) -> bool:
-    A = ledger.quantity("hyperfine_a_constant_25mg")
-    I = ledger.quantity("nuclear_spin_25mg")
-    Bq = ledger.quantity("b_field_quantization_freddy")
-    bench = ledger.quantity("clock_transition_25mg")
+    # every consumed quantity goes through the wall (kind:input); the comparison
+    # target must be kind:benchmark
+    A = ledger.input_quantity("hyperfine_a_constant_25mg")
+    I = ledger.input_quantity("nuclear_spin_25mg")
+    Bq = ledger.input_quantity("b_field_quantization_freddy")
+    bench = ledger.benchmark_quantity("clock_transition_25mg")
 
     eng = GroundStateZeeman.from_ledger(ledger)
     predicted = eng.clock_transition(Bq.value)
