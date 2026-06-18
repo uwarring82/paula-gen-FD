@@ -7,6 +7,32 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 3) — Clock-transition tension resolved (quadratic Zeeman)
+
+**Decision (UW):** dissolve the ~69 kHz tension by the magnetic field; Itano &
+Wineland is the source of truth for the hyperfine constant "for now".
+
+**Physics.** The |F=3,mF=0> <-> |F=2,mF=0> clock transition is only *first-order*
+field-insensitive; it carries a second-order (quadratic) Zeeman shift
+nu(B) = nu_hf0 + K·B², with K = g_J² mu_B² / (2 h² nu_hf0). Taking Itano's
+zero-field nu_hf0 = 3|A| = 1788.763 MHz as truth, the measured offset
+nu_clock - nu_hf0 = 69.1 kHz implies **B = 5.609(11) G** — consistent with
+Doerr's independently stated ~5.5 G (at exactly 5.5 G the predicted clock is
+1788.8295 MHz, a 2.7 kHz residual, within field calibration). Verified
+numerically (K = 2195 Hz/G²). So the offset is physics, not an error.
+
+**Also corrected an extraction misreading:** `omega_{0,0}` denotes the
+mF=0<->mF=0 component, NOT "zero-field-extrapolated" — the Doerr value is the
+finite-field transition. `clock_transition_25mg` extraction_note/conditions/
+caveats updated accordingly.
+
+**Added two derived records** (honoring the wall): `qubit_quadratic_zeeman_coeff_25mg`
+(K; `input`, all-input closure) and `b_field_from_clock_25mg` (the inferred field;
+`benchmark`, since it derives from the benchmark clock transition — a diagnostic,
+NOT an independent field input). Validator green: 15 records, 1 expected warning.
+
+---
+
 ## 2026-06-18 (later 2) — Validator hardening from code review
 
 A code review (UW + external) raised three real issues; all fixed, with
@@ -87,8 +113,8 @@ records, 1 warning (`doerr2024` still has no resolvable identifier). The Itano
 warning cleared (now `verified: true`).
 
 **Next steps (added).**
-- [ ] Reconcile the ~69 kHz clock-transition tension — re-verify Doerr Fig. 2.13
-  (field conditions / exact digits).
+- [x] Reconcile the ~69 kHz clock-transition tension — RESOLVED (2026-06-18) as
+  the second-order Zeeman shift at B ≈ 5.6 G; see the "later 3" entry above.
 - [ ] The 11 new journal papers are registered but not yet cited by any record;
   mine them for further input/benchmark values (e.g. beam waists/powers,
   decoherence rates from wittemer2018/clos2016).

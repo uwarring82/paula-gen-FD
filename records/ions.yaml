@@ -207,11 +207,11 @@
   configuration: null
   caveats: >-
     Demonstrates the 'derived' machinery + benchmark-inheritance (closure is
-    all-input -> stays input). TENSION: this derived zero-field splitting
-    (1788.763 MHz) sits ~69 kHz BELOW the in-house measured clock_transition_25mg
-    (1788.8322 MHz). Likely the Doerr value is at finite field (not truly
-    zero-field) or a mis-extraction — flagged for reconciliation. This is exactly
-    the input-vs-benchmark discrepancy the wall is meant to surface.
+    all-input -> stays input). This is the ZERO-FIELD splitting. RESOLVED
+    (2026-06-18): the in-house clock_transition_25mg (1788.8322 MHz) is +69 kHz
+    higher because it is the mF=0<->mF=0 transition at finite field B ≈ 5.6 G;
+    that offset is the second-order (quadratic) Zeeman shift, not a discrepancy
+    (see qubit_quadratic_zeeman_coeff_25mg and b_field_from_clock_25mg).
   status: provisional
 
 # --- BENCHMARK side of the wall: in-house measured clock transition ----------
@@ -225,11 +225,13 @@
     ref: doerr2024
     loc: "Fig. 2.13, p. 33"
     extraction_note: >-
-      Directly measured (in this apparatus) field-insensitive clock-transition
-      frequency |F=3,mF=0> <-> |F=2,mF=0|, omega_0,0/(2pi) = 1788.8322(2) MHz,
-      zero-field-extrapolated from a measurement at ~5.5 G (in-house Ramsey/Rabi
-      calibration, not a literature value). Verbatim: "omega_0,0/(2pi) =
-      1788.8322(2) MHz".
+      Directly measured (in this apparatus) first-order-field-insensitive
+      mF=0<->mF=0 transition |F=3,mF=0> <-> |F=2,mF=0|, omega_{0,0}/(2pi) =
+      1788.8322(2) MHz, at the operating field ~5.5 G (in-house Ramsey/Rabi
+      calibration, not a literature value). NOTE: "omega_{0,0}" denotes the
+      mF=0<->mF=0 component (NOT "zero field"); the value is the FINITE-field
+      transition and so carries the second-order Zeeman shift. Verbatim:
+      "omega_0,0/(2pi) = 1788.8322(2) MHz".
     extracted_by: claude-agent
     extracted_on: 2026-06-18
   scope: {isotope: 25Mg, subsystem: internal_state}
@@ -238,14 +240,77 @@
   generation: freddy
   configuration: {trap: null, beams: null, b_field: nominal}
   measured_on: 2024-01-01         # PLACEHOLDER (Doerr 2024 thesis period) — see caveat
-  conditions: "field-insensitive clock transition; value extrapolated to zero field"
+  conditions: "first-order-field-insensitive mF=0<->mF=0 transition, measured at operating field B ≈ 5.6 G (see b_field_from_clock_25mg)"
   caveats: >-
     WALL EXEMPLAR (benchmark): given the atomic structure (input) and the field,
     the twin must reproduce this measured value; it must NEVER be fed in.
     measured_on is a PLACEHOLDER for the Doerr-2024 measurement period — replace
     with the exact logbook date before status: confirmed. The b_field slot
-    'nominal' is a placeholder label pending confirmation. TENSION: this value
-    is ~69 kHz ABOVE the zero-field splitting 3|A| = 1788.763 MHz derived from
-    Itano & Wineland (see hyperfine_splitting_calc_25mg) — reconcile (finite-
-    field shift vs mis-extraction) before relying on it.
+    'nominal' is a placeholder label pending confirmation. RESOLVED (2026-06-18,
+    Itano = source of truth): the +69 kHz vs the zero-field 3|A| = 1788.763 MHz
+    is the second-order (quadratic) Zeeman shift of the mF=0<->mF=0 transition at
+    B ≈ 5.6 G — not an error (see qubit_quadratic_zeeman_coeff_25mg and
+    b_field_from_clock_25mg).
+  status: provisional
+
+# --- tension resolution: quadratic Zeeman shift + the field it implies -------
+# nu_clock(B) = nu_hf0 + K*B^2, with K = g_J^2 mu_B^2 / (2 h^2 nu_hf0). Treating
+# Itano's nu_hf0 as truth, the measured +69 kHz offset implies B ≈ 5.6 G — which
+# matches Doerr's independently stated ~5.5 G, dissolving the apparent tension.
+
+- name: qubit_quadratic_zeeman_coeff_25mg
+  value: 2.1954e11               # Hz/T^2  (= 2195 Hz/G^2)
+  units: Hz/T^2
+  kind: input                    # depends only on nu_hf0 (input) + fundamental constants
+  uncertainty: {value: 2.0e8, type: systematic}
+  source:
+    ref: itano_wineland_1981
+    loc: "derived: K = g_J^2 mu_B^2 / (2 h^2 nu_hf0), Breit-Rabi small-x limit"
+    extraction_note: >-
+      Quadratic (second-order) Zeeman coefficient of the 25Mg+ |F=3,mF=0> <->
+      |F=2,mF=0> clock transition: nu(B) = nu_hf0 + K*B^2 with
+      K = g_J^2 mu_B^2 / (2 h^2 nu_hf0) = 2.195e11 Hz/T^2 (= 2195 Hz/G^2), using
+      g_J(2S_1/2) = 2.00232 and nu_hf0 = hyperfine_splitting_calc_25mg.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: derived
+  derived_from: [hyperfine_splitting_calc_25mg]
+  generation: legacy
+  configuration: null
+  caveats: >-
+    Leading-quadratic (small-x) Breit-Rabi approximation; the g_I (nuclear) term
+    is neglected (~1/1836) and the free-electron g_J is used. Valid for the
+    first-order-field-insensitive mF=0<->mF=0 clock transition.
+  status: provisional
+
+- name: b_field_from_clock_25mg
+  value: 5.609e-4                # T  (= 5.609 G)
+  units: T
+  kind: benchmark                # inferred from the benchmark clock transition -> inherits benchmark
+  uncertainty: {value: 1.1e-6, type: statistical}
+  source:
+    ref: itano_wineland_1981
+    loc: "derived: B = sqrt((nu_clock - nu_hf0)/K) (Breit-Rabi inversion)"
+    extraction_note: >-
+      Operating magnetic field inferred from the measured clock transition with
+      Itano & Wineland as ground truth: the second-order Zeeman shift
+      nu_clock - nu_hf0 = 69.1 kHz and K = qubit_quadratic_zeeman_coeff_25mg give
+      B = sqrt(Delta_nu / K) = 5.609 G. This DISSOLVES the earlier ~69 kHz
+      tension — the offset is the quadratic Zeeman shift of the mF=0<->mF=0
+      transition at finite field, not an error.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: apparatus, subsystem: fields}
+  observation_type: derived
+  derived_from: [clock_transition_25mg, hyperfine_splitting_calc_25mg, qubit_quadratic_zeeman_coeff_25mg]
+  generation: freddy
+  measured_on: 2024-01-01        # inherits clock_transition_25mg's validity window (placeholder)
+  caveats: >-
+    Benchmark-derived DIAGNOSTIC (inferred from the measured clock transition),
+    NOT an independent field input — must never be fed back as a B-field input.
+    The implied 5.61 G is consistent with Doerr's independently stated ~5.5 G
+    (Sec. 2.1.1) and, more loosely, the Clos-generation 5.85 G
+    (b_field_quantization). measured_on inherits clock_transition_25mg's
+    placeholder date.
   status: provisional
