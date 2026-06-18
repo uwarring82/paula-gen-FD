@@ -342,3 +342,31 @@
     axis; the engine's mf=near-x, hf=near-y assignment is a labelling convention
     and does not affect the projection magnitudes.
   status: provisional
+
+# --- single-ion radial mode frequencies (Doerr) ------------------------------
+
+- name: omega_radial_mf_25mg
+  value: 3.0e6                    # Hz, radial mid-frequency (mf) mode
+  units: Hz
+  kind: input
+  uncertainty: {value: 1.0e5, type: systematic}    # "~3.0 MHz"
+  source: {ref: doerr2024, loc: "Fig. 2.4 caption + Sec. 2.1, p. 12-13", extraction_note: "Single-ion radial mid-frequency mode omega_mf/(2pi) ~ 3.0 MHz (one of the two radial modes, tilted 30 deg; see radial_mode_tilt_25mg).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  caveats: "Approximate (~3.0 MHz). Used by the sideband engine for the absolute Lamb-Dicke parameter."
+  status: provisional
+
+- name: omega_radial_hf_25mg
+  value: 4.5e6                    # Hz, radial high-frequency (hf) mode
+  units: Hz
+  kind: input
+  uncertainty: {value: 1.0e5, type: systematic}    # "~4.5 MHz"
+  source: {ref: doerr2024, loc: "Fig. 2.4 caption + Sec. 2.1, p. 12-13", extraction_note: "Single-ion radial high-frequency mode omega_hf/(2pi) ~ 4.5 MHz (the other radial mode, orthogonal to mf).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  caveats: "Approximate (~4.5 MHz). Used by the sideband engine for the absolute Lamb-Dicke parameter."
+  status: provisional

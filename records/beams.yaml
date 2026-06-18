@@ -47,19 +47,20 @@
 #   OC  = B1+R2 (orthogonal)   Delta_k || z        axial lf mode
 #   AC  = B3+R1 (antiparallel) Delta_k || -(x+z)   all three modes
 #   ROC = B3+R2 (orthogonal)   Delta_k || x        radial modes
-# The Delta_k DIRECTION is recorded as a NORMALISED vector in the trap x,y,z
-# frame (so the mode-projection engine consumes it directly). Doerr fixes the
-# AXIS of each Delta_k ("|| x", "|| z", "|| -(x+z)"), not its overall SIGN; the
-# sign is convention-dependent and immaterial here because the engine uses the
-# magnitude |Delta_k_hat . e_mode|. The magnitudes |Delta_k|/k from the beam
-# angles (CC 0, OC sqrt2, AC 2, ROC sqrt2) are noted for a future sideband
-# engine. The axial Lamb-Dicke coupling is
-# raman_axial_lamb_dicke_25mg; the radial tilt that complicates AC's radial
-# projection is radial_mode_tilt_25mg (records/fields.yaml).
+# Each Delta_k is recorded as the vector Delta_k/k in the trap x,y,z frame (k =
+# single-beam wavenumber). The DIRECTION is what Doerr fixes ("|| x", "|| z",
+# "|| -(x+z)"); the MAGNITUDE |Delta_k|/k follows from the beam angles (CC 0
+# parallel, OC/ROC sqrt2 orthogonal, AC 2 antiparallel) and was confirmed
+# jointly realizable by the projection verification. The mode-projection engine
+# normalises these internally (so direction cosines are unchanged); the sideband
+# engine uses the magnitude for absolute eta. Only the AXIS (not the overall
+# SIGN) is physically pinned; the sign is immaterial because both engines use
+# |Delta_k . e_mode|. The axial Lamb-Dicke anchor is raman_axial_lamb_dicke_25mg;
+# the radial tilt is radial_mode_tilt_25mg (records/fields.yaml).
 
 - name: raman_cc_combination_25mg
   value: [0.0, 0.0, 0.0]
-  units: "normalised k-vector direction (trap x,y,z)"
+  units: "k-vector Delta_k/k (trap x,y,z)"
   kind: input
   uncertainty: {value: 0.0, type: exact}
   source: {ref: doerr2024, loc: "Sec. 2.1.4, p. 12 (beam combinations)", extraction_note: "Colinear-Carrier CC = B1 (pi) + R1 (sigma+ + sigma-) superimposed PARALLEL -> Delta_k = k_B - k_R ~ 0. Confirmed by Hasse 2025 glossary (CC = co-linear carrier, B1 and R1).", extracted_by: claude-agent, extracted_on: 2026-06-18}
@@ -72,8 +73,8 @@
   status: provisional
 
 - name: raman_oc_combination_25mg
-  value: [0.0, 0.0, 1.0]
-  units: "normalised k-vector direction (trap x,y,z)"
+  value: [0.0, 0.0, 1.41421356]   # sqrt2 * z (orthogonal beams)
+  units: "k-vector Delta_k/k (trap x,y,z)"
   kind: input
   uncertainty: {value: 0.0, type: exact}
   source: {ref: doerr2024, loc: "Sec. 2.1.4, p. 12 (beam combinations)", extraction_note: "Orthogonal Carrier OC = B1 (pi) + R2 (sigma+ - sigma-) in an orthogonal configuration -> Delta_k parallel to the z-axis. Addresses the axial low-frequency (lf) mode (~1.3 MHz).", extracted_by: claude-agent, extracted_on: 2026-06-18}
@@ -86,8 +87,8 @@
   status: provisional
 
 - name: raman_ac_combination_25mg
-  value: [-0.70710678, 0.0, -0.70710678]
-  units: "normalised k-vector direction (trap x,y,z)"
+  value: [-1.41421356, 0.0, -1.41421356]   # 2 * -(x+z)/sqrt2 (antiparallel, |dk|=2)
+  units: "k-vector Delta_k/k (trap x,y,z)"
   kind: input
   uncertainty: {value: 0.0, type: exact}
   source: {ref: doerr2024, loc: "Sec. 2.1.4, p. 12 + Fig. 2.4, p. 13 (beam combinations)", extraction_note: "Antilinear Carrier AC = B3 + R1, superimposed but ANTIPARALLEL -> Delta_k || -(e_x + e_z), at 45 deg to the lf-mode axis in the x-z plane. Has non-zero projection onto ALL THREE modes (axial lf + radial mf ~3.0 + radial hf ~4.5 MHz).", extracted_by: claude-agent, extracted_on: 2026-06-18}
@@ -104,8 +105,8 @@
   status: provisional
 
 - name: raman_roc_combination_25mg
-  value: [1.0, 0.0, 0.0]
-  units: "normalised k-vector direction (trap x,y,z)"
+  value: [1.41421356, 0.0, 0.0]   # sqrt2 * x (orthogonal beams)
+  units: "k-vector Delta_k/k (trap x,y,z)"
   kind: input
   uncertainty: {value: 0.0, type: exact}
   source: {ref: doerr2024, loc: "Sec. 2.1.4, p. 12 (beam combinations)", extraction_note: "Radial Orthogonal Carrier ROC = B3 + R2 in another orthogonal configuration -> Delta_k parallel to the x-axis. Addresses the radial (mf/hf) modes.", extracted_by: claude-agent, extracted_on: 2026-06-18}
@@ -358,4 +359,40 @@
   generation: legacy
   conditions: "RP saturation parameter"
   caveats: "Quoted operating value."
+  status: provisional
+
+# --- AC-Stark (light shift) benchmark ----------------------------------------
+# Only the FAR-detuned BDD beam has a meaningful coherent light shift; the
+# near-resonant BD/BDX/RD/RP beams scatter instead (see spike/engines/acstark.py).
+
+- name: bdd_ac_stark_shift_25mg
+  value: 1.0e7                    # |delta_AC| ~ 2pi x 10 MHz (magnitude)
+  units: Hz
+  kind: benchmark                 # the acstark engine reproduces it from s, Gamma, delta
+  uncertainty: {value: 2.0e6, type: systematic}    # "about 10 MHz, depending on power"
+  source:
+    ref: hasse2025
+    loc: "Sec. 3.1.3 (state initialization), p. 71"
+    extraction_note: >-
+      The off-resonant BDD beam (delta = -10 Gamma, s ~ 20) "induces an ac Stark
+      shift of about 2pi x 10 MHz depending on the specific power level, which
+      shifts the resonance of the cycling transition to higher frequencies".
+      Hasse states the resonant repumpers RD/RP induce NO significant shift.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: hasse
+  measured_on: 2025-01-01         # APPROXIMATE: Hasse 2025 thesis era; exact date not in source
+  conditions: "BDD beam (delta = -10 Gamma, s ~ 20) on the S1/2->P3/2 cycling transition"
+  caveats: >-
+    Magnitude only ("about 2pi x 10 MHz, power-dependent"). The acstark engine
+    predicts |delta_AC| = s*Gamma^2/(8|delta|) = 10.4 MHz from bdd_far_cooling_*
+    and mg_p32_natural_linewidth. The near-resonant beams (BD/BDX/RD/RP) have no
+    meaningful coherent AC-Stark shift (they scatter), per Hasse. NOTE the linewidth
+    is generation-dependent: this prediction uses Clos's Gamma/2pi = 41.8 MHz, while
+    Hasse 2025 itself quotes 42.7 MHz (-> 10.68 MHz); both are within the 2 MHz
+    benchmark band, so the agreement is robust. measured_on is approximate (thesis
+    era); the section label (3.1.3) should be spot-checked against the Hasse PDF.
   status: provisional

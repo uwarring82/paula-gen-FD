@@ -7,6 +7,47 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 19) — Sideband + AC-Stark engines (Raman couplings & light shifts)
+
+UW: "go for it" (sideband engine) + "Should we include AC stark shifts of all
+beams?" -> clarified: "I meant adding it for the Raman beams."
+
+**Scope answer (evidence-backed): NOT all beams.** The AC-Stark shift is a
+COHERENT far-detuned effect (delta_AC = s Gamma^2/(8 delta) = Omega^2/(4 delta),
+Clos Eq. 2.2.24). Only far-detuned beams shift; near-resonant beams scatter (->
+cooling engine). Hasse 2025 confirms it experimentally: the far-detuned BDD beam
+shifts the cycling transition by ~2pi x 10 MHz, while the resonant repumpers RD/RP
+"induce no significant ac Stark shift".
+
+**Engine `acstark`** + benchmark `bdd_ac_stark_shift_25mg` (Hasse ~10 MHz): the
+7th sigma-validation, predicted |delta_AC| = 10.45 MHz vs 10(2), 0.15 sigma. A
+diagnostic flags per beam which regime applies (only BDD = coherent shift).
+
+**Engine `sideband`**: absolute Lamb-Dicke eta(comb,mode,omega) = |Delta_k/k .
+e_mode| * k z_bar(omega) (z_bar ~ omega^-1/2), anchored to the measured eta = 0.32
+(OC->lf, 1.92 MHz). Gives sideband Rabi Omega_{n,n+-1} = eta sqrt(n+1|n) Omega_0 and
+the **Raman differential AC-Stark shift** delta_AC_diff ~ (omega_HF/Delta_R) Omega_0.
+Re-encoded the four Delta_k records to carry MAGNITUDE (Delta_k/k: CC 0, OC/ROC
+sqrt2, AC 2); the projection engine normalises internally (cosines unchanged). Added
+single-ion radial mode freqs omega_radial_mf/hf_25mg (Doerr 3.0/4.5 MHz). eta table:
+OC->lf 0.389; AC->lf 0.389, mf 0.222, hf 0.105; ROC->mf 0.222, hf 0.105.
+
+**Verified by a 4-lens workflow (physics correct):** every eta re-derived from
+scratch, formula = Clos Eq. 2.2.24, BDD matches Hasse independently, sign/magnitude
+handling honest. Applied findings -- the Raman differential factor was the soft spot:
+reframed it as an ORDER-OF-MAGNITUDE estimate (~0.045-0.089 Omega_0; the prefactor
+0.5-1.0 is convention-dependent -- a plain two-state model gives omega_HF/2Delta_R;
+it also ignores CG / P_1/2 / beam-imbalance; NO measured anchor -- BDD validates only
+the single-beam SCALE, not this ratio; and omega_HF=3|A| vs the qubit splitting
+differ ~0.8%). Plus: derived the anchor projection from the ledger (removed a
+hardcoded sqrt2); clarified the AC-Stark level-vs-resonance sign; noted the Gamma
+source discrepancy (Clos 41.8 vs Hasse 42.7 MHz, both within band); cross-generation
+|Delta_k| invariance note; zero-input guards; pinned the OC-vector magnitude in tests.
+
+Records 62 -> 65; tests 98 -> 114; validations 6 -> 7. Substrate green.
+
+---
+
 ## 2026-06-18 (later 18) — Measured Doppler-cooled occupation benchmark (Clos n_bar)
 
 UW: "ok. go" -> the Clos measured Doppler-temperature / mean-phonon benchmark.

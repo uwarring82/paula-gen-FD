@@ -28,8 +28,9 @@ omega_z_axial_stretch_2ion_25mg  modes    motion          2.251666 MHz     2.230
 omega_radial_rocking_2ion_25mg   modes    motion          2.569903 MHz     2.570000 MHz     -0.10 kHz   0.01     ok
 doppler_cooling_limit_25mg       cooling  motion          1.0030 mK        1.0000 mK        +3.04 uK    0.03     ok
 doppler_cooled_occupation_25mg   cooling  motion          10.42            10               +0.421      0.42     ok
+bdd_ac_stark_shift_25mg          acstark  optics          10.450000 MHz    10.000000 MHz    +450.00 kHz 0.15     ok
 
-6 validation(s): 6 ok, 0 not ok (threshold 3 sigma).
+7 validation(s): 7 ok, 0 not ok (threshold 3 sigma).
 ```
 
 It exits nonzero if any result is in tension (> 3σ) or errors (e.g. an engine
@@ -81,6 +82,27 @@ axial, AC all three at 45°, ROC radial) — shown as a **projection DIAGNOSTIC*
 (combination × mode, with a ✓/✗ against Doerr). It is the *geometric* part only;
 absolute η (|Δk| + mode frequency) is a future sideband engine.
 
+## Engine: `sideband` (absolute Lamb-Dicke + sideband Rabi)
+
+[`engines/sideband.py`](engines/sideband.py) turns the `projection` direction
+cosines into *absolute* Lamb-Dicke parameters: η(comb, mode, ω) = |Δk/k·ê_mode| ·
+k·z̄(ω), with z̄ ∝ ω^(−1/2), anchored to the measured η = 0.32 (OC→lf at 1.92 MHz).
+It gives the first-order sideband Rabi rates Ω_{n,n±1} = η√(n+1|n)·Ω₀ and the
+**Raman differential AC-Stark shift** that moves the sideband resonance,
+δ_AC,diff ≈ (ω_HF/Δ_R)·Ω₀ ≈ 0.09·Ω₀ (the |↓⟩,|↑⟩ light shifts differ by the
+hyperfine splitting / Raman detuning). Capability + diagnostic (no independent
+benchmark beyond the η anchor; the differential shift has no measured value).
+
+## Engine: `acstark` (far-detuned light shift)
+
+[`engines/acstark.py`](engines/acstark.py) is the far-detuned light shift
+δ_AC = sΓ²/(8δ) = Ω²/(4δ) (Clos Eq. 2.2.24). It reproduces Hasse's **measured**
+BDD shift (~2π×10 MHz → predicted 10.45 MHz, 0.15σ) — a real σ-validation. The
+shift is only meaningful **far** from resonance: BDD (−10Γ) shifts coherently,
+while the near-resonant BD/BDX/RD/RP *scatter* (cooling engine), which Hasse
+confirms ("RD/RP induce no significant ac Stark shift"). The same validated
+formula feeds the Raman differential shift in `sideband`.
+
 ## Engine: `cooling` (Doppler scattering)
 
 [`engines/cooling.py`](engines/cooling.py) is clean textbook two-level physics
@@ -106,15 +128,19 @@ spike/
     levels.py       2S_1/2 hyperfine+Zeeman engine (closed-form Breit-Rabi)
     modes.py        axial + radial normal modes (equilibrium + Hessian)
     drive.py        relative microwave Rabi couplings (Clebsch-Gordan)
-    cooling.py      two-level scattering rate + Doppler limit
+    cooling.py      two-level scattering rate + Doppler limit + occupation
     projection.py   Raman combination -> motional mode (Delta_k . mode axis)
+    sideband.py     absolute Lamb-Dicke + sideband Rabi + Raman differential AC-Stark
+    acstark.py      far-detuned single-beam light shift (BDD vs Hasse)
   runner.py         composition root: registry, ValidationResult, table, diagnostics
   validate_twin.py  CLI shim -> runner.main
   test_levels.py    levels physics + Weber/Doerr benchmarks + hyperfine spectrum
   test_modes.py     axial+radial eigenvalues + benchmarks + linalg robustness
   test_drive.py     Clebsch-Gordan vs sympy + symmetry + polarization
-  test_cooling.py   scatter rate + Doppler limit + benchmark
+  test_cooling.py   scatter rate + Doppler limit + occupation benchmark
   test_projection.py  mode-axis geometry + addressed-modes vs Doerr + from_ledger
+  test_sideband.py  absolute eta scaling + anchor + sideband Rabi + Raman stark
+  test_acstark.py   light-shift formula + BDD vs Hasse + far-detuned predicate
   test_runner.py    runner: result math, tension detection, wall refusal, coverage
 ```
 
@@ -137,9 +163,8 @@ nonzero.
 
 ## Not yet (follow-ups)
 
-- `sideband` engine: turn the `projection` direction cosines into *absolute* η per
-  mode (|Δk| from the beam angles × the mode frequency), then sideband Rabi rates.
-- `optics` engine for differential AC-Stark shifts — blocked on a measured
-  AC-Stark benchmark, which is not yet in the ledger.
-- Extend `modes` to the radial spectrum and the full N-ion mode table.
+- Anchor the Raman **differential** AC-Stark shift to a measured value (none in the
+  theses yet) and refine it beyond the leading-order ω_HF/Δ_R (Clebsch-Gordan
+  differences, P₁/₂ vs P₃/₂, beam imbalance).
+- Extend `modes` to the full N-ion radial spectrum and connect it to `sideband`.
 - Graduate the spike to its own repo(s) once the schema/engines stabilise.

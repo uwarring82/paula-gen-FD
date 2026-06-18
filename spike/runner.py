@@ -16,11 +16,13 @@ import math
 from dataclasses import dataclass, field
 from typing import Callable
 
+from .engines.acstark import ac_stark_shift, is_far_detuned
 from .engines.cooling import DopplerCooling
 from .engines.drive import HyperfineDrive
 from .engines.levels import GroundStateZeeman
 from .engines.modes import AxialModes, RadialModes
 from .engines.projection import ModeProjection
+from .engines.sideband import Sideband, raman_differential_stark_factor
 from .ledger import Ledger
 
 THRESHOLD_SIGMA = 3.0
@@ -180,6 +182,27 @@ def _validate_doppler_occupation(ledger: Ledger) -> ValidationResult:
     )
 
 
+def _validate_bdd_ac_stark(ledger: Ledger) -> ValidationResult:
+    s = ledger.input_quantity("bdd_far_cooling_saturation")
+    delta = ledger.input_quantity("bdd_far_cooling_detuning")
+    gamma = ledger.input_quantity("mg_p32_natural_linewidth")
+    bench = ledger.benchmark_quantity("bdd_ac_stark_shift_25mg")
+    shift = lambda sv, dv, gv: abs(ac_stark_shift(sv, gv, dv))  # noqa: E731
+    sigma_pred = math.sqrt(
+        _central_sigma(lambda sv: shift(sv, delta.value, gamma.value), s.value, s.sigma) ** 2
+        + _central_sigma(lambda dv: shift(s.value, dv, gamma.value), delta.value, delta.sigma) ** 2
+        + _central_sigma(lambda gv: shift(s.value, delta.value, gv), gamma.value, gamma.sigma) ** 2
+    )
+    return ValidationResult(
+        benchmark=bench.name, engine="acstark",
+        subsystem=ledger.record(bench.name)["scope"]["subsystem"],
+        predicted=shift(s.value, delta.value, gamma.value), measured=bench.value,
+        units=bench.units, sigma_pred=sigma_pred, sigma_meas=bench.sigma,
+        consumed=("bdd_far_cooling_saturation", "bdd_far_cooling_detuning",
+                  "mg_p32_natural_linewidth"),
+    )
+
+
 REGISTRY = [
     Validation("clock_transition_25mg", "levels", _validate_clock),
     Validation("clock_transition_weber_25mg", "levels", _validate_weber_clock),
@@ -187,6 +210,7 @@ REGISTRY = [
     Validation("omega_radial_rocking_2ion_25mg", "modes", _validate_radial_rocking),
     Validation("doppler_cooling_limit_25mg", "cooling", _validate_doppler_limit),
     Validation("doppler_cooled_occupation_25mg", "cooling", _validate_doppler_occupation),
+    Validation("bdd_ac_stark_shift_25mg", "acstark", _validate_bdd_ac_stark),
 ]
 
 
@@ -322,6 +346,82 @@ def projection_diagnostic(ledger: Ledger) -> str:
     return "\n".join(out)
 
 
+_ACSTARK_BEAMS = [
+    ("BD (cool)", "bd_cooling_detuning", "bd_cooling_saturation", "mg_p32_natural_linewidth"),
+    ("BDD (far)", "bdd_far_cooling_detuning", "bdd_far_cooling_saturation", "mg_p32_natural_linewidth"),
+    ("BDX (det)", "bdx_detection_detuning", "bdx_detection_saturation", "mg_p32_natural_linewidth"),
+    ("RD (rep)", "rd_repump_detuning", "rd_repump_saturation", "mg_p12_natural_linewidth"),
+    ("RP (rep)", "rp_repump_detuning", "rp_repump_saturation", "mg_p12_natural_linewidth"),
+]
+
+
+def acstark_diagnostic(ledger: Ledger) -> str:
+    """Per-beam AC-Stark light shift delta_AC = s*Gamma^2/(8 delta), flagged by
+    detuning regime: only the FAR-detuned BDD shifts coherently; the near-resonant
+    beams scatter (cooling engine) and the formula does not apply."""
+    rows = []
+    for label, dname, sname, gname in _ACSTARK_BEAMS:
+        if dname in ledger and sname in ledger and gname in ledger:
+            d, s, g = ledger.value(dname), ledger.value(sname), ledger.value(gname)
+            far = is_far_detuned(g, d)
+            shift = ac_stark_shift(s, g, d)
+            rows.append([label, f"{d / g:+.1f}", f"{s:g}",
+                         f"{shift / 1e6:+.1f}" if far else "--",
+                         "coherent shift" if far else "scatters (n/a)"])
+    if not rows:
+        return ""
+    head = ["beam", "delta/Gamma", "s", "delta_AC/MHz", "regime"]
+    w = [max(len(head[i]), *(len(r[i]) for r in rows)) for i in range(len(head))]
+    line = lambda c: "  ".join(c[i].ljust(w[i]) for i in range(len(c)))  # noqa: E731
+    out = ["AC-STARK DIAGNOSTIC — far-detuned light shift per beam (engine x ledger)",
+           "", line(head), line(["-" * x for x in w])] + [line(r) for r in rows]
+    out.append("")
+    out.append("  Only the far-detuned BDD has a meaningful coherent AC-Stark shift "
+               "(~10 MHz, vs Hasse);")
+    out.append("  the near-resonant beams scatter -> cooling engine. Hasse: RD/RP "
+               "induce no significant shift.")
+    return "\n".join(out)
+
+
+def sideband_diagnostic(ledger: Ledger) -> str:
+    """Absolute Lamb-Dicke eta per (combination, addressed mode) at the lf/mf/hf
+    mode frequencies, plus the Raman differential AC-Stark shift of the resonance
+    (engine x ledger geometry)."""
+    needed = ("radial_mode_tilt_25mg", "raman_axial_lamb_dicke_25mg",
+              "omega_z_axial_com_25mg", "omega_radial_mf_25mg", "omega_radial_hf_25mg")
+    if any(n not in ledger for n in needed):
+        return ""
+    sb = Sideband.from_ledger(ledger)
+    proj = ModeProjection.from_ledger(ledger)
+    freq = {"lf": ledger.value("omega_z_axial_com_25mg"),
+            "mf": ledger.value("omega_radial_mf_25mg"),
+            "hf": ledger.value("omega_radial_hf_25mg")}
+    rows = []
+    for comb in ("CC", "OC", "AC", "ROC"):
+        addr = proj.addressed_modes(comb)
+        cells = [comb] + [f"{sb.lamb_dicke(comb, m, freq[m]):.3f}" if m in addr else "--"
+                          for m in ("lf", "mf", "hf")]
+        rows.append(cells)
+    head = ["comb", "eta_lf", "eta_mf", "eta_hf"]
+    w = [max(len(head[i]), *(len(r[i]) for r in rows)) for i in range(len(head))]
+    line = lambda c: "  ".join(c[i].ljust(w[i]) for i in range(len(c)))  # noqa: E731
+    out = ["SIDEBAND DIAGNOSTIC — absolute Lamb-Dicke eta per combination x mode (engine x ledger)",
+           "", line(head), line(["-" * x for x in w])] + [line(r) for r in rows]
+    out.append("")
+    out.append(f"  mode freqs lf/mf/hf = {freq['lf'] / 1e6:.1f}/{freq['mf'] / 1e6:.1f}/"
+               f"{freq['hf'] / 1e6:.1f} MHz; sideband Rabi = eta sqrt(n+1) Omega_0; "
+               "anchored to eta=0.32 (OC,lf,1.92 MHz).")
+    if "hyperfine_splitting_calc_25mg" in ledger and "raman_detuning_from_p32" in ledger:
+        whf = ledger.value("hyperfine_splitting_calc_25mg")
+        d_r = ledger.value("raman_detuning_from_p32")
+        factor = raman_differential_stark_factor(whf, d_r)
+        out.append(f"  Raman differential AC-Stark (order-of-magnitude): delta_AC_diff ~ "
+                   f"{factor / 2:.3f}-{factor:.3f} * Omega_0 (omega_HF/Delta_R = "
+                   f"{whf / 1e9:.3f}/{d_r / 1e9:.0f} GHz, prefactor 0.5-1.0, unanchored). "
+                   "BDD validates the single-beam light-shift SCALE only, not this ratio.")
+    return "\n".join(out)
+
+
 # --- rendering --------------------------------------------------------------
 def _cell(value: float, units: str, kind: str) -> str:
     if units == "Hz":
@@ -367,7 +467,8 @@ def main(argv=None) -> int:
             print(f"\n  {r.benchmark}: consumed {', '.join(r.consumed)}")
 
     for diag in (drive_diagnostic(ledger), cooling_diagnostic(ledger),
-                 projection_diagnostic(ledger)):
+                 projection_diagnostic(ledger), acstark_diagnostic(ledger),
+                 sideband_diagnostic(ledger)):
         if diag:
             print("\n" + diag)
 
