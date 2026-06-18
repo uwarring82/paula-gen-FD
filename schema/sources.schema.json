@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/uwarring82/iontrap-reference/schema/sources.schema.json",
+  "title": "sources registry",
+  "description": "Citation-key -> bibliographic entry. A resolvable identifier (link / doi / urn) is STRONGLY preferred so each cited number is traceable (FAIR: Findable + Accessible) — the validator WARNS when a referenced source lacks one or is unverified. It is not a hard schema error, because legitimate sources (e.g. unarchived student theses, internal logbooks) may have no public identifier and must still be registrable and honestly flagged rather than hidden.",
+  "type": "object",
+  "minProperties": 1,
+  "additionalProperties": {
+    "type": "object",
+    "additionalProperties": false,
+    "anyOf": [
+      { "required": ["title"] },
+      { "required": ["author"] }
+    ],
+    "properties": {
+      "title":   { "type": "string", "minLength": 1 },
+      "author":  { "type": "string", "minLength": 1 },
+      "year":    { "type": "integer", "minimum": 1900, "maximum": 2100 },
+      "degree":  { "enum": ["phd", "diplom", "msc", "bsc", "article", "logbook", "dataset", "misc"] },
+      "institution": { "type": "string", "minLength": 1 },
+      "link":    { "type": "string", "format": "uri", "description": "Resolvable permalink to the source itself (prefer an institutional-repository permalink, e.g. FreiDok)." },
+      "doi":     { "type": "string", "pattern": "^10\\.[0-9]{4,9}/.+$" },
+      "urn":     { "type": "string", "pattern": "^urn:", "description": "Persistent URN (used where no DOI was minted)." },
+      "pdf":     { "type": "string", "format": "uri", "description": "Direct PDF URL, if openly available." },
+      "metadata_source": { "type": "string", "format": "uri", "description": "Secondary record that confirms the source exists when the source itself is not archived (NOT the source itself)." },
+      "archived": { "type": "boolean", "description": "Whether a public archival copy of the source exists." },
+      "note":    { "type": "string" },
+      "verified": { "type": "boolean", "description": "Whether the identifier has been confirmed to resolve (HTTP 200 / DOI resolution)." }
+    }
+  },
+  "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" }
+}

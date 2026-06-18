@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/uwarring82/iontrap-reference/schema/configuration_slots.schema.json",
+  "title": "configuration_slots registry",
+  "description": "Compositional but shallow physical-state vocabulary. The TOP-LEVEL slot set is fixed (trap / beams / b_field); changing it is a deliberate schema change (see docs/decisions/0005). Within each slot, named keys carry per-slot lineage via 'supersedes'.",
+  "type": "object",
+  "additionalProperties": false,
+  "minProperties": 1,
+  "properties": {
+    "trap":    { "$ref": "#/$defs/slot" },
+    "beams":   { "$ref": "#/$defs/slot" },
+    "b_field": { "$ref": "#/$defs/slot" }
+  },
+  "$defs": {
+    "slot": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["description"],
+        "properties": {
+          "description": { "type": "string", "minLength": 1 },
+          "supersedes":  { "type": ["string", "null"], "description": "Key within the same slot that this setting replaces (per-slot configuration lineage)." }
+        }
+      },
+      "propertyNames": { "pattern": "^[a-z][a-zA-Z0-9_]*$" }
+    }
+  }
+}

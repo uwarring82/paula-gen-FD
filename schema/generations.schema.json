@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/uwarring82/iontrap-reference/schema/generations.schema.json",
+  "title": "generations registry",
+  "description": "Lineage stages of the apparatus. Orthogonal to configuration (physical state); the two must not be conflated (invariant 6).",
+  "type": "object",
+  "minProperties": 1,
+  "additionalProperties": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["description"],
+    "properties": {
+      "description": { "type": "string", "minLength": 1 },
+      "supersedes":  { "type": ["string", "null"], "description": "Key of the generation this one follows (lineage order)." },
+      "period":      { "type": "string", "description": "Approximate calendar period this generation was active (free text, e.g. '2019-2023')." },
+      "changes": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 },
+        "description": "What changed in the apparatus at this lineage stage."
+      }
+    }
+  },
+  "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" }
+}

@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/uwarring82/iontrap-reference/schema/record.schema.json",
+  "title": "iontrap-reference parameter record",
+  "description": "Field-level contract for a single quantity in the structured parameter layer. Graph-level invariants (the input/benchmark wall, transitive benchmark inheritance, reference resolution) are NOT expressible here and are enforced by validator/validate.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "value",
+    "units",
+    "kind",
+    "uncertainty",
+    "source",
+    "scope",
+    "observation_type",
+    "derived_from",
+    "generation",
+    "status"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique identifier for the quantity; referenced by other records' derived_from."
+    },
+    "value": {
+      "description": "Scalar (symmetric default), vector of numbers (e.g. a k-vector), or a categorical label (e.g. a polarisation geometry or an isotope role). Units are always required, even for dimensionless/categorical values.",
+      "oneOf": [
+        { "type": "number" },
+        { "type": "array", "items": { "type": "number" }, "minItems": 1 },
+        { "type": "string", "minLength": 1 },
+        { "type": "boolean" }
+      ]
+    },
+    "units": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SI unit string. Use 'dimensionless' or '1' for pure numbers; use a category name (e.g. 'role', 'polarisation') for categorical values."
+    },
+    "kind": {
+      "enum": ["input", "benchmark"],
+      "description": "The train/test wall. input = the twin consumes it; benchmark = the twin must reproduce it and it must NEVER be fed into parameterisation/fitting."
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "type"],
+      "properties": {
+        "value": {
+          "description": "Scalar (symmetric) OR {lower, upper} (asymmetric / one-sided). Consumers must not assume symmetry.",
+          "oneOf": [
+            { "type": "number" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["lower", "upper"],
+              "properties": {
+                "lower": { "type": "number" },
+                "upper": { "type": "number" }
+              }
+            }
+          ]
+        },
+        "type": { "enum": ["statistical", "systematic", "exact"] }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "loc", "extracted_by", "extracted_on"],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Key into registries/sources.yaml. Validator enforces resolution."
+        },
+        "loc": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Precise location (eq / table / fig / section), precise enough that another person recovers the number without interpretation."
+        },
+        "extraction_note": {
+          "type": "string",
+          "description": "What the quoted number refers to / how it was read (intake interpretation)."
+        },
+        "extracted_by": { "type": "string", "minLength": 1 },
+        "extracted_on": { "type": "string", "format": "date" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isotope", "subsystem"],
+      "properties": {
+        "isotope": { "enum": ["24Mg", "25Mg", "26Mg", "apparatus"] },
+        "subsystem": {
+          "enum": ["fields", "motion", "internal_state", "optics", "detection", "control"],
+          "description": "Query axis. Calibration is NOT a subsystem: a calibrated quantity takes the subsystem of the physics it measures."
+        }
+      }
+    },
+    "observation_type": {
+      "enum": ["direct", "fitted", "inferred", "derived", "simulated"],
+      "description": "How the value was obtained. 'derived' requires non-empty derived_from."
+    },
+    "derived_from": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of record names this quantity is computed from; [] for directly obtained values."
+    },
+    "generation": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Key into registries/generations.yaml (lineage stage). Validator enforces resolution."
+    },
+    "configuration": {
+      "description": "Compositional but shallow: a fixed set of named slots, each a key into registries/configuration_slots.yaml. null only if genuinely apparatus-independent.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "trap":    { "type": ["string", "null"], "minLength": 1 },
+            "beams":   { "type": ["string", "null"], "minLength": 1 },
+            "b_field": { "type": ["string", "null"], "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "measured_on": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the physical quantity was valid (NOT the extraction date). Required for benchmarks (enforced below)."
+    },
+    "conditions": {
+      "type": "string",
+      "description": "Physical state of validity not captured by the configuration key."
+    },
+    "caveats": {
+      "type": "string",
+      "description": "Applicability / breakdown warnings. Distinct from extraction_note (referent) and conditions (state)."
+    },
+    "status": { "enum": ["provisional", "confirmed"] }
+  },
+  "allOf": [
+    {
+      "$comment": "observation_type 'derived' requires non-empty derived_from (invariant 8).",
+      "if":   { "properties": { "observation_type": { "const": "derived" } } },
+      "then": { "properties": { "derived_from": { "minItems": 1 } } }
+    },
+    {
+      "$comment": "[req-b] benchmark records must carry measured_on.",
+      "if":   { "properties": { "kind": { "const": "benchmark" } } },
+      "then": { "required": ["measured_on"] }
+    },
+    {
+      "$comment": "[conf] a confirmed record must carry a configuration key (may be null only if genuinely apparatus-independent).",
+      "if":   { "properties": { "status": { "const": "confirmed" } } },
+      "then": { "required": ["configuration"] }
+    }
+  ]
+}
