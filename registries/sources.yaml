@@ -42,7 +42,7 @@ wittemer2019:
   note: "Year is 2019 (oral exam Dec 2019). Permalink + DOI resolve."
 
 doerr2024:
-  title: "Master thesis on non-adiabatic switching of the trapping potential of two 25Mg+ ions"
+  title: "Advanced Interferometer Techniques for Measuring Near-Resonant Light Shifts and Superresolving Trapped-Ion Dynamics"
   author: "Frederike Dörr"
   year: 2024
   degree: msc
@@ -51,11 +51,11 @@ doerr2024:
   archived: false
   verified: false
   note: >-
-    Thesis NOT publicly archived (not in FreiDok/DNB). Author/year/degree/topic
+    Thesis NOT publicly archived (not in FreiDok/DNB). Author/year/degree
     confirmed via her official RTG-DynCAM profile (a SECONDARY source that
-    resolves, not the thesis itself). The 'freddy' generation. Title is a
-    descriptive paraphrase; confirm exact title from the thesis. The numbers
-    cited from it were read from the local PDF (ADR-0002).
+    resolves, not the thesis itself). The 'freddy' generation. Title CONFIRMED
+    from the thesis title page (local PDF, ADR-0002) — supersedes the earlier
+    descriptive paraphrase. The numbers cited from it were read from the local PDF.
 
 itano_wineland_1981:
   title: "Precision measurement of the ground-state hyperfine constant of 25Mg+"

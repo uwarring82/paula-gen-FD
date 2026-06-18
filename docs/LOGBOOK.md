@@ -7,6 +7,32 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 20) — Source catalog (docs/SOURCES.md)
+
+UW: carefully catalog all sources in a dedicated md file with metadata, own-words
+summaries, and the digital-twin figures of merit each highlights.
+
+Wrote **`docs/SOURCES.md`**: a FOM-at-a-glance table (the 7 sigma-validations and
+their sources), a master index of all 33 registered sources, Part A (the 10 ACTIVE
+sources supplying the twin's 65 records -- full metadata + own-words summary + the
+exact input/benchmark FOMs each contributes), Part B (registered lineage corpus,
+14 resolvable + 4 unresolved), Part C (5 internal PAULA notebooks), and an
+open-provenance section. The FOM map was built mechanically by grouping records by
+source.ref (clos2017 23, doerr2024 20, itano 6, wittemer2019 5, kaufmann2022 5,
+weber2025 2, friedenauer2010/hasse2025/codata2018/stone2005 1).
+
+Verified by a 2-lens workflow (registry/FOM fidelity + summary grounding vs the
+thesis texts): all metadata, counts, values, and summary claims confirmed faithful.
+Fixes applied -- **provenance correction**: the doerr2024 registry title was a
+flagged placeholder paraphrase; read the real title from the thesis title page and
+corrected BOTH `registries/sources.yaml` and the catalog: "Advanced Interferometer
+Techniques for Measuring Near-Resonant Light Shifts and Superresolving Trapped-Ion
+Dynamics". Plus: codata2018/stone2005 index icons corrected to "unverified" (they
+are archived:true but verified:false); noted BDD = Clos's "BDdet"; listed the 20th
+doerr record (clock_transition_residual). Substrate green.
+
+---
+
 ## 2026-06-18 (later 19) — Sideband + AC-Stark engines (Raman couplings & light shifts)
 
 UW: "go for it" (sideband engine) + "Should we include AC stark shifts of all
