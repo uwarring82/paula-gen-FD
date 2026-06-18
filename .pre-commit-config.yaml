@@ -1,0 +1,26 @@
+# Run `pre-commit install` once after cloning. Then every commit runs:
+#   - basic hygiene (whitespace, EOF, YAML/JSON well-formedness)
+#   - a large-file guard so the source PDFs can never slip into history
+#   - the iontrap-reference validator (schema + graph invariants)
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-json
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+        exclude: ^\.github/  # GitHub Actions YAML uses 'on:' which some linters mis-handle
+      - id: check-added-large-files
+        args: [--maxkb=2048]   # block accidental commit of the multi-MB source PDFs
+
+  - repo: local
+    hooks:
+      - id: iontrap-validate
+        name: iontrap-reference validator (schema + graph invariants)
+        entry: python validator/validate.py
+        language: system
+        pass_filenames: false
+        files: ^(records/|registries/|schema/|validator/).*\.(ya?ml|json|py)$
+        additional_dependencies: []
