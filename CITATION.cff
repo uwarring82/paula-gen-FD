@@ -13,7 +13,7 @@ type: dataset
 authors:
   - family-names: Warring
     given-names: Ulrich
-    # orcid: "https://orcid.org/0000-0000-0000-0000"  # TODO: fill in real ORCID before any release
+    orcid: "https://orcid.org/0000-0001-8081-9718"
     affiliation: "University of Freiburg"
 keywords:
   - trapped ions
