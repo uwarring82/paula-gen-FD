@@ -7,6 +7,36 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 8) — Twin composition root
+
+UW chose the composition root before the third (beams) engine: lock the
+ledger-inputs → wall → benchmark → residual-in-sigma interface down with two
+engines, before beams adds complexity (and while beams still lacks a measured
+differential-AC-Stark benchmark to validate against).
+
+**`spike/runner.py`** — registry of `Validation`s, a uniform `ValidationResult`
+(predicted, measured, sigma_pred/meas, residual, n_sigma, status, consumed
+inputs), `run_all` (captures per-validation errors as ERROR rows rather than
+aborting), `uncovered_benchmarks` (measured benchmarks no engine covers), and one
+rendered table. `validate_twin.py` is now a thin CLI shim → `runner.main`.
+`check_clock`/`check_modes` became `_validate_*` returning `ValidationResult`.
+
+```
+benchmark                        engine  ...  residual/kHz  n_sigma  status
+clock_transition_25mg            levels  ...  -2.65         1.09     ok
+omega_z_axial_stretch_2ion_25mg  modes   ...  +21.67        2.17     ok
+```
+
+The runner exits nonzero on any tension (>3σ) or error. Tests prove it: detects
+tension, surfaces a wall violation (engine consuming a benchmark) as ERROR, and
+flags uncovered benchmarks. Adding the next engine = implement + one `_validate_*`
++ register.
+
+**Cleanup (review):** refreshed `spike/README.md` (stale CLI output, wall section,
+done follow-ups) and made the CI step labels engine-agnostic. Tests 50 -> 58.
+
+---
+
 ## 2026-06-18 (later 7) — Second engine: axial normal modes
 
 UW chose the self-contained "normal-mode (mode ratios)" shape for the second
