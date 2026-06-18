@@ -7,6 +7,42 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 9) — Radial modes, hyperfine spectrum, provenance fix
+
+UW asked to add radial modes and the full ground-state hyperfine transitions.
+
+**INTEGRITY FINDING.** Extracting Wittemer Table 3.2 revealed it is a CALCULATION
+(Wübbena et al. 2012), NOT a measurement, and the experimental crystal is
+mixed-isotope 25Mg+ + 26Mg+ (the table has a 25+25 equal-mass column too). My
+earlier `omega_z_axial_stretch_2ion_25mg` benchmark was therefore MISLABELLED as
+"measured". Decision (UW): relabel the mode references as calculated
+cross-checks. Fixed: `observation_type: inferred -> simulated`, notes/conditions
+clarified (Wübbena 2012, 25+25 column, not a measurement). Open schema tension
+flagged: `measured_on` does not really apply to a `simulated` benchmark (kept as
+the publication-context placeholder).
+
+**Modes — radial.** Added `RadialModes` (transverse Hessian B_mm = (ω_r/ω_z)² −
+Σ1/|u|³, B_mn = +1/|u|³; ω_radial,p = √μ_p·ω_z), with a zigzag-instability guard
+(negative μ → raise). Reproduces the Wittemer 25+25 radial out-of-phase calc
+EXACTLY: √(ω_r²−ω_z²) = 2.5699 MHz vs 2.57 (0.01σ). Verified vs numpy to ~1e-15
+for N=2,3,4; N=6 at this ratio correctly flags the zigzag instability (real
+physics). Added `omega_radial_rocking_2ion_25mg` benchmark.
+
+**Levels — hyperfine spectrum.** Added `hyperfine_transitions(B)` (all 15
+|F=3,mF⟩↔|F=2,mF′⟩ microwave transitions with |ΔmF|≤1; the clock is the (0,0)
+entry) and `zeeman_splitting(F,mF,B)` (≈ g_F μ_B B; matches the Landé value to
+~0.1%). The clock is now one line of the full spectrum.
+
+**Runner.** Added `_validate_radial_rocking` (3 validations now); neutral
+"benchmark" column (covers measured + calculated references). All consistent:
+clock 1.09σ, axial stretch 2.17σ (the table's own √3-rounding), radial rocking
+0.01σ. Tests 58 -> 67.
+
+Follow-ups: a true MEASURED secular-frequency benchmark, and an unequal-mass
+engine for the 25+26 experiment.
+
+---
+
 ## 2026-06-18 (later 8) — Twin composition root
 
 UW chose the composition root before the third (beams) engine: lock the

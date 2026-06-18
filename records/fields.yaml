@@ -122,28 +122,62 @@
 - name: omega_z_axial_stretch_2ion_25mg
   value: 2.23e6
   units: Hz
-  kind: benchmark                # the modes engine predicts it from the COM input
+  kind: benchmark                # CALCULATED reference the modes engine reproduces
   uncertainty: {value: 5.0e3, type: systematic}     # quotation precision (±0.005 MHz)
   source:
     ref: wittemer2019
     loc: "Table 3.2, p. 53 (Sec. 3.3)"
     extraction_note: >-
-      Axial out-of-phase (stretch / breathing) mode of a two-ion 25Mg+/25Mg+
-      crystal, omega/(2pi) = 2.23 MHz, same table as the in-phase (COM)
+      Axial out-of-phase (stretch) mode, 2.23 MHz. CALCULATED value (Wübbena et
+      al. 2012), the 25+25 equal-mass column of Table 3.2 — NOT a measurement.
+      (The Wittemer experiment uses a mixed-isotope 25Mg+ + 26Mg+ crystal; its
+      axial out-of-phase calc is also 2.23 MHz.) Same table as the COM
       omega_z_axial_com_25mg = 1.30 MHz.
     extracted_by: claude-agent
     extracted_on: 2026-06-18
   scope: {isotope: 25Mg, subsystem: motion}
-  observation_type: inferred
+  observation_type: simulated
   derived_from: []
   generation: legacy
-  measured_on: 2019-01-01         # PLACEHOLDER (Wittemer-2019 period) — see caveat
-  conditions: "two-ion 25Mg+/25Mg+ linear crystal; axial out-of-phase (stretch) mode"
+  measured_on: 2019-01-01         # PLACEHOLDER: publication context, not a measurement — see caveat
+  conditions: "two-ion equal-mass (25+25) linear crystal; axial out-of-phase (stretch) mode; CALCULATED (Wübbena 2012)"
   caveats: >-
-    Modes-engine WALL target: the engine predicts this as sqrt(3) * COM from the
-    input omega_z_axial_com_25mg; it must NEVER be fed in. The sqrt(3) normal-mode
-    relation holds to ~1% in the quoted (3-sig-fig) data (predicted 2.252 MHz vs
-    measured 2.23 MHz). measured_on is a PLACEHOLDER for the Wittemer-2019 period;
-    replace with the exact date before status: confirmed. Same
-    determination-method caveat as the COM record.
+    CALCULATED reference cross-check (observation_type: simulated, NOT a
+    measurement). The modes engine predicts the equal-mass stretch as
+    sqrt(3)*COM = 2.2517 MHz from the input omega_z_axial_com_25mg; the table's
+    25+25 value (2.23 MHz) is ~1% lower because its quoted COM and stretch are
+    not mutually sqrt(3)-consistent at 3 sig figs. Must NEVER be fed into the
+    engine. SCHEMA NOTE: measured_on does not really apply to a calculated
+    reference (it holds the Wittemer-2019 publication context as a placeholder).
+    A true measurement benchmark, and an unequal-mass engine for the 25+26
+    experiment, are follow-ups.
+  status: provisional
+
+- name: omega_radial_rocking_2ion_25mg
+  value: 2.57e6
+  units: Hz
+  kind: benchmark                # CALCULATED reference the modes engine reproduces
+  uncertainty: {value: 5.0e3, type: systematic}     # quotation precision (±0.005 MHz)
+  source:
+    ref: wittemer2019
+    loc: "Table 3.2, p. 53 (Sec. 3.3)"
+    extraction_note: >-
+      Radial out-of-phase (rocking) mode, 2.57 MHz. CALCULATED value (Wübbena et
+      al. 2012), the 25+25 equal-mass column of Table 3.2 — NOT a measurement.
+      Predicted exactly by sqrt(omega_radial_com^2 - omega_z_axial_com^2) =
+      sqrt(2.88^2 - 1.30^2) = 2.5699 MHz. (Mixed-isotope 25+26 calc: 2.50 MHz.)
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: simulated
+  derived_from: []
+  generation: legacy
+  measured_on: 2019-01-01         # PLACEHOLDER: publication context, not a measurement — see caveat
+  conditions: "two-ion equal-mass (25+25) linear crystal; radial out-of-phase (rocking) mode; CALCULATED (Wübbena 2012)"
+  caveats: >-
+    CALCULATED reference cross-check (observation_type: simulated, NOT a
+    measurement). The modes engine reproduces it EXACTLY (sqrt(omega_r^2 -
+    omega_z^2) = 2.5699 MHz) from the radial + axial COM inputs. Must NEVER be
+    fed into the engine. Same measured_on / mixed-isotope schema notes as
+    omega_z_axial_stretch_2ion_25mg.
   status: provisional

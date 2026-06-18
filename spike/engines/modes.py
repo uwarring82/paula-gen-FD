@@ -120,3 +120,79 @@ class AxialModes:
         if N < 2:
             raise ValueError("the stretch mode requires N >= 2 ions")
         return self.mode_frequencies(N)[1]
+
+
+# --------------------------------------------------------------------------- #
+# Radial (transverse) modes                                                   #
+# --------------------------------------------------------------------------- #
+# Transverse displacements couple to Coulomb with HALF the magnitude and the
+# OPPOSITE sign of the axial direction, so the radial modes soften below the
+# single-ion radial frequency omega_r. The COM (all ions in phase) sits at
+# omega_r; lower modes are reduced, and if omega_r is too small the lowest mode
+# goes imaginary (the linear chain buckles to a zigzag).
+def transverse_hessian(u, alpha: float):
+    """Dimensionless transverse Hessian B (alpha = (omega_r/omega_z)^2):
+    B_mm = alpha - sum_{n!=m} 1/|u_m-u_n|^3,  B_mn = +1/|u_m-u_n|^3 (m!=n)."""
+    N = len(u)
+    B = [[0.0] * N for _ in range(N)]
+    for m in range(N):
+        diag = alpha
+        for n in range(N):
+            if n == m:
+                continue
+            inv3 = 1.0 / abs(u[m] - u[n]) ** 3
+            diag -= inv3
+            B[m][n] = inv3
+        B[m][m] = diag
+    return B
+
+
+def radial_mode_eigenvalues(N: int, alpha: float):
+    """Transverse eigenvalues mu_p (ascending); omega_radial,p = sqrt(mu_p)*omega_z.
+    A negative mu means the linear chain is unstable (zigzag) — raised loudly."""
+    out = []
+    for mu in eigvalsh(transverse_hessian(equilibrium_positions(N), alpha)):
+        if mu < -1e-9:
+            raise ValueError(
+                f"radial mode unstable (mu={mu:.3e} < 0): the linear chain buckles "
+                "to a zigzag; omega_r is too small relative to omega_z"
+            )
+        out.append(max(mu, 0.0))
+    return out
+
+
+def radial_mode_frequencies(omega_z: float, omega_r: float, N: int):
+    """The N radial normal-mode frequencies [Hz], ascending (the COM, = omega_r,
+    is the highest; lower modes are Coulomb-softened)."""
+    alpha = (omega_r / omega_z) ** 2
+    return [omega_z * math.sqrt(mu) for mu in radial_mode_eigenvalues(N, alpha)]
+
+
+class RadialModes:
+    """Radial (transverse) normal modes of an N-ion chain, parameterised by the
+    single-ion axial (omega_z) and radial (omega_r) secular frequencies."""
+
+    def __init__(self, omega_z: float, omega_r: float):
+        self.omega_z = float(omega_z)
+        self.omega_r = float(omega_r)
+
+    @classmethod
+    def from_ledger(cls, ledger, axial_com_name: str = "omega_z_axial_com_25mg",
+                    radial_com_name: str = "omega_radial_com_25mg"):
+        """Build from the axial + radial COM `input` records (wall-enforced)."""
+        return cls(omega_z=ledger.input_quantity(axial_com_name).value,
+                   omega_r=ledger.input_quantity(radial_com_name).value)
+
+    def mode_frequencies(self, N: int):
+        return radial_mode_frequencies(self.omega_z, self.omega_r, N)
+
+    def com_frequency(self) -> float:
+        """The radial COM mode [Hz] = omega_r (the highest radial mode)."""
+        return self.omega_r
+
+    def rocking_frequency(self, N: int = 2) -> float:
+        """The lowest (out-of-phase / rocking) radial mode [Hz]. For N=2 this is
+        sqrt(omega_r^2 - omega_z^2)."""
+        if N < 2:
+            raise ValueError("the rocking mode requires N >= 2 ions")
+        return self.mode_frequencies(N)[0]

@@ -112,6 +112,33 @@ def test_rejects_nonfinite_A():
         GroundStateZeeman(A_hz=float("nan"), I=2.5)
 
 
+# --- ground-state hyperfine / Zeeman transition spectrum --------------------
+def test_clock_is_the_00_hyperfine_transition():
+    e = eng()
+    B = 5.5 * C.GAUSS
+    hf = e.hyperfine_transitions(B)
+    assert hf[(0.0, 0.0)] == pytest.approx(e.clock_transition(B))
+    assert e.clock_transition_from_spectrum(B) == pytest.approx(e.clock_transition(B))
+
+
+def test_hyperfine_transition_count():
+    # F=3 (mF -3..3) <-> F=2 (mF -2..2) with |dmF| <= 1  ->  15 transitions
+    assert len(eng().hyperfine_transitions(5.5 * C.GAUSS)) == 15
+
+
+def test_zeeman_splitting_matches_lande_g_factor():
+    e = eng()
+    B = 5.5 * C.GAUSS
+    dz = e.zeeman_splitting(3.0, 0.0, B)
+    gF3 = C.G_J_2S12 * (3 * 4 + 0.5 * 1.5 - 2.5 * 3.5) / (2 * 3 * 4)   # Landé g_F (electronic)
+    assert dz == pytest.approx(gF3 * C.MU_B_OVER_H * B, rel=0.02)
+
+
+def test_hyperfine_transitions_require_half_integer_I():
+    with pytest.raises(ValueError):
+        GroundStateZeeman(A_hz=A_25MG, I=1.0).hyperfine_transitions(5.5 * C.GAUSS)
+
+
 def test_input_quantity_refuses_benchmark():
     ledger = Ledger.load()
     # the wall, at the ledger boundary: a benchmark cannot be consumed as an input

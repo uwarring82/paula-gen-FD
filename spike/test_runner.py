@@ -48,7 +48,8 @@ def test_real_validations_consistent():
     assert len(results) == len(REGISTRY)
     assert all(r.ok for r in results)
     names = {r.benchmark for r in results}
-    assert names == {"clock_transition_25mg", "omega_z_axial_stretch_2ion_25mg"}
+    assert names == {"clock_transition_25mg", "omega_z_axial_stretch_2ion_25mg",
+                     "omega_radial_rocking_2ion_25mg"}
 
 
 def test_render_table_has_rows():

@@ -12,6 +12,7 @@ import pytest
 
 from spike.engines.modes import (
     AxialModes,
+    RadialModes,
     axial_mode_eigenvalues,
     equilibrium_positions,
 )
@@ -103,3 +104,35 @@ def test_large_chain_converges():
     assert lam[0] == pytest.approx(1.0, abs=1e-9)   # COM
     assert lam[1] == pytest.approx(3.0, abs=1e-7)   # stretch
     assert all(x >= 0.0 for x in lam)
+
+
+# --- radial (transverse) modes ----------------------------------------------
+def test_radial_rocking_two_ion():
+    r = RadialModes(1.30e6, 2.88e6)
+    expected = math.sqrt((2.88e6) ** 2 - (1.30e6) ** 2)   # sqrt(omega_r^2 - omega_z^2)
+    assert r.rocking_frequency(2) == pytest.approx(expected, rel=1e-9)
+
+
+def test_radial_com_is_omega_r():
+    r = RadialModes(1.30e6, 2.88e6)
+    assert r.com_frequency() == 2.88e6
+    assert r.mode_frequencies(2)[-1] == pytest.approx(2.88e6, rel=1e-9)   # COM is the highest
+    assert r.mode_frequencies(2)[0] < r.mode_frequencies(2)[1]            # rocking below COM
+
+
+def test_radial_instability_raises_for_soft_radial():
+    with pytest.raises(ValueError):
+        RadialModes(2.0e6, 1.0e6).rocking_frequency(2)   # omega_r < omega_z -> zigzag
+
+
+def test_radial_from_ledger_reproduces_calc():
+    ledger = Ledger.load()
+    r = RadialModes.from_ledger(ledger)
+    bench = ledger.benchmark_quantity("omega_radial_rocking_2ion_25mg")
+    assert abs(r.rocking_frequency(2) - bench.value) < 1e3   # matches the 2.57 MHz calc to ~0.1 kHz
+
+
+def test_radial_from_ledger_refuses_benchmark():
+    ledger = Ledger.load()
+    with pytest.raises(ValueError):
+        RadialModes.from_ledger(ledger, radial_com_name="omega_radial_rocking_2ion_25mg")

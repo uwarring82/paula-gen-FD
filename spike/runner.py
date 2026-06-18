@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 from .engines.levels import GroundStateZeeman
-from .engines.modes import AxialModes
+from .engines.modes import AxialModes, RadialModes
 from .ledger import Ledger
 
 THRESHOLD_SIGMA = 3.0
@@ -111,9 +111,29 @@ def _validate_stretch(ledger: Ledger) -> ValidationResult:
     )
 
 
+def _validate_radial_rocking(ledger: Ledger) -> ValidationResult:
+    axial = ledger.input_quantity("omega_z_axial_com_25mg")
+    radial = ledger.input_quantity("omega_radial_com_25mg")
+    bench = ledger.benchmark_quantity("omega_radial_rocking_2ion_25mg")
+    eng = RadialModes.from_ledger(ledger)         # consumes both COMs (wall-enforced)
+    rock = lambda wz, wr: RadialModes(wz, wr).rocking_frequency(2)  # noqa: E731
+    sigma_pred = math.hypot(
+        _central_sigma(lambda wr: rock(axial.value, wr), radial.value, radial.sigma),
+        _central_sigma(lambda wz: rock(wz, radial.value), axial.value, axial.sigma),
+    )
+    return ValidationResult(
+        benchmark=bench.name, engine="modes",
+        subsystem=ledger.record(bench.name)["scope"]["subsystem"],
+        predicted=eng.rocking_frequency(2), measured=bench.value, units=bench.units,
+        sigma_pred=sigma_pred, sigma_meas=bench.sigma,
+        consumed=("omega_z_axial_com_25mg", "omega_radial_com_25mg"),
+    )
+
+
 REGISTRY = [
     Validation("clock_transition_25mg", "levels", _validate_clock),
     Validation("omega_z_axial_stretch_2ion_25mg", "modes", _validate_stretch),
+    Validation("omega_radial_rocking_2ion_25mg", "modes", _validate_radial_rocking),
 ]
 
 
@@ -150,7 +170,7 @@ def _cell(value: float, units: str, kind: str) -> str:
 
 
 def render_table(results: list[ValidationResult]) -> str:
-    head = ["benchmark", "engine", "subsystem", "predicted/MHz", "measured/MHz",
+    head = ["benchmark", "engine", "subsystem", "predicted/MHz", "benchmark/MHz",
             "residual/kHz", "n_sigma", "status"]
     rows = []
     for r in results:

@@ -128,6 +128,37 @@ class GroundStateZeeman:
         lv = self.levels(B)
         return abs(lv[(self.I + 0.5, 0.0)] - lv[(self.I - 0.5, 0.0)])
 
+    def _require_half_integer_I(self):
+        if abs((self.I + 0.5) - round(self.I + 0.5)) > 1e-9:
+            raise ValueError(f"integer F (m_F=0 manifold) requires half-integer I; got I={self.I}")
+
+    def hyperfine_transitions(self, B: float) -> dict:
+        """All |F=I+1/2, m_F> <-> |F=I-1/2, m_F'> microwave hyperfine transitions
+        [Hz], keyed by (m_F_upper, m_F_lower), with |delta m_F| <= 1 (magnetic
+        dipole). The field-insensitive clock is the (0, 0) entry; the others
+        carry first-order Zeeman shifts."""
+        self._require_half_integer_I()
+        lv = self.levels(B)
+        hi = {mF: E for (F, mF), E in lv.items() if F == self.I + 0.5}
+        lo = {mF: E for (F, mF), E in lv.items() if F == self.I - 0.5}
+        return {
+            (mFu, mFl): abs(Eu - El)
+            for mFu, Eu in hi.items()
+            for mFl, El in lo.items()
+            if abs(mFu - mFl) <= 1.0
+        }
+
+    def clock_transition_from_spectrum(self, B: float) -> float:
+        """The clock as the (0,0) entry of the hyperfine spectrum (cross-check of
+        clock_transition())."""
+        return self.hyperfine_transitions(B)[(0.0, 0.0)]
+
+    def zeeman_splitting(self, F: float, mF_low: float, B: float) -> float:
+        """Adjacent Zeeman splitting E(F, mF_low+1) - E(F, mF_low) [Hz] within a
+        hyperfine manifold (~ g_F mu_B B at low field; sign follows g_F)."""
+        lv = self.levels(B)
+        return lv[(F, mF_low + 1.0)] - lv[(F, mF_low)]
+
     def quadratic_zeeman_coeff(self) -> float:
         """Leading quadratic Zeeman coefficient K [Hz/T^2] of the clock
         transition: nu(B) ~ nu0 + K B^2, K = (g_J mu_B/h - g_I mu_N/h)^2 / (2 nu0)."""
