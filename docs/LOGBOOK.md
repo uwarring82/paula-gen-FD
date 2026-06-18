@@ -7,6 +7,33 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 13) — Established the cooling/preparation/detection beams
+
+UW: establish the cooling (BD), preparation (RD/RP) and detection (BDX) beams
+(lab labels).
+
+Extracted from Doerr 2024 + Kaufmann 2022: the Blue Doppler (BD) laser
+(~279.635 nm, S1/2 -> P3/2, sigma+, natural linewidth Gamma ~ 42 MHz) is
+AOM-split into three beams driving the cycling transition
+|down>=|F=3,mF=3> <-> P3/2|F=4,mF=4>: **BDX** (near resonance, detection),
+**BD** (red by ~Gamma/2 ~ 20 MHz, Doppler-limit cooling to ~1 mK), and **BDD**
+(far red ~10-12 Gamma, cooling hot ions). **RD/RP** (sigma+) optically pump the
+ion into |down> for preparation (RD: S1/2 F=2 -> P; RP: S1/2 F=3 -> P).
+
+Established 7 input records in `records/beams.yaml`: `mg_p32_natural_linewidth`,
+`bd_laser_wavelength`, `bd_doppler_cooling_detuning`, `bdd_far_cooling_detuning`,
+`bdx_detection_detuning`, `rd_repump_polarization`, `rp_repump_polarization`
+(joining the existing `raman_detuning_from_p32`). 44 records total; substrate
+green.
+
+Gaps flagged (coverage, not completeness): beam POWERS and WAISTS at the ion are
+not given in the sources (omitted); the RD/RP exact detunings/powers are not
+stated (recorded the polarisation categorically); and the RD/RP excited-state
+target is ambiguous in Doerr (P_1/2 in the beam section vs P_3/2 F=3 elsewhere) —
+flagged for confirmation. BDD detuning spans the quoted ~10-12 Gamma.
+
+---
+
 ## 2026-06-18 (later 12) — Absolute-rate model: attempted, NOT achievable (honest)
 
 UW: "go for it" — extract Doerr Section 3 and build the absolute-rate drive
