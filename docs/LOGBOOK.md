@@ -24,7 +24,10 @@ regression tests.
   apparatus-dependent record could pass with an empty configuration (the field
   merely had to exist). Added `minProperties: 1` to the configuration object in
   `record.schema.json`; `null` is still allowed for apparatus-independent
-  quantities.
+  quantities. *(Follow-up review:* `minProperties:1` still let an all-null object
+  through, e.g. `{trap: null}`, which resolves nothing — added a graph error for
+  dict configs where every slot is null, with a clear "use configuration: null"
+  message.*)*
 - **Medium — the wall lint was unverified.** The self-tests imported only
   `_check_inheritance_and_cycles`, so the AC-Stark hard rule and the
   input/benchmark default-kind lints were untested despite the README/CI claiming

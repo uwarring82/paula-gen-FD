@@ -92,8 +92,9 @@ and pre-commit:
    **inheritance test** (no `kind: input` whose `derived_from` closure touches a
    `benchmark`); `derived_from` cycle detection; real-date checks.
 
-See ADR-0006. The validator ships self-tests that prove both graph invariants
-reject real violations.
+See ADR-0006. The validator ships self-tests that prove the graph invariants
+(the wall, transitive inheritance, cycle detection) reject real violations and
+that malformed records are reported rather than crashing the run.
 
 ## FAIR & scientific practice
 

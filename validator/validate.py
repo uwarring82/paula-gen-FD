@@ -252,6 +252,13 @@ def graph_check(root: Path, rep: Report, records: list[dict]) -> None:
 
         cfg = rec.get("configuration")
         if isinstance(cfg, dict):
+            if cfg and all(v is None for v in cfg.values()):
+                rep.error(
+                    where,
+                    "configuration is an object but every slot is null — it carries no "
+                    "resolvable key. Use configuration: null for apparatus-independent "
+                    "quantities, or set at least one slot (trap/beams/b_field).",
+                )
             for slot_name, slot_key in cfg.items():
                 if slot_key is None:
                     continue

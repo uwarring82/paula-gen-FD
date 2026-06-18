@@ -213,3 +213,16 @@ def test_configuration_null_accepted_for_confirmed():
     rep = Report()
     schema_check(REPO_ROOT, rep, [_full_record(status="confirmed", configuration=None)])
     assert not any("configuration" in e for e in rep.errors)
+
+
+def test_configuration_all_null_slots_rejected_by_graph():
+    # passes schema (minProperties:1) but carries no resolvable key -> graph error
+    rep = Report()
+    graph_check(REPO_ROOT, rep, [_full_record(status="confirmed", configuration={"trap": None})])
+    assert any("every slot is null" in e for e in rep.errors)
+
+
+def test_configuration_one_real_slot_passes_graph():
+    rep = Report()
+    graph_check(REPO_ROOT, rep, [_full_record(configuration={"trap": "mg_linear_trap_v3", "beams": None})])
+    assert not any("every slot is null" in e for e in rep.errors)

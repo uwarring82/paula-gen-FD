@@ -34,7 +34,7 @@ level) and [`validator/validate.py`](../validator/validate.py) (graph level).
 | `observation_type` | req | `direct` \| `fitted` \| `inferred` \| `derived` \| `simulated`. `derived` ⇒ non-empty `derived_from`. |
 | `derived_from` | req | List of `name`s this quantity is computed from; `[]` for directly obtained values. |
 | `generation` | req | Key into [`registries/generations.yaml`](../registries/generations.yaml); lineage stage. |
-| `configuration` | conf | Compositional slot keys (`trap` / `beams` / `b_field`); `null` only if genuinely apparatus-independent. |
+| `configuration` | conf | Compositional slot keys (`trap` / `beams` / `b_field`); `null` only if genuinely apparatus-independent. An object must carry ≥1 slot, and not all slots may be `null` (an all-null object resolves nothing — use `null` instead). |
 | `measured_on` | req-b | `YYYY-MM-DD` the **physical quantity** was valid (not the extraction date). |
 | `conditions` | opt | Physical state of validity not captured by the configuration key. |
 | `caveats` | opt | Applicability / breakdown warnings. Distinct from `extraction_note` (referent) and `conditions` (state). |
