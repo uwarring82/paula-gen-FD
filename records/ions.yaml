@@ -1,0 +1,219 @@
+# =============================================================================
+# records/ions.yaml  —  IONS domain
+# Mg ground-state structure. The schema is anchored on the 25Mg+ ground-state
+# (3s 2S_1/2) HYPERFINE manifold (I = 5/2 -> F = 2 and F = 3, the qubit). The
+# individual F states and the splitting are expressed as DISTINCT records.
+# 24Mg and 26Mg are even isotopes (I = 0): they carry NO hyperfine manifold and
+# express only a role (coolant / co-trapped) — never a faked manifold.
+#
+# This file also carries the worked input/benchmark WALL pair:
+#   input     -> hyperfine_splitting_25mg_f2_f3  (literature atomic structure,
+#                the twin consumes it)
+#   benchmark -> clock_transition_25mg           (in-house precision measurement,
+#                the twin must REPRODUCE it; never fed in)
+#
+# PROVENANCE / REVIEW: seed records are from an automated extraction pass
+# (docs/LOGBOOK.md, 2026-06-18), not yet human-reviewed; most are provisional.
+# =============================================================================
+
+# --- nuclear spins (express the manifold structure; no I=0 faking) -----------
+
+- name: nuclear_spin_25mg
+  value: 2.5                      # I = 5/2
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 0, type: exact}
+  source:
+    ref: itano_wineland_1981
+    loc: "ground-state hyperfine measurement of 25Mg+ (I = 5/2)"
+    extraction_note: >-
+      Nuclear spin of 25Mg, I = 5/2 — the origin of the F = 2 / F = 3
+      ground-state hyperfine manifold (the qubit). Fundamental nuclear constant.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  configuration: null             # apparatus-independent atomic constant
+  caveats: "Fundamental nuclear constant; not apparatus-dependent."
+  status: confirmed
+
+- name: nuclear_spin_24mg
+  value: 0                        # I = 0 (even isotope)
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 0, type: exact}
+  source:
+    ref: clos2017
+    loc: "Sec. 3.1 (Mg isotopes / ground-state level structure)"
+    extraction_note: >-
+      24Mg is an even isotope with I = 0: NO hyperfine structure. Expressed as
+      I = 0, never as a faked hyperfine manifold.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 24Mg, subsystem: internal_state}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  caveats: >-
+    Role: commonly the sympathetic-coolant / co-trapped isotope, NOT a qubit
+    (role not verified from a specific source location in this pass). source.loc
+    points to the section introducing the isotopes; exact line not verified.
+  status: provisional
+
+- name: nuclear_spin_26mg
+  value: 0                        # I = 0 (even isotope)
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 0, type: exact}
+  source:
+    ref: clos2017
+    loc: "Sec. 3.1 (Mg isotopes / ground-state level structure)"
+    extraction_note: >-
+      26Mg is an even isotope with I = 0: NO hyperfine structure. Expressed as
+      I = 0, never as a faked hyperfine manifold.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 26Mg, subsystem: internal_state}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  caveats: >-
+    Role: co-trapped / coolant isotope, NOT a qubit (role not verified from a
+    specific source location). source.loc as for nuclear_spin_24mg.
+  status: provisional
+
+# --- the 25Mg+ ground-state hyperfine manifold (F = 2 and F = 3) -------------
+
+- name: hyperfine_level_f2_25mg
+  value: 2                        # F = 2 manifold (2F+1 = 5 Zeeman sublevels)
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 0, type: exact}
+  source:
+    ref: clos2017
+    loc: "Sec. 3.1, p. 33"
+    extraction_note: >-
+      Lower-multiplicity hyperfine level F = 2 of the 25Mg+ 3s 2S_1/2 ground
+      state (5 Zeeman sublevels). The qubit is encoded on |F=3,mF=0> <-> |F=2,mF=0>.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  configuration: null
+  caveats: "Quantum number, not an energy. Energy ordering of F=2 vs F=3 not asserted here (A<0 inverts the manifold)."
+  status: confirmed
+
+- name: hyperfine_level_f3_25mg
+  value: 3                        # F = 3 manifold (2F+1 = 7 Zeeman sublevels)
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 0, type: exact}
+  source:
+    ref: clos2017
+    loc: "Sec. 3.1, p. 33"
+    extraction_note: >-
+      Higher-multiplicity hyperfine level F = 3 of the 25Mg+ 3s 2S_1/2 ground
+      state (7 Zeeman sublevels). Qubit partner of hyperfine_level_f2_25mg.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  configuration: null
+  caveats: "Quantum number, not an energy."
+  status: confirmed
+
+# --- INPUT side of the wall: literature hyperfine splitting ------------------
+
+- name: hyperfine_splitting_25mg_f2_f3
+  value: 1.79e9
+  units: Hz
+  kind: input                     # known atomic structure the twin CONSUMES
+  uncertainty: {value: 5.0e6, type: systematic}   # quotation precision (±0.005 GHz)
+  source:
+    ref: clos2017
+    loc: "Sec. 3.1, p. 33"
+    extraction_note: >-
+      25Mg+ ground-state F=2 <-> F=3 hyperfine splitting, quoted as 2pi*1.79 GHz
+      between |F=3,mF=0> and |F=2,mF=0>. Clos attributes the hyperfine constants
+      to Itano & Wineland (1981) (cited p. 73). Friedenauer (2pi*1.77 GHz),
+      Wittemer (~1.8 GHz) and Doerr (~1.79 GHz) agree to lower precision.
+      Uncertainty here reflects the quoted rounding, not a stated error.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: fitted        # original value determined by precision spectroscopy (Itano & Wineland)
+  derived_from: []
+  generation: legacy
+  configuration: null             # atomic constant
+  caveats: >-
+    Coarse literature value (1.79 GHz). The original precision value (Itano &
+    Wineland 1981) is ~1788.76 MHz; cite the original directly if higher
+    precision is needed than the Clos rounding provides.
+  status: provisional
+
+- name: hyperfine_a_constant_25mg
+  value: 5.97e8                   # |A| = splitting / 3  (interval rule, 2S_1/2)
+  units: Hz
+  kind: input                     # derived purely from an input -> stays input
+  uncertainty: {value: 1.7e6, type: systematic}
+  source:
+    ref: clos2017
+    loc: "derived from hyperfine_splitting_25mg_f2_f3 (Sec. 3.1, p. 33)"
+    extraction_note: >-
+      Magnetic-dipole hyperfine constant magnitude |A| of the 25Mg+ 3s 2S_1/2
+      state, computed from the F=2/F=3 splitting via the Landé interval rule:
+      for a 2S_1/2 state (J=1/2) only the magnetic-dipole term contributes and
+      Delta = 3|A|, so |A| = Delta/3. Not stated explicitly in any thesis (only
+      the splitting is quoted) — this is a ledger-internal derivation.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: derived
+  derived_from: [hyperfine_splitting_25mg_f2_f3]
+  generation: legacy
+  configuration: null
+  caveats: >-
+    Demonstrates the 'derived' machinery and benchmark-inheritance (closure is
+    all-input -> stays input). A is NEGATIVE for 25Mg+ (manifold inverted); the
+    magnitude is recorded here. Value inherits the coarse precision of the
+    quoted splitting (true |A| ~ 596.25 MHz from Itano & Wineland 1981).
+  status: provisional
+
+# --- BENCHMARK side of the wall: in-house measured clock transition ----------
+
+- name: clock_transition_25mg
+  value: 1.7888322e9
+  units: Hz
+  kind: benchmark                 # in-house measurement the twin must REPRODUCE; never fed in
+  uncertainty: {value: 2.0e2, type: statistical}   # the (2) in the last digit = ±0.0002 MHz
+  source:
+    ref: doerr2024
+    loc: "Fig. 2.13, p. 33"
+    extraction_note: >-
+      Directly measured (in this apparatus) field-insensitive clock-transition
+      frequency |F=3,mF=0> <-> |F=2,mF=0|, omega_0,0/(2pi) = 1788.8322(2) MHz,
+      zero-field-extrapolated from a measurement at ~5.5 G (in-house Ramsey/Rabi
+      calibration, not a literature value). Verbatim: "omega_0,0/(2pi) =
+      1788.8322(2) MHz".
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  configuration: {trap: null, beams: null, b_field: nominal}
+  measured_on: 2024-01-01         # PLACEHOLDER (Doerr 2024 thesis period) — see caveat
+  conditions: "field-insensitive clock transition; value extrapolated to zero field"
+  caveats: >-
+    WALL EXEMPLAR (benchmark): given the atomic structure (input) and the field,
+    the twin must reproduce this measured value; it must NEVER be fed in.
+    measured_on is a PLACEHOLDER for the Doerr-2024 measurement period — replace
+    with the exact logbook date before status: confirmed. The b_field slot
+    'nominal' is a placeholder label pending confirmation.
+  status: provisional

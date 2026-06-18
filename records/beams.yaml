@@ -1,0 +1,37 @@
+# =============================================================================
+# records/beams.yaml  —  BEAMS domain
+# Raman pair, cooling, preparation, detection beams. Each beam parameter
+# (power, detuning, k-vector, polarisation, waist at the ion) is input by
+# default — the twin consumes it (invariant 5).
+#
+# PROVENANCE: automated extraction (docs/LOGBOOK.md, 2026-06-18), unreviewed.
+# Coverage, not completeness: beam waists and powers were NOT locatable with a
+# precise source in this pass and are deliberately omitted rather than guessed.
+# =============================================================================
+
+- name: raman_detuning_from_p32
+  value: 20.0e9
+  units: Hz
+  kind: input                     # beam detuning the twin consumes (input by default)
+  uncertainty: {value: 1.0e9, type: systematic}   # nominal value; tolerance estimated, not stated
+  source:
+    ref: doerr2024
+    loc: "Sec. 2.1.4, p. 11"
+    extraction_note: >-
+      Two-photon stimulated-Raman (TPSR) single-photon detuning of the virtual
+      level from the 3P_3/2 |F=4,mF=4> state: Delta_R/(2pi) = 20 GHz. Restated
+      in the level-scheme caption (Fig. 2.1, p. 7). The driven S->P transition
+      is near 280 nm. Verbatim: "...detuned by Delta_R/(2pi) = 20 GHz from the
+      P3/2 |F = 4, mF = 4> state".
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  caveats: >-
+    Quoted as a round nominal value (20 GHz); the recorded uncertainty is an
+    estimated tolerance, not a stated error. Beam configuration slot (raman_R*)
+    not asserted pending confirmation of the actual setting label, so
+    configuration is omitted.
+  status: provisional

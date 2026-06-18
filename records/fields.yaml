@@ -1,0 +1,89 @@
+# =============================================================================
+# records/fields.yaml  —  FIELDS domain
+# Analytical RF/DC E-fields and the B-field. The B-field defines the
+# quantisation axis; every polarisation and k-vector elsewhere is expressed
+# relative to it.
+#
+# PROVENANCE: seed records below were obtained by an automated extraction pass
+# over the lineage theses (see docs/LOGBOOK.md, 2026-06-18) and are NOT yet
+# human-reviewed -> all carry status: provisional. extracted_by records the
+# automated extractor; re-attribute to the human reviewer on confirmation.
+# Uncertainties tagged "quotation precision" are derived from the rounding of
+# the quoted value, NOT from a stated experimental error.
+# =============================================================================
+
+- name: omega_z_axial_com_25mg
+  value: 1.30e6
+  units: Hz
+  kind: input
+  uncertainty: {value: 5.0e3, type: systematic}     # quotation precision (±0.005 MHz)
+  source:
+    ref: wittemer2019
+    loc: "Table 3.2, p. 53 (Sec. 3.3)"
+    extraction_note: >-
+      Axial in-phase (centre-of-mass) secular frequency omega_z,i/(2pi) = 1.30 MHz
+      for a single 25Mg+, characterising the axial trapping potential. Plain
+      frequency value recorded (source quotes omega/2pi). Verbatim:
+      "axial in-phase  omega_z,i/(2pi)  1.30 MHz".
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: inferred
+  derived_from: []
+  generation: legacy
+  caveats: >-
+    Determination method (measured vs. model/design value) not established from
+    the table and is recorded as 'inferred' provisionally; no uncertainty stated
+    in source. Configuration-dependent, but the trap setting slot for the
+    Wittemer-generation apparatus is not yet registered, so configuration is
+    omitted. Confirm both before promoting to status: confirmed.
+  status: provisional
+
+- name: omega_radial_com_25mg
+  value: 2.88e6
+  units: Hz
+  kind: input
+  uncertainty: {value: 5.0e3, type: systematic}     # quotation precision (±0.005 MHz)
+  source:
+    ref: wittemer2019
+    loc: "Table 3.2, p. 53 (Sec. 3.3)"
+    extraction_note: >-
+      Radial in-phase (centre-of-mass) secular frequency omega_x,i/(2pi) =
+      2.88 MHz for a single 25Mg+. Verbatim:
+      "radial in-phase  omega_x,i/(2pi)  2.88 MHz".
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: inferred
+  derived_from: []
+  generation: legacy
+  caveats: >-
+    Same determination-method caveat as omega_z_axial_com_25mg. Configuration
+    omitted pending registration of the Wittemer-generation trap slot.
+  status: provisional
+
+- name: b_field_quantization
+  value: 5.85e-4
+  units: T
+  kind: input
+  uncertainty: {value: 5.0e-6, type: systematic}    # quotation precision (±0.005 mT)
+  source:
+    ref: clos2017
+    loc: "Sec. 3.1, p. 34"
+    extraction_note: >-
+      Magnetic-field magnitude defining the quantisation axis, |B| ~ 0.585 mT
+      (= 5.85 G). Corroborated by Doerr 2024 (~5.5 G, Sec. 2.1.1, p. 7) and by
+      the stated ~2pi*2.72 MHz splitting of adjacent ground-state Zeeman levels.
+      Verbatim: "our with |B| ~ 0.585 mT".
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: apparatus, subsystem: fields}
+  observation_type: inferred
+  derived_from: []
+  generation: legacy
+  caveats: >-
+    Source gives an approximate ('~') operating value; likely inferred from the
+    Zeeman splitting. The Clos and Doerr values differ (5.85 G vs ~5.5 G),
+    consistent with a generation-dependent calibration — do not treat as a
+    single apparatus-wide constant.
+  status: provisional
