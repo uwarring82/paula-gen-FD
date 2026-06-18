@@ -1,0 +1,35 @@
+# --- Source PDFs: kept LOCAL, never committed ---------------------------------
+# Theses/dissertations are large binaries and (in part) third-party copyrighted.
+# The sources registry (registries/sources.yaml) cites resolvable permalinks /
+# DOIs instead of dumping the PDFs into history. See docs/decisions/0002-*.md.
+sources/pdf/*
+!sources/pdf/README.md
+
+# Internal PAULA analysis notebooks (own primary sources): kept LOCAL and
+# registered in registries/sources.yaml so records can cite them, but not
+# committed (own unpublished analysis; poorly-diffable .nb blobs). See ADR-0002.
+sources/Mathematica/*
+!sources/Mathematica/README.md
+
+# --- macOS --------------------------------------------------------------------
+.DS_Store
+**/.DS_Store
+
+# --- Python -------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Editors / misc -----------------------------------------------------------
+*.swp
+.idea/
+.vscode/

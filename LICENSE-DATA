@@ -1,0 +1,48 @@
+Creative Commons Attribution 4.0 International (CC-BY-4.0)
+=========================================================
+
+This license applies to the DATA and PROSE DOCUMENTATION in this repository:
+the parameter records (records/), the registries (registries/), and the
+documentation under docs/. The software/code is licensed separately under MIT;
+see LICENSE.
+
+You are free to:
+  * Share  — copy and redistribute the material in any medium or format.
+  * Adapt  — remix, transform, and build upon the material for any purpose,
+             even commercially.
+
+Under the following terms:
+  * Attribution — You must give appropriate credit, provide a link to the
+    license, and indicate if changes were made. You may do so in any
+    reasonable manner, but not in any way that suggests the licensor endorses
+    you or your use.
+
+No additional restrictions — You may not apply legal terms or technological
+measures that legally restrict others from doing anything the license permits.
+
+How to attribute
+----------------
+"iontrap-reference (Ulrich Warring and contributors), CC-BY-4.0", with a link
+to the repository and to https://creativecommons.org/licenses/by/4.0/.
+Prefer the machine-readable citation metadata in CITATION.cff.
+
+Important note on third-party sources
+-------------------------------------
+This CC-BY-4.0 grant covers the ORIGINAL structured content authored here
+(the parameter records, registries, schema, and documentation). It does NOT
+relicense the underlying theses, dissertations, or journal articles that those
+records cite — those remain under their own copyright and are referenced, not
+redistributed (their PDFs are deliberately kept out of version control; see
+docs/decisions/0002-source-pdfs-out-of-vcs.md). Numerical facts extracted from
+those sources are not themselves copyrightable; the curation and structuring
+are what this license covers.
+
+Full legal text
+---------------
+The complete, canonical legal code of this license is published by Creative
+Commons and is incorporated here by reference:
+
+  Human-readable summary : https://creativecommons.org/licenses/by/4.0/
+  Full legal code        : https://creativecommons.org/licenses/by/4.0/legalcode
+
+In case of any discrepancy, the canonical legal code at the URL above governs.

@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this reference dataset, please cite it as below."
+title: "iontrap-reference: a citable parameter substrate for the Freiburg Mg+ ion-trap apparatus"
+abstract: >-
+  A source-of-truth repository for the lineage Magnesium-ion trap apparatus at
+  the University of Freiburg. A structured, schema-validated parameter layer
+  cites into the human-readable lineage theses and papers so that every number
+  is traceable to where it was measured or derived. A mandatory input/benchmark
+  flag separates parameters the digital twin consumes from quantities it must
+  reproduce, preventing calibration data from leaking into the parameterisation
+  set.
+type: dataset
+authors:
+  - family-names: Warring
+    given-names: Ulrich
+    # orcid: "https://orcid.org/0000-0000-0000-0000"  # TODO: fill in real ORCID before any release
+    affiliation: "University of Freiburg"
+keywords:
+  - trapped ions
+  - quantum simulation
+  - magnesium ion qubit
+  - FAIR data
+  - digital twin
+  - metrology
+license: CC-BY-4.0
+license-url: "https://creativecommons.org/licenses/by/4.0/"
+version: "0.1.0"
+date-released: "2026-06-18"
