@@ -1,0 +1,243 @@
+# =============================================================================
+# sources registry  —  citation key -> resolvable bibliographic entry
+# =============================================================================
+# Every record's source.ref resolves here. The PDFs themselves are NOT committed
+# (ADR-0002); this registry is the canonical, citable list.
+#
+# Resolvability was verified on 2026-06-18 (HTTP 200 / DOI / URN resolution).
+# FreiDok dissertations carry a DOI of the form 10.6094/UNIFR/{recordID}.
+# `verified: true` = the identifier was confirmed to resolve.
+# `archived: false` + `verified: false` = no public copy found; the source is
+# registered honestly with whatever secondary evidence exists (FAIR: document
+# the accessibility gap rather than hide the source). The validator WARNS on
+# referenced sources that are unresolvable or unverified.
+# =============================================================================
+
+# --- referenced by the current seed records ---------------------------------
+
+clos2017:
+  title: "Trapped atomic ions for fundamental studies of closed and open quantum systems"
+  author: "Govinda Clos"
+  year: 2017
+  degree: phd
+  institution: "Albert-Ludwigs-Universität Freiburg"
+  link: "https://freidok.uni-freiburg.de/data/12400"
+  doi: "10.6094/UNIFR/12400"
+  pdf: "https://freidok.uni-freiburg.de/files/12400/VPzpaieXqpLzWfeY/diss_govinda_clos_2017.pdf"
+  archived: true
+  verified: true
+  note: "Thesis behind PRL 117, 170401 (2016) (clos2016). FreiDok permalink + DOI resolve."
+
+wittemer2019:
+  title: "Particle creation and memory effects in a trapped ion quantum simulator"
+  author: "Matthias Wittemer"
+  year: 2019
+  degree: phd
+  institution: "Albert-Ludwigs-Universität Freiburg"
+  link: "https://freidok.uni-freiburg.de/data/151582"
+  doi: "10.6094/UNIFR/151582"
+  pdf: "https://freidok.uni-freiburg.de/files/151582/HguOjkAc0xQlpUM-/Dissertation_MWittemer_2019.pdf"
+  archived: true
+  verified: true
+  note: "Year is 2019 (oral exam Dec 2019). Permalink + DOI resolve."
+
+doerr2024:
+  title: "Master thesis on non-adiabatic switching of the trapping potential of two 25Mg+ ions"
+  author: "Frederike Dörr"
+  year: 2024
+  degree: msc
+  institution: "Albert-Ludwigs-Universität Freiburg"
+  metadata_source: "https://rtg-dyncam.de/members-new/members/frederike-doerr/"
+  archived: false
+  verified: false
+  note: >-
+    Thesis NOT publicly archived (not in FreiDok/DNB). Author/year/degree/topic
+    confirmed via her official RTG-DynCAM profile (a SECONDARY source that
+    resolves, not the thesis itself). The 'freddy' generation. Title is a
+    descriptive paraphrase; confirm exact title from the thesis. The numbers
+    cited from it were read from the local PDF (ADR-0002).
+
+itano_wineland_1981:
+  title: "Precision measurement of the ground-state hyperfine constant of 25Mg+"
+  author: "W. M. Itano and D. J. Wineland"
+  year: 1981
+  degree: article
+  doi: "10.1103/PhysRevA.24.1364"
+  archived: true
+  verified: false
+  note: "Phys. Rev. A 24, 1364 (1981). DOI follows the PRA pattern; not independently re-resolved here -> verified:false pending a click-through."
+
+# --- rest of the lineage corpus (registered per task-card scope) ------------
+
+friedenauer2010:
+  title: "Simulation of the Quantum Ising Model in an Ion Trap"
+  author: "Axel Friedenauer"
+  year: 2010
+  degree: phd
+  institution: "LMU München (not Freiburg)"
+  link: "https://edoc.ub.uni-muenchen.de/11595/"
+  doi: "10.5282/edoc.11595"
+  urn: "urn:nbn:de:bvb:19-115958"
+  pdf: "https://edoc.ub.uni-muenchen.de/11595/1/Axel_Friedenauer.pdf"
+  archived: true
+  verified: true
+  note: "PhD at LMU/MPQ Garching, NOT Freiburg. Related: Friedenauer et al., Nature Physics 4, 757 (2008). Record/DOI/PDF resolve."
+
+enderlein2013:
+  title: "Optical ion trapping for (scalable) quantum simulations and ultracold chemistry experiments"
+  author: "Martin Enderlein"
+  year: 2013
+  degree: phd
+  institution: "Albert-Ludwigs-Universität Freiburg"
+  link: "https://freidok.uni-freiburg.de/data/8886"
+  urn: "urn:nbn:de:bsz:25-opus-88867"
+  archived: true
+  verified: true
+  note: "Year is 2013 (not 2012); FreiDok record 8886. No DOI minted -> URN is the persistent id. (Record 9632 is a DIFFERENT thesis — do not confuse.)"
+
+hasse2025:
+  title: "Observation of dynamic processes demonstrated in a trapped-ion quantum simulator"
+  author: "Florian Haße"
+  year: 2025
+  degree: phd
+  institution: "Albert-Ludwigs-Universität Freiburg"
+  link: "https://freidok.uni-freiburg.de/data/274764"
+  doi: "10.6094/UNIFR/274764"
+  pdf: "https://freidok.uni-freiburg.de/files/274764/fN6sA654tw9SkIXq/Dissertation_Florian_Hasse.pdf"
+  archived: true
+  verified: true
+  note: "Oral exam 26 Nov 2025; supervisor T. Schätz. Defines the 'hasse' generation. Permalink + DOI resolve."
+
+clos2016:
+  title: "Time-Resolved Observation of Thermalization in an Isolated Quantum System"
+  author: "G. Clos, D. Porras, U. Warring, T. Schätz"
+  year: 2016
+  degree: article
+  doi: "10.1103/PhysRevLett.117.170401"
+  archived: true
+  verified: true
+  note: "Phys. Rev. Lett. 117, 170401 (2016). The journal paper from the Clos thesis."
+
+palani2023:
+  title: "High-Fidelity Transport of Trapped-Ion Qubits in a Multi-Layer Array"
+  author: "D. Palani, F. Hasse, P. Kiefer, F. Boeckling, J.-P. Schröder, U. Warring, T. Schätz"
+  year: 2023
+  degree: article
+  doi: "10.1103/PhysRevA.107.L050601"
+  archived: true
+  verified: true
+  note: >-
+    Phys. Rev. A 107, L050601 (2023); arXiv:2305.05741. The task card's
+    'hasse2021' key has NO matching publication — Hasse's earliest paper is this
+    2023 one. Re-key any 'hasse2021' citation to here (or hasse2025 thesis).
+
+# --- known corpus members with NO public resolvable copy (honestly flagged) --
+
+schmitz2010:
+  author: "Hector Schmitz"
+  year: 2010
+  degree: phd
+  institution: "LMU München"
+  archived: false
+  verified: false
+  note: >-
+    NOT FOUND online (not in LMU edoc / DNB / MPG.PuRe; appears print-only).
+    Year/institution inferred from Friedenauer's bibliography (ref [111]).
+    Co-first-author of Nature Physics 4, 757 (2008). No resolvable link exists.
+
+matjeschk2008:
+  author: "Robert Matjeschk"
+  year: 2008
+  degree: diplom
+  archived: false
+  verified: false
+  note: >-
+    Diplom thesis NOT publicly archived. Author confirmed (co-author of PRL 103,
+    090504 (2009)). His later PhD (Leibniz Univ. Hannover, 2014) IS archived
+    (urn:nbn:de:gbv:089-8052983630) — a DIFFERENT document.
+
+pacher2014:
+  author: "Jakob Pacher"
+  year: 2014
+  degree: diplom
+  archived: false
+  verified: false
+  note: >-
+    NOT FOUND. Filename 'pacer' is likely a typo; spelling 'Pacher' UNVERIFIED.
+    No thesis under either spelling in FreiDok/DNB. (A 2014 Diplom is unusual.)
+
+harlos2015:
+  author: "Jana Harlos"
+  year: 2015
+  degree: msc
+  archived: false
+  verified: false
+  note: "NOT FOUND in any public archive; title not confirmable from secondary sources."
+
+kaufmann2022:
+  author: "Ingolf Kaufmann"
+  year: 2022
+  degree: msc
+  archived: false
+  verified: false
+  note: >-
+    NOT FOUND (no public archive). Name corroborated via a DPG-2022 (Erlangen)
+    abstract in the Freiburg multi-ion-trap context, consistent with an MSc ~2022.
+
+weber2025:
+  author: "Andreas Weber"
+  year: 2025
+  degree: msc
+  archived: false
+  verified: false
+  note: "NOT FOUND in any public archive; not independently confirmable from secondary sources."
+
+# --- internal PAULA analysis notebooks (own primary sources; local-only) -----
+# Mathematica notebooks kept local (sources/Mathematica/, untracked); citable as
+# the origin of simulated/derived quantities. No public identifier -> the
+# validator WARNS when one is referenced (accepted accessibility flag).
+
+paula_mg_details_2014:
+  title: "PAULA Mg level-structure details (Mathematica notebook)"
+  author: "PAULA group (U. Warring et al.)"
+  year: 2014
+  degree: misc
+  archived: false
+  verified: false
+  note: "Local: sources/Mathematica/Notes_PAULA_Mg_details_2014_07_10.nb."
+
+paula_mg_scatterrate_2015:
+  title: "PAULA Mg scattering-rate notes (Streurate, Mathematica notebook)"
+  author: "PAULA group (U. Warring et al.)"
+  year: 2015
+  degree: misc
+  archived: false
+  verified: false
+  note: "Local: sources/Mathematica/Notes_PAULA_Mg_streurate_2015_07_17.nb."
+
+paula_bem_shims_2017:
+  title: "PAULA BEM optimisation of experimental-zone shim fields (Mathematica notebook)"
+  author: "PAULA group (U. Warring et al.)"
+  year: 2017
+  degree: misc
+  archived: false
+  verified: false
+  note: "Local: sources/Mathematica/TrapSim_PAULA_BEM_opt_ExpZone_Shims_2017_05_30.nb."
+
+paula_mode_orientations_2017:
+  title: "PAULA motional-mode orientations trap simulation (Mathematica notebook)"
+  author: "PAULA group (U. Warring et al.)"
+  year: 2017
+  degree: misc
+  archived: false
+  verified: false
+  note: "Local: sources/Mathematica/TrapSim_PAULA_Mode_orientations_2017_07_11.nb."
+
+paula_trapsim_2018:
+  title: "PAULA trap simulations (Mathematica notebook)"
+  author: "PAULA group (U. Warring et al.)"
+  year: 2018
+  degree: misc
+  archived: false
+  verified: false
+  note: "Local: sources/Mathematica/Notes_PAULA_TrapSimulations_2018_10_31.nb."

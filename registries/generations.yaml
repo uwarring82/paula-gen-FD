@@ -1,0 +1,44 @@
+# =============================================================================
+# generations registry  —  apparatus LINEAGE stages
+# =============================================================================
+# A `generation` records the lineage stage at which a quantity entered the
+# apparatus record. It is ORTHOGONAL to `configuration` (physical state); the
+# two are deliberately kept apart (schema invariant 6) so per-record entries
+# stay lean.
+#
+# Validated by schema/generations.schema.json (field-level) and by
+# validator/validate.py (every record's `generation` must resolve here; every
+# non-null `supersedes` must resolve to a sibling generation).
+#
+# PROVENANCE NOTE: the `changes` lists below are PROVISIONAL. The entries for
+# `hasse` carry the illustrative changes from the task card and have NOT yet
+# been confirmed against the thesis; they must be verified/expanded by the
+# domain expert (UW) before any `status: confirmed` record leans on them.
+# See docs/LOGBOOK.md (2026-06-18) and docs/decisions/0004.
+# =============================================================================
+
+legacy:
+  description: >-
+    Pre-Hasse lineage stages of the Freiburg Mg+ apparatus (Friedenauer through
+    the pre-2025 builds). Placeholder bucket retained until the full lineage is
+    broken out into individual generations.
+  supersedes: null
+  period: "~2008-2024"
+  changes: []
+
+hasse:
+  description: "Hasse-thesis generation of the Mg+ apparatus."
+  supersedes: legacy
+  period: "~2024-2025"
+  changes:
+    - "Raman beam geometry updated"        # PROVISIONAL (task-card example, unverified)
+    - "Trap-drive electronics revised"     # PROVISIONAL (task-card example, unverified)
+    - "New magnetic-field calibration"     # PROVISIONAL (task-card example, unverified)
+
+freddy:
+  description: >-
+    Current in-lab generation (Freddy PhD; Frederike Doerr). The live apparatus
+    against which present-day benchmarks are measured.
+  supersedes: hasse
+  period: "2025-"
+  changes: []   # to be filled as the current generation evolves

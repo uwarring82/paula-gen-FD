@@ -1,0 +1,33 @@
+# =============================================================================
+# configuration_slots registry  —  physical STATE vocabulary
+# =============================================================================
+# `configuration` is compositional but SHALLOW: a fixed set of named top-level
+# slots (trap / beams / b_field), each holding named keys that live in their own
+# slot namespace. Changing a parameter axis means swapping ONE slot key, which
+# keeps dense parameter-space exploration from exploding the registry; it is
+# deliberately NOT a free-form nesting DSL.
+#
+# The TOP-LEVEL slot set is fixed by schema/configuration_slots.schema.json.
+# Adding a slot is a deliberate schema change (see docs/decisions/0005).
+#
+# `supersedes` records per-slot lineage and must resolve to a sibling key within
+# the same slot (enforced by validator/validate.py).
+# =============================================================================
+
+trap:
+  mg_linear_trap_v3:
+    description: "Linear Paul trap, Mg+ apparatus, axial confinement setting A."
+    supersedes: null
+
+beams:
+  raman_R2:
+    description: "Raman beam geometry/setting R2 (predecessor of R3)."
+    supersedes: null
+  raman_R3:
+    description: "Raman beam geometry/setting R3."
+    supersedes: raman_R2
+
+b_field:
+  nominal:
+    description: "Nominal magnetic-field calibration defining the quantisation axis."
+    supersedes: null
