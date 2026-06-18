@@ -107,11 +107,12 @@
   observation_type: inferred
   derived_from: []
   generation: freddy
-  configuration: null
   caveats: >-
     Stated only as "~5.5 G", so its ~0.1 G uncertainty dominates the clock
     prediction. Distinct from the Clos-generation b_field_quantization (5.85 G).
     Because it is calibrated independently of the clock transition, it is a
     legitimate INPUT (no wall leakage); cf. b_field_from_clock_25mg, the field
-    BACK-INFERRED from the clock benchmark (5.61 G).
+    BACK-INFERRED from the clock benchmark (5.61 G). configuration omitted: this
+    IS a freddy-generation field (apparatus-dependent, NOT null), left unset
+    while provisional.
   status: provisional

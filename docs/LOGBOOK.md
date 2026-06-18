@@ -28,6 +28,15 @@ clock implies 5.61 G). `b_field_from_clock_25mg` is kept as the field-space
 mirror of the same check. Numbers re-verified numerically; validator green
 (18 records, 1 expected warning).
 
+*Review follow-up:* `b_field_quantization_freddy` and `clock_transition_predicted_25mg`
+had `configuration: null`, which asserts apparatus-INdependence — wrong for a
+field and a value computed at it. Both now omit `configuration` (provisional),
+consistent with the sibling field records; the remaining `null`s are all genuine
+atomic constants (incl. K, which depends only on nu_hf0 + fundamental constants).
+Also relabelled `clock_transition_residual_25mg` uncertainty `statistical ->
+systematic` (the 2.4 kHz is the ~0.1 G field systematic propagated through the
+prediction; the measured statistical part is ~0.2 kHz).
+
 ---
 
 ## 2026-06-18 (later 3) — Clock-transition tension resolved (quadratic Zeeman)

@@ -339,18 +339,19 @@
   observation_type: derived
   derived_from: [hyperfine_splitting_calc_25mg, qubit_quadratic_zeeman_coeff_25mg, b_field_quantization_freddy]
   generation: freddy
-  configuration: null
   caveats: >-
     The twin's prediction (input closure). Its agreement with the measured
     benchmark — clock_transition_residual_25mg = +2.7(24) kHz, consistent with
-    zero — is the actual validation across the input/benchmark wall.
+    zero — is the actual validation across the input/benchmark wall. Field-
+    dependent (computed at b_field_quantization_freddy), so configuration is
+    omitted while provisional rather than null.
   status: provisional
 
 - name: clock_transition_residual_25mg
   value: 2.66e3                 # Hz = measured - predicted
   units: Hz
   kind: benchmark               # a transition-frequency residual (invariant 4) + benchmark by inheritance
-  uncertainty: {value: 2.4e3, type: statistical}
+  uncertainty: {value: 2.4e3, type: systematic}   # dominated by the ~0.1 G field systematic
   source:
     ref: doerr2024
     loc: "derived: clock_transition_25mg - clock_transition_predicted_25mg"
@@ -371,4 +372,7 @@
     Benchmark-by-default (a transition-frequency residual; invariant 4) and
     benchmark by inheritance (closure touches the measured clock). The
     twin-validation output for the 25Mg+ clock transition: consistent with zero.
+    Uncertainty is dominated by the SYSTEMATIC ~0.1 G field uncertainty
+    propagated through the prediction (~2.4 kHz); the measured clock's
+    statistical part is only ~0.2 kHz — hence type: systematic.
   status: provisional
