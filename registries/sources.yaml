@@ -59,13 +59,19 @@ doerr2024:
 
 itano_wineland_1981:
   title: "Precision measurement of the ground-state hyperfine constant of 25Mg+"
-  author: "W. M. Itano and D. J. Wineland"
+  author: "Wayne M. Itano and D. J. Wineland"
   year: 1981
   degree: article
   doi: "10.1103/PhysRevA.24.1364"
   archived: true
-  verified: false
-  note: "Phys. Rev. A 24, 1364 (1981). DOI follows the PRA pattern; not independently re-resolved here -> verified:false pending a click-through."
+  verified: true
+  note: >-
+    Phys. Rev. A 24, 1364-1373 (1981); NBS Boulder. Confirmed against the local
+    PDF: title/authors/volume/start-page match, and the front matter "VOLUME 24,
+    NUMBER 3 SEPTEMBER 1981" is consistent with the DOI (APS returns HTTP 403 to
+    bots, but the DOI is structurally confirmed). Primary source for the 25Mg+
+    hyperfine constant A = -596.254376(54) MHz (see hyperfine_a_constant_25mg).
+    Local PDF: itano_wineland_1981.pdf.
 
 # --- rest of the lineage corpus (registered per task-card scope) ------------
 
@@ -130,6 +136,119 @@ palani2023:
     Phys. Rev. A 107, L050601 (2023); arXiv:2305.05741. The task card's
     'hasse2021' key has NO matching publication — Hasse's earliest paper is this
     2023 one. Re-key any 'hasse2021' citation to here (or hasse2025 thesis).
+
+# --- key journal papers (lineage; verified via PDF + Crossref, 2026-06-18) ---
+# Local PDF filename == citation key (+ .pdf); see sources/pdf/README.md.
+
+friedenauer2006:
+  title: "High power all solid state laser system near 280 nm"
+  author: "A. Friedenauer, F. Markert, H. Schmitz, L. Petersen, S. Kahra, M. Herrmann, Th. Udem, T. W. Hänsch, T. Schätz"
+  year: 2006
+  degree: article
+  doi: "10.1007/s00340-006-2274-2"
+  archived: true
+  verified: true
+  note: "Appl. Phys. B 84, 371-373 (2006). The 280 nm laser source for Mg+."
+
+friedenauer2008:
+  title: "Simulating a quantum magnet with trapped ions"
+  author: "A. Friedenauer, H. Schmitz, J. T. Glueckert, D. Porras, T. Schätz"
+  year: 2008
+  degree: article
+  doi: "10.1038/nphys1032"
+  archived: true
+  verified: true
+  note: "Nature Physics 4, 757-761 (2008)."
+
+schmitz2009:
+  title: "Quantum Walk of a Trapped Ion in Phase Space"
+  author: "H. Schmitz, R. Matjeschk, Ch. Schneider, J. Glueckert, M. Enderlein, T. Huber, T. Schätz"
+  year: 2009
+  degree: article
+  doi: "10.1103/PhysRevLett.103.090504"
+  archived: true
+  verified: true
+  note: "Phys. Rev. Lett. 103, 090504 (2009)."
+
+schneider2012:
+  title: "Experimental quantum simulations of many-body physics with trapped ions"
+  author: "Ch. Schneider, D. Porras, T. Schätz"
+  year: 2012
+  degree: review
+  doi: "10.1088/0034-4885/75/2/024401"
+  archived: true
+  verified: true
+  note: "Rep. Prog. Phys. 75, 024401 (2012). Review."
+
+clos2014:
+  title: "Decoherence-Assisted Spectroscopy of a Single Mg+ Ion"
+  author: "G. Clos, M. Enderlein, U. Warring, T. Schätz, D. Leibfried"
+  year: 2014
+  degree: article
+  doi: "10.1103/PhysRevLett.112.113003"
+  archived: true
+  verified: true
+  note: "Phys. Rev. Lett. 112, 113003 (2014)."
+
+clos2016_suppmat:
+  title: "Supplemental Material for 'Time-Resolved Observation of Thermalization in an Isolated Quantum System'"
+  author: "G. Clos, D. Porras, U. Warring, T. Schätz"
+  year: 2016
+  degree: misc
+  doi: "10.1103/PhysRevLett.117.170401"
+  archived: true
+  verified: true
+  note: "Supplement to clos2016 (PRL 117, 170401)."
+
+wittemer2018:
+  title: "Measurement of quantum memory effects and its fundamental limitations"
+  author: "M. Wittemer, G. Clos, H.-P. Breuer, U. Warring, T. Schätz"
+  year: 2018
+  degree: article
+  doi: "10.1103/PhysRevA.97.020102"
+  archived: true
+  verified: true
+  note: "Phys. Rev. A 97, 020102(R) (2018). Rapid Communication."
+
+wittemer2019_prl:
+  title: "Phonon Pair Creation by Inflating Quantum Fluctuations in an Ion Trap"
+  author: "M. Wittemer, F. Hakelberg, P. Kiefer, J.-P. Schröder, C. Fey, R. Schützhold, U. Warring, T. Schätz"
+  year: 2019
+  degree: article
+  doi: "10.1103/PhysRevLett.123.180502"
+  archived: true
+  verified: true
+  note: "Phys. Rev. Lett. 123, 180502 (2019). Key disambiguated from the wittemer2019 PhD thesis (same year)."
+
+wittemer2020:
+  title: "Trapped-ion toolkit for studies of quantum harmonic oscillators under extreme conditions"
+  author: "M. Wittemer, J.-P. Schröder, F. Hakelberg, P. Kiefer, C. Fey, R. Schützhold, U. Warring, T. Schätz"
+  year: 2020
+  degree: article
+  doi: "10.1098/rsta.2019.0230"
+  archived: true
+  verified: true
+  note: "Phil. Trans. R. Soc. A 378, 20190230 (2020)."
+
+hasse2024:
+  title: "Phase-stable traveling waves stroboscopically matched for superresolved observation of trapped-ion dynamics"
+  author: "F. Hasse, D. Palani, R. Thomm, U. Warring, T. Schätz"
+  year: 2024
+  degree: article
+  doi: "10.1103/PhysRevA.109.053105"
+  archived: true
+  verified: true
+  note: "Phys. Rev. A 109, 053105 (2024)."
+
+colla2025:
+  title: "Observing time-dependent energy level renormalisation in an ultrastrongly coupled open system"
+  author: "A. Colla, F. Hasse, D. Palani, T. Schätz, H.-P. Breuer, U. Warring"
+  year: 2025
+  degree: article
+  doi: "10.1038/s41467-025-57840-4"
+  archived: true
+  verified: true
+  note: "Nature Communications 16, 2502 (2025)."
 
 # --- known corpus members with NO public resolvable copy (honestly flagged) --
 

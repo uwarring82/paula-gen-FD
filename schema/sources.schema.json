@@ -16,7 +16,7 @@
       "title":   { "type": "string", "minLength": 1 },
       "author":  { "type": "string", "minLength": 1 },
       "year":    { "type": "integer", "minimum": 1900, "maximum": 2100 },
-      "degree":  { "enum": ["phd", "diplom", "msc", "bsc", "article", "logbook", "dataset", "misc"] },
+      "degree":  { "enum": ["phd", "diplom", "msc", "bsc", "article", "review", "logbook", "dataset", "misc"] },
       "institution": { "type": "string", "minLength": 1 },
       "link":    { "type": "string", "format": "uri", "description": "Resolvable permalink to the source itself (prefer an institutional-repository permalink, e.g. FreiDok)." },
       "doi":     { "type": "string", "pattern": "^10\\.[0-9]{4,9}/.+$" },
