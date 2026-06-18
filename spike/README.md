@@ -52,6 +52,18 @@ Reproduces the 2-ion axial stretch (`omega_z_axial_stretch_2ion_25mg`):
 predicted √3·COM = 2.2517 MHz vs measured 2.23 MHz, +21.7 kHz = 2.17σ (the √3
 relation holds to ~1% in the 3-sig-fig data).
 
+## Engine: `drive` (microwave Rabi couplings)
+
+[`engines/drive.py`](engines/drive.py) predicts the *relative* magnetic-dipole
+Rabi couplings of the ground-state |F,m_F⟩↔|F′,m_F′⟩ transitions from the
+Clebsch-Gordan coefficients (pure-Python Racah formula; verified against sympy).
+This is the **atomic** part only: the measured microwave Rabi rates
+([`records/control.yaml`](../records/control.yaml), from Doerr/Kaufmann) are
+*apparatus-dominated* — the MW antenna polarization + frequency response swing
+them ~6× across the manifold (mirror pairs with equal |CG| differ 5×). So the
+runner reports a **drive DIAGNOSTIC** (|CG| vs measured → apparatus factor), not
+a σ-validation; an absolute-rate engine would need an antenna model.
+
 ## Layout
 
 ```
@@ -61,11 +73,13 @@ spike/
   linalg.py         tiny pure-Python solve() + eigvalsh() (Jacobi)
   engines/
     levels.py       2S_1/2 hyperfine+Zeeman engine (closed-form Breit-Rabi)
-    modes.py        axial normal modes (equilibrium + Hessian eigenvalues)
-  runner.py         composition root: registry, ValidationResult, table
+    modes.py        axial + radial normal modes (equilibrium + Hessian)
+    drive.py        relative microwave Rabi couplings (Clebsch-Gordan)
+  runner.py         composition root: registry, ValidationResult, table, drive diagnostic
   validate_twin.py  CLI shim -> runner.main
-  test_levels.py    levels physics limits + benchmark + wall
-  test_modes.py     modes eigenvalues + benchmark + wall + linalg robustness
+  test_levels.py    levels physics + Weber/Doerr benchmarks + hyperfine spectrum
+  test_modes.py     axial+radial eigenvalues + benchmarks + linalg robustness
+  test_drive.py     Clebsch-Gordan vs sympy + symmetry + polarization
   test_runner.py    runner: result math, tension detection, wall refusal, coverage
 ```
 

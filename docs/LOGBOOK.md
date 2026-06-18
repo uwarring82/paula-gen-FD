@@ -7,6 +7,45 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 11) — Drive engine (microwave Rabi couplings) + calibration
+
+UW: check Kaufmann 2022 and Doerr 2024 for the microwave Rabi rates driving the
+hyperfine transitions; then (1) build the CG relative-rate engine and (2) add the
+rates as calibration records.
+
+**Extracted.** Doerr Table 2.1 (B~5.5 G): all 8 |3,mF⟩↔|2,m′F⟩ π-times → Rabi
+rates 7.0–59.5 kHz. Kaufmann Table 4.1 (B=5.6860 G): 5 transitions, 2.1–23.8 kHz
+— the EARLIER apparatus, ~2-3x slower than Doerr (a real apparatus-evolution
+finding).
+
+**Key physics (the headline).** The measured Rabi rate folds the atomic
+Clebsch-Gordan coupling AND the MW antenna polarization + frequency response —
+and the APPARATUS DOMINATES. Mirror pairs with identical |CG|=0.845
+(|3,+3⟩↔|2,+2⟩ vs |3,−3⟩↔|2,−2⟩) differ 5x in rate; the apparatus factor
+(measured/|CG|) spans ~6x across the manifold. So these are CALIBRATION, not a
+clean atomic benchmark.
+
+**(1) Drive engine** `spike/engines/drive.py`: a pure-Python Racah-formula
+Clebsch-Gordan + `HyperfineDrive`, predicting the *relative* atomic magnetic-
+dipole couplings |⟨F mF; 1 q|F′ m′F⟩|. Verified against sympy EXACTLY (all 8
+transitions + CG identities); mirror symmetry and σ±/π labels tested.
+
+**(2) Calibration records** `records/control.yaml`: 13 Rabi rates (Doerr 8 =
+generation freddy; Kaufmann 5 = legacy), `kind: benchmark`, `subsystem: control`,
+`observation_type: fitted`. No `microwave` configuration slot exists yet, so
+configuration is omitted (flagged).
+
+**Runner.** `drive_diagnostic` prints |CG| vs measured Rabi → the apparatus
+factor, honestly labelled NOT a sigma-validation. `uncovered_benchmarks` excludes
+`subsystem: control` (drive calibration, covered by the diagnostic). The 4 clean
+sigma-validations (levels×2, modes×2) are unchanged.
+
+Follow-up: an absolute-rate drive engine needs an MW antenna model (polarization
+geometry + frequency response, cf. Doerr Sec. 3); this engine captures the atomic
+part only. Tests 68 -> 74; substrate green (5 honest unresolved-source warnings).
+
+---
+
 ## 2026-06-18 (later 10) — Levels engine vs Weber 2025 measured manifold
 
 UW: compare the ground-state manifold splittings against weber2025.pdf.

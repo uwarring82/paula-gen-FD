@@ -16,6 +16,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Callable
 
+from .engines.drive import HyperfineDrive
 from .engines.levels import GroundStateZeeman
 from .engines.modes import AxialModes, RadialModes
 from .ledger import Ledger
@@ -168,14 +169,57 @@ def run_all(ledger: Ledger, registry=REGISTRY) -> list[ValidationResult]:
 
 
 def uncovered_benchmarks(ledger: Ledger, registry=REGISTRY) -> list[str]:
-    """Measured benchmarks (derived_from == []) that no registered engine validates."""
+    """Measured benchmarks (derived_from == []) that no registered engine
+    validates. Excludes subsystem:control (microwave-drive CALIBRATION), which is
+    handled by the drive DIAGNOSTIC below (apparatus-limited, not a sigma test)."""
     covered = {v.benchmark for v in registry}
     out = []
     for name in ledger.by_kind("benchmark"):
         rec = ledger.record(name)
-        if name not in covered and not (rec.get("derived_from") or []):
-            out.append(name)
+        if name in covered or (rec.get("derived_from") or []):
+            continue
+        if (rec.get("scope") or {}).get("subsystem") == "control":
+            continue
+        out.append(name)
     return out
+
+
+# (mF_a, mF_b, ledger record) for the Doerr microwave Rabi set
+DOERR_RABI = [
+    (3, 2, "mw_rabi_3p3_2p2_doerr"), (1, 2, "mw_rabi_3p1_2p2_doerr"),
+    (1, 0, "mw_rabi_3p1_2p0_doerr"), (0, 0, "mw_rabi_3p0_2p0_doerr"),
+    (0, -1, "mw_rabi_3p0_2m1_doerr"), (-1, -1, "mw_rabi_3m1_2m1_doerr"),
+    (-1, -2, "mw_rabi_3m1_2m2_doerr"), (-3, -2, "mw_rabi_3m3_2m2_doerr"),
+]
+
+
+def drive_diagnostic(ledger: Ledger) -> str:
+    """DIAGNOSTIC (not a sigma-validation): for each Doerr microwave Rabi rate,
+    the drive engine's atomic Clebsch-Gordan coupling vs the measured rate. The
+    apparatus factor (measured / |CG|, normalised) reveals the MW antenna
+    polarization + frequency response, which dominate the absolute rates."""
+    eng = HyperfineDrive(3, 2)
+    rows = []
+    for a, b, name in DOERR_RABI:
+        if name not in ledger:
+            continue
+        meas = ledger.benchmark_quantity(name).value
+        cg = eng.coupling(a, b)
+        rows.append([f"|3,{a:+d}>-|2,{b:+d}>", eng.polarization(a, b),
+                     f"{cg:.3f}", f"{meas / 1e3:.1f}", meas / cg])
+    if not rows:
+        return ""
+    norm = min(r[4] for r in rows)
+    head = ["transition", "pol", "|CG|", "Rabi/kHz", "apparatus(meas/|CG|, norm)"]
+    body = [[r[0], r[1], r[2], r[3], f"{r[4] / norm:.2f}x"] for r in rows]
+    w = [max(len(head[i]), *(len(r[i]) for r in body)) for i in range(len(head))]
+    line = lambda c: "  ".join(c[i].ljust(w[i]) for i in range(len(c)))  # noqa: E731
+    out = ["DRIVE DIAGNOSTIC — atomic |CG| vs measured MW Rabi (Doerr); apparatus-limited",
+           "", line(head), line(["-" * x for x in w])] + [line(r) for r in body]
+    out.append("")
+    out.append("  The apparatus column is NOT flat (spans ~6x) -> the absolute Rabi rate is")
+    out.append("  dominated by the MW antenna polarization + frequency response, not |CG|.")
+    return "\n".join(out)
 
 
 # --- rendering --------------------------------------------------------------
@@ -217,6 +261,10 @@ def main(argv=None) -> int:
             print(f"\n  {r.benchmark} [{r.engine}] ERROR: {r.error}")
         else:
             print(f"\n  {r.benchmark}: consumed {', '.join(r.consumed)}")
+
+    diag = drive_diagnostic(ledger)
+    if diag:
+        print("\n" + diag)
 
     uncovered = uncovered_benchmarks(ledger)
     if uncovered:

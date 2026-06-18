@@ -1,0 +1,203 @@
+# =============================================================================
+# records/control.yaml  —  CONTROL / microwave-drive calibration
+# =============================================================================
+# Microwave Rabi rates Omega/(2pi) of the 25Mg+ ground-state hyperfine qubit
+# transitions |F=3,mF> <-> |F=2,m'F>, from the measured pi-times: Omega/2pi =
+# 1/(2 t_pi). These are apparatus CALIBRATION (kind: benchmark per the task card)
+# and are NOT cleanly reproducible by an atomic engine: the absolute rate folds
+# the MW antenna polarization geometry and frequency response (50 MHz-bandwidth
+# filter), which DOMINATE the variation across the ~26 MHz manifold. The drive
+# engine predicts only the relative atomic Clebsch-Gordan coupling; the residual
+# measured/|CG| is the apparatus factor (see the drive diagnostic in
+# spike/runner.py and docs/LOGBOOK.md). No `microwave` configuration slot is
+# registered yet, so configuration is omitted.
+#
+# generation: Doerr 2024 = freddy (current apparatus); Kaufmann 2022 = legacy
+# (earlier state). The drive is ~2-3x faster in freddy than in legacy.
+# =============================================================================
+
+# --- Doerr 2024, Table 2.1 (B ~ 5.5 G), all 8 transitions --------------------
+
+- name: mw_rabi_3p3_2p2_doerr
+  value: 5.9453e4
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 2.1e2, type: statistical}
+  source: {ref: doerr2024, loc: "Table 2.1, p. 20", extraction_note: "sigma-; t_pi = 8.41(3) us -> Omega/2pi = 1/(2 t_pi). |CG|=0.845.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  measured_on: 2024-01-01
+  caveats: "Apparatus calibration; drive engine predicts only the atomic |CG|. configuration omitted (no microwave slot)."
+  status: provisional
+
+- name: mw_rabi_3p1_2p2_doerr
+  value: 8.591e3
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 3.0e1, type: statistical}
+  source: {ref: doerr2024, loc: "Table 2.1, p. 20", extraction_note: "sigma+; t_pi = 58.2(2) us. |CG|=0.218.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  measured_on: 2024-01-01
+  caveats: "Apparatus calibration; see file header."
+  status: provisional
+
+- name: mw_rabi_3p1_2p0_doerr
+  value: 4.5249e4
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 2.0e2, type: statistical}
+  source: {ref: doerr2024, loc: "Table 2.1, p. 20", extraction_note: "sigma-; t_pi = 11.05(5) us. |CG|=0.535.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  measured_on: 2024-01-01
+  caveats: "Apparatus calibration; see file header."
+  status: provisional
+
+- name: mw_rabi_3p0_2p0_doerr
+  value: 2.5355e4
+  units: Hz
+  kind: benchmark                # the clock transition's MW Rabi rate (pi)
+  uncertainty: {value: 2.1e2, type: statistical}
+  source: {ref: doerr2024, loc: "Table 2.1, p. 20", extraction_note: "pi (clock); t_pi = 19.72(16) us. |CG|=0.655.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  measured_on: 2024-01-01
+  caveats: "Apparatus calibration; see file header."
+  status: provisional
+
+- name: mw_rabi_3p0_2m1_doerr
+  value: 2.4121e4
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 1.0e2, type: statistical}
+  source: {ref: doerr2024, loc: "Table 2.1, p. 20", extraction_note: "sigma-; t_pi = 20.729(90) us. |CG|=0.378.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  measured_on: 2024-01-01
+  caveats: "Apparatus calibration; see file header."
+  status: provisional
+
+- name: mw_rabi_3m1_2m1_doerr
+  value: 1.2376e4
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 9.2e1, type: statistical}
+  source: {ref: doerr2024, loc: "Table 2.1, p. 20", extraction_note: "pi; t_pi = 40.4(3) us. |CG|=0.617.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  measured_on: 2024-01-01
+  caveats: "Apparatus calibration; see file header."
+  status: provisional
+
+- name: mw_rabi_3m1_2m2_doerr
+  value: 7.003e3
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 2.9e1, type: statistical}
+  source: {ref: doerr2024, loc: "Table 2.1, p. 20", extraction_note: "sigma-; t_pi = 71.4(3) us. |CG|=0.218.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  measured_on: 2024-01-01
+  caveats: "Apparatus calibration; see file header."
+  status: provisional
+
+- name: mw_rabi_3m3_2m2_doerr
+  value: 1.1574e4
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 1.3e2, type: statistical}
+  source: {ref: doerr2024, loc: "Table 2.1, p. 20", extraction_note: "sigma+; t_pi = 43.2(5) us. |CG|=0.845 (mirror of 3p3_2p2 but 5x slower -> apparatus).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  measured_on: 2024-01-01
+  caveats: "Apparatus calibration; see file header."
+  status: provisional
+
+# --- Kaufmann 2022, Table 4.1 (B = 5.6860 G), 5 transitions (earlier setup) --
+
+- name: mw_rabi_3p3_2p2_kaufmann
+  value: 2.3776e4
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 1.6e2, type: statistical}
+  source: {ref: kaufmann2022, loc: "Table 4.1, p. 40", extraction_note: "sigma-; t_pi = 21.03(14) us. |CG|=0.845. (Doerr 2024: 59.5 kHz, ~2.5x faster.)", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  measured_on: 2022-01-01
+  caveats: "Apparatus calibration (legacy/earlier setup); see file header."
+  status: provisional
+
+- name: mw_rabi_3p1_2p2_kaufmann
+  value: 4.845e3
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 4.7e1, type: statistical}
+  source: {ref: kaufmann2022, loc: "Table 4.1, p. 40", extraction_note: "sigma+; t_pi = 103.2(1.0) us. |CG|=0.218.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  measured_on: 2022-01-01
+  caveats: "Apparatus calibration (legacy); see file header."
+  status: provisional
+
+- name: mw_rabi_3m1_2m1_kaufmann
+  value: 6.553e3
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 1.5e2, type: statistical}
+  source: {ref: kaufmann2022, loc: "Table 4.1, p. 40", extraction_note: "pi; t_pi = 76.3(1.7) us. |CG|=0.617.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  measured_on: 2022-01-01
+  caveats: "Apparatus calibration (legacy); see file header."
+  status: provisional
+
+- name: mw_rabi_3m1_2m2_kaufmann
+  value: 2.075e3
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 3.4e1, type: statistical}
+  source: {ref: kaufmann2022, loc: "Table 4.1, p. 40", extraction_note: "sigma-; t_pi = 241(4) us. |CG|=0.218.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  measured_on: 2022-01-01
+  caveats: "Apparatus calibration (legacy); see file header."
+  status: provisional
+
+- name: mw_rabi_3m3_2m2_kaufmann
+  value: 3.497e3
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 1.2e2, type: statistical}
+  source: {ref: kaufmann2022, loc: "Table 4.1, p. 40", extraction_note: "sigma+; t_pi = 143(5) us. |CG|=0.845.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: control}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  measured_on: 2022-01-01
+  caveats: "Apparatus calibration (legacy); see file header."
+  status: provisional
