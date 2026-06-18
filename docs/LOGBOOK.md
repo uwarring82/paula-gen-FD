@@ -7,6 +7,40 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 2) — Validator hardening from code review
+
+A code review (UW + external) raised three real issues; all fixed, with
+regression tests.
+
+- **High — validator could crash on malformed records.** `schema_check` called
+  `rec.get()` before the `isinstance(rec, dict)` guard, and `graph_check` called
+  `.get()` on `source` when it was a bare string (e.g. `source: bad`). Fixes:
+  guard first in `schema_check`; type-guard nested mappings in `graph_check`; and
+  **short-circuit the graph pass when any field-level (schema) error exists** —
+  graph invariants assume schema-valid, well-typed data. Reproduced the exact
+  crashing inputs end-to-end → now a clean error report (`source: 'bad' is not of
+  type 'object'`), graph checks deferred, exit 1, no traceback.
+- **Medium — `configuration: {}` slipped through.** A `confirmed`,
+  apparatus-dependent record could pass with an empty configuration (the field
+  merely had to exist). Added `minProperties: 1` to the configuration object in
+  `record.schema.json`; `null` is still allowed for apparatus-independent
+  quantities.
+- **Medium — the wall lint was unverified.** The self-tests imported only
+  `_check_inheritance_and_cycles`, so the AC-Stark hard rule and the
+  input/benchmark default-kind lints were untested despite the README/CI claiming
+  wall coverage. Extracted the lint into a testable `_check_kind_wall(...)` and
+  added tests for: AC-Stark-as-input (hard error), AC-Stark-as-benchmark (clean),
+  benchmark-by-default-marked-input (warn), input-by-default-marked-benchmark
+  (warn), and a clean record.
+- **Env caveat.** A system Python (Anaconda 3.9 + jsonschema 3.2.0) fails before
+  collection. Improved the dependency import to emit a clear "jsonschema >= 4.18
+  / Python >= 3.10" message, and added a venv note to the README.
+
+Result: `pytest` 8 → **18 passing**; substrate validation still green (exit 0,
+1 expected `doerr2024` warning).
+
+---
+
 ## 2026-06-18 (later) — Source corpus expansion, consistent PDF naming, primary hyperfine reference
 
 **Trigger.** UW added a reference PDF for the hyperfine constant (Itano &

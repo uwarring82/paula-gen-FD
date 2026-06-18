@@ -30,9 +30,12 @@ Validation is **two layers**, both run in CI and pre-commit:
    (no `kind: input` whose `derived_from` closure touches a benchmark);
    `derived_from` cycle detection; real-date checks.
 
-The validator ships **self-tests** (`validator/test_validate.py`) that prove
-both graph invariants *fire* on constructed violations — so the enforcement
-itself is regression-protected, not just the data. CI runs `pytest` then the
+The validator ships **self-tests** (`validator/test_validate.py`) that prove the
+graph invariants *fire* on constructed violations — the wall (AC-Stark hard rule
++ default-kind lints), transitive benchmark inheritance, and cycle detection —
+and that malformed records are *reported, not crashed on* (field-level errors
+short-circuit the graph pass). So the enforcement itself is regression-protected,
+not just the data. CI runs `pytest` then the
 validator over the whole substrate ([`.github/workflows/validate.yml`](../../.github/workflows/validate.yml));
 [`.pre-commit-config.yaml`](../../.pre-commit-config.yaml) runs the same locally
 plus a large-file guard (ADR-0002).

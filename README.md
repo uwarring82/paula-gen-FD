@@ -72,9 +72,15 @@ be conflated (invariant 6).
 
 ## Validate
 
+Requires **Python ≥ 3.10** and **jsonschema ≥ 4.18** (Draft 2020-12). A system
+Python with an older `jsonschema` (e.g. Anaconda's 3.x) will fail — use a
+virtualenv:
+
 ```bash
+python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"     # pyyaml, jsonschema, pytest
-pytest validator/           # self-tests: the wall + inheritance tests must fire
+pytest validator/           # self-tests: the wall, inheritance, cycle, and
+                            #   malformed-input checks must all fire
 python validator/validate.py
 ```
 

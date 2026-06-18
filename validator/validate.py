@@ -36,10 +36,22 @@ from pathlib import Path
 
 try:
     import yaml
+except ImportError:  # pragma: no cover
+    sys.stderr.write("missing dependency: pyyaml. Install with `pip install 'pyyaml>=6'`\n")
+    raise SystemExit(2)
+try:
     from jsonschema import Draft202012Validator, FormatChecker
-except ImportError as exc:  # pragma: no cover
+except ImportError:  # pragma: no cover
+    import importlib.metadata as _md
+
+    try:
+        _ver = _md.version("jsonschema")
+    except Exception:
+        _ver = "not installed"
     sys.stderr.write(
-        f"missing dependency: {exc}. Install with `pip install pyyaml jsonschema`\n"
+        f"jsonschema >= 4.18 is required (Draft 2020-12 support); found {_ver}. "
+        'This project needs Python >= 3.10. Install with `pip install -e ".[dev]"` '
+        "in a virtualenv, or `pip install 'jsonschema>=4.18'`.\n"
     )
     raise SystemExit(2)
 
@@ -141,11 +153,11 @@ def schema_check(root: Path, rep: Report, records: list[dict]) -> None:
 
     # Records (each list item against the record schema)
     rec_v = validator_for("record.schema.json")
-    for rec in records:
-        label = rec.get("_where", "record")
+    for i, rec in enumerate(records):
         if not isinstance(rec, dict):
-            rep.error(label, "record is not a mapping")
+            rep.error(f"records[{i}]", f"record is not a mapping: {rec!r}")
             continue
+        label = rec.get("_where", "record")
         payload = {k: v for k, v in rec.items() if k != "_where"}
         for err in sorted(rec_v.iter_errors(payload), key=str):
             loc = "/".join(str(p) for p in err.absolute_path) or "<root>"
@@ -225,7 +237,9 @@ def graph_check(root: Path, rep: Report, records: list[dict]) -> None:
     for name, rec in by_name.items():
         where = rec.get("_where", name)
 
-        src = rec.get("source", {}) or {}
+        src = rec.get("source")
+        if not isinstance(src, dict):
+            src = {}
         ref = src.get("ref")
         if ref is not None and ref not in sources:
             rep.error(where, f"source.ref '{ref}' does not resolve in sources registry")
@@ -260,7 +274,40 @@ def graph_check(root: Path, rep: Report, records: list[dict]) -> None:
             if dep not in by_name:
                 rep.error(where, f"derived_from '{dep}' does not resolve to a known record")
 
-        # default-kind lints (the WALL, soft side)
+    # --- the WALL, soft side: AC-Stark hard rule + default-kind lints ----- #
+    _check_kind_wall(rep, by_name)
+
+    # --- source resolvability of REFERENCED sources (warn, don't fail) ---- #
+    def _ref_of(r):
+        s = r.get("source")
+        return s.get("ref") if isinstance(s, dict) else None
+
+    referenced = {_ref_of(r) for r in by_name.values() if _ref_of(r) in sources}
+    for ref in sorted(x for x in referenced if x):
+        entry = sources.get(ref) or {}
+        if not any(entry.get(k) for k in ("link", "doi", "urn")):
+            rep.warn(
+                f"sources.yaml[{ref}]",
+                "referenced source has no resolvable identifier (link/doi/urn) — "
+                "traceability is degraded (FAIR Accessible)",
+            )
+        elif entry.get("verified") is not True:
+            rep.warn(
+                f"sources.yaml[{ref}]",
+                "referenced source identifier is not marked verified — confirm it resolves",
+            )
+
+    # --- acyclic derived_from + transitive benchmark inheritance ---------- #
+    _check_inheritance_and_cycles(rep, by_name)
+
+
+def _check_kind_wall(rep: Report, by_name: dict[str, dict]) -> None:
+    """The WALL, soft side (invariants 2, 4, 5). A differential AC Stark shift
+    named `input` is a hard error (it is both calibrated and predictable, so
+    feeding it in closes the loop); benchmark-by-default and input-by-default
+    names carrying the opposite `kind` raise warnings to flag likely mistakes."""
+    for name, rec in by_name.items():
+        where = rec.get("_where", name)
         lname = name.lower()
         kind = rec.get("kind")
         if _STARK_RX.search(lname) and kind == "input":
@@ -281,29 +328,6 @@ def graph_check(root: Path, rep: Report, records: list[dict]) -> None:
                 f"'{name}' looks input-by-default (beam power/waist/detuning/…) "
                 "but is marked benchmark — confirm this is a deliberate hold-out",
             )
-
-    # --- source resolvability of REFERENCED sources (warn, don't fail) ---- #
-    referenced = {
-        (r.get("source") or {}).get("ref")
-        for r in by_name.values()
-        if (r.get("source") or {}).get("ref") in sources
-    }
-    for ref in sorted(x for x in referenced if x):
-        entry = sources.get(ref) or {}
-        if not any(entry.get(k) for k in ("link", "doi", "urn")):
-            rep.warn(
-                f"sources.yaml[{ref}]",
-                "referenced source has no resolvable identifier (link/doi/urn) — "
-                "traceability is degraded (FAIR Accessible)",
-            )
-        elif entry.get("verified") is not True:
-            rep.warn(
-                f"sources.yaml[{ref}]",
-                "referenced source identifier is not marked verified — confirm it resolves",
-            )
-
-    # --- acyclic derived_from + transitive benchmark inheritance ---------- #
-    _check_inheritance_and_cycles(rep, by_name)
 
 
 def _check_inheritance_and_cycles(rep: Report, by_name: dict[str, dict]) -> None:
@@ -386,7 +410,12 @@ def main(argv: list[str]) -> int:
 
     records = collect_records(root, rep)
     schema_check(root, rep, records)
-    graph_check(root, rep, records)
+    # Graph-level checks assume schema-valid, well-typed data; running them on
+    # malformed records would be noisy at best and crash at worst. Defer them
+    # until field-level errors are fixed.
+    deferred = not rep.ok()
+    if not deferred:
+        graph_check(root, rep, records)
 
     n_rec = sum(1 for r in records if isinstance(r, dict))
     print(f"iontrap-reference validator — {n_rec} record(s) checked under {root}")
@@ -398,6 +427,8 @@ def main(argv: list[str]) -> int:
     if rep.ok():
         print(f"OK — no errors ({len(rep.warnings)} warning(s)).")
         return 0
+    if deferred:
+        print("  (graph-level checks deferred until the field-level errors above are fixed)")
     print(f"FAILED — {len(rep.errors)} error(s), {len(rep.warnings)} warning(s).")
     return 1
 
