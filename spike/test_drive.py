@@ -54,3 +54,12 @@ def test_relative_couplings_normalised():
     rc = d.relative_couplings([(3, 2), (1, 2), (0, 0)])
     assert max(rc.values()) == pytest.approx(1.0)
     assert rc[(1, 2)] < rc[(0, 0)] < rc[(3, 2)]
+
+
+def test_absolute_rabi_factorisation():
+    # Omega = |CG| * apparatus_factor; the empirical factor round-trips
+    d = HyperfineDrive(3, 2)
+    measured = 59453.0
+    af = d.apparatus_factor(3, 2, measured)
+    assert af == pytest.approx(measured / d.coupling(3, 2))
+    assert d.absolute_rabi(3, 2, af) == pytest.approx(measured)

@@ -7,6 +7,42 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 12) — Absolute-rate model: attempted, NOT achievable (honest)
+
+UW: "go for it" — extract Doerr Section 3 and build the absolute-rate drive
+engine (|CG| x antenna model).
+
+**Extracted Doerr Section 3.** Omega ∝ sqrt(P_MW) confirmed. But the antenna
+polarization + frequency-response characterization is in FIGURES (3.2-3.7), not
+tables; Table 3.1 is a Rabi-fit-method comparison for the clock (two fit models),
+not antenna data.
+
+**Finding (negative, but important).** A rigorous absolute-rate model is NOT
+extractable from the theses:
+- A 5-parameter physical model (3 polarization gains + a quadratic frequency
+  response) x |CG| fits the 8 Doerr rates to only **~25% RMS** (worst residual
+  +53%).
+- Even within ONE polarization (sigma-, 4 points), the response (rate/|CG|) is
+  non-monotonic and asymmetric: 70 -> 85 (peak ~1786 MHz) -> 64 -> 32 — not
+  reducible to a few parameters, and only 8 sparse points total.
+- The apparatus changed between generations (Doerr ~2-3x faster than Kaufmann,
+  NON-uniformly), so no shared model.
+
+**Decision:** did NOT ship an overfit/circular fit. Added only the correct
+STRUCTURE to the drive engine — `absolute_rabi = |CG| * apparatus_factor`, with
+`apparatus_factor()` returning the empirical per-transition calibration
+(measured/|CG|). The validated atomic deliverable stays the relative |CG| (+ the
+drive diagnostic). Tests +1 (75); substrate green.
+
+**Natural next step (offered):** the near-resonant AC ZEEMAN shift (Doerr's
+actual thesis result) is the canonical light-shift benchmark and IS predictable
+from the Rabi rates (calibration, already in the ledger) + the detunings (levels
+engine) via delta ~ Omega^2/(4 Delta). But its MEASURED values are also in
+Doerr's figures, so a clean validation needs the raw figure data or a dedicated
+measurement.
+
+---
+
 ## 2026-06-18 (later 11) — Drive engine (microwave Rabi couplings) + calibration
 
 UW: check Kaufmann 2022 and Doerr 2024 for the microwave Rabi rates driving the
