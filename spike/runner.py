@@ -20,6 +20,7 @@ from .engines.cooling import DopplerCooling
 from .engines.drive import HyperfineDrive
 from .engines.levels import GroundStateZeeman
 from .engines.modes import AxialModes, RadialModes
+from .engines.projection import ModeProjection
 from .ledger import Ledger
 
 THRESHOLD_SIGMA = 3.0
@@ -268,6 +269,39 @@ def cooling_diagnostic(ledger: Ledger) -> str:
     return "\n".join(out)
 
 
+_DOERR_ADDRESSING = {
+    "CC": (), "OC": ("lf",), "AC": ("lf", "mf", "hf"), "ROC": ("mf", "hf"),
+}
+
+
+def projection_diagnostic(ledger: Ledger) -> str:
+    """Which motional mode each Raman (TPSR) combination addresses: the engine's
+    geometric projection (Delta_k direction x mode axes) vs Doerr 2024's
+    documented addressing."""
+    if "radial_mode_tilt_25mg" not in ledger:
+        return ""
+    eng = ModeProjection.from_ledger(ledger)
+    rows = []
+    all_match = True
+    for comb in ("CC", "OC", "AC", "ROC"):
+        p = eng.projections(comb)
+        addr = eng.addressed_modes(comb)
+        match = addr == _DOERR_ADDRESSING[comb]
+        all_match = all_match and match
+        rows.append([comb, f"{p['lf']:.3f}", f"{p['mf']:.3f}", f"{p['hf']:.3f}",
+                     ",".join(addr) or "(carrier)", "ok" if match else "MISMATCH"])
+    head = ["comb", "->lf", "->mf", "->hf", "addresses", "vs Doerr"]
+    w = [max(len(head[i]), *(len(r[i]) for r in rows)) for i in range(len(head))]
+    line = lambda c: "  ".join(c[i].ljust(w[i]) for i in range(len(c)))  # noqa: E731
+    out = ["PROJECTION DIAGNOSTIC — Raman combination -> motional mode (engine x ledger geometry)",
+           "", line(head), line(["-" * x for x in w])] + [line(r) for r in rows]
+    out.append("")
+    out.append(f"  addressed modes vs Doerr 2024: {'all match' if all_match else 'MISMATCH'}; "
+               f"AC axial proj = {eng.projection('AC', 'lf'):.3f} (Doerr 45 deg -> 0.707); "
+               f"radial tilt = {eng.tilt_deg:.0f} deg.")
+    return "\n".join(out)
+
+
 # --- rendering --------------------------------------------------------------
 def _cell(value: float, units: str, kind: str) -> str:
     if units == "Hz":
@@ -310,7 +344,8 @@ def main(argv=None) -> int:
         else:
             print(f"\n  {r.benchmark}: consumed {', '.join(r.consumed)}")
 
-    for diag in (drive_diagnostic(ledger), cooling_diagnostic(ledger)):
+    for diag in (drive_diagnostic(ledger), cooling_diagnostic(ledger),
+                 projection_diagnostic(ledger)):
         if diag:
             print("\n" + diag)
 

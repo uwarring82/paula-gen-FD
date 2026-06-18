@@ -7,6 +7,50 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 17) — Mode-projection engine (Raman -> motional mode)
+
+UW: "mode projection first" (before the Clos Doppler-temperature benchmark).
+
+**`spike.engines.projection`** — predicts which motional mode each Raman (TPSR)
+combination addresses, from the effective k-vector direction and the radial-mode
+tilt, both consumed from the ledger. Coupling onto a mode = the direction cosine
+|Delta_k_hat . e_mode| (relative Lamb-Dicke). Mode axes: lf along z; mf/hf in the
+x-y plane tilted 30 deg. The geometry reproduces Doerr 2024's addressing exactly:
+
+    comb  ->lf    ->mf    ->hf    addresses    vs Doerr
+    CC    0.000   0.000   0.000   (carrier)    ok
+    OC    1.000   0.000   0.000   lf           ok
+    AC    0.707   0.612   0.354   lf,mf,hf     ok    (0.707 = cos45, Doerr's "45 deg")
+    ROC   0.000   0.866   0.500   mf,hf        ok    (cos30 / sin30 on the tilted axes)
+
+Wired as a runner DIAGNOSTIC (not a sigma-row: the projections have no
+independent numeric benchmark beyond the tautological 45 deg; the teeth are the
+addressed-modes reproduction). Re-encoded the four raman_*_combination_25mg
+records from direction STRINGS to normalised Delta_k VECTORS so the engine
+consumes them directly; extended `Ledger._coerce_value` to resolve vector
+(-> tuple) and categorical values alongside scalars.
+
+**Adversarial verification (4-lens workflow, ultracode).** Independent
+re-derivation, convention-skeptic, thesis-grounding, and code review all
+confirmed the PHYSICS correct (every direction cosine re-derived from scratch;
+the two-step radial projection proven equal to the direct dot product because
+Delta_k_y = 0 and the radial modes have e_z = 0). Findings applied:
+  * MEDIUM (provenance): the per-beam laser parameters were cited as Clos 2017
+    "Tab. 3.1" but Clos's laser table is **Tab. 3.2** ("Specifications of all
+    laser systems", p. 39); Tab. 3.1 is a different linewidth matrix. Corrected
+    all 14 per-beam citations + the header (Wittemer's table genuinely is 3.1).
+  * LOW: tightened the 4 Raman records to Doerr "Sec. 2.1.4"; noted that only the
+    Delta_k AXIS (not sign) is fixed and the engine uses |.| ; noted Doerr does
+    not pin which of mf/hf sits on which tilted axis (labelling only); documented
+    the two-step==dot precondition and that abs() discards the displacement-phase
+    sign; added a 3-vector dimensionality guard + threshold justification.
+
+Records unchanged in count (60); tests 82 -> 95; substrate green. A future
+sideband engine can take |Delta_k| (CC 0, OC/ROC sqrt2, AC 2) + the mode
+frequencies to turn these direction cosines into absolute eta per mode.
+
+---
+
 ## 2026-06-18 (later 16) — Raman (TPSR) beam combinations + radial-mode tilt
 
 UW: add the Raman beam-combination properties (CC/OC/AC/ROC) and "note our radial

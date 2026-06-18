@@ -46,13 +46,26 @@ class Quantity:
     declared by the record. Uncertainty is symmetrised to a scalar here."""
 
     name: str
-    value: float
+    value: object  # float (default) | tuple[float, ...] (vector) | str | bool (categorical)
     units: str
     sigma: float
     kind: str  # "input" | "benchmark"
 
     def __repr__(self) -> str:
-        return f"{self.name} = {self.value:.6g} +/- {self.sigma:.2g} {self.units} [{self.kind}]"
+        v = f"{self.value:.6g}" if isinstance(self.value, float) else repr(self.value)
+        return f"{self.name} = {v} +/- {self.sigma:.2g} {self.units} [{self.kind}]"
+
+
+def _coerce_value(v):
+    """Resolve a record `value`. Scalars -> float; a vector (e.g. a k-vector
+    direction) -> tuple of floats; a categorical label / boolean stays as-is."""
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, (list, tuple)):
+        return tuple(float(x) for x in v)
+    if isinstance(v, str):
+        return v
+    return float(v)
 
 
 def _sigma(unc) -> float:
@@ -92,14 +105,14 @@ class Ledger:
         r = self._records[name]
         return Quantity(
             name=name,
-            value=float(r["value"]),
+            value=_coerce_value(r["value"]),
             units=r.get("units", ""),
             sigma=_sigma(r.get("uncertainty")),
             kind=r.get("kind", ""),   # a missing kind is never silently treated as "input"
         )
 
-    def value(self, name: str) -> float:
-        return float(self._records[name]["value"])
+    def value(self, name: str):
+        return _coerce_value(self._records[name]["value"])
 
     def input_quantity(self, name: str) -> Quantity:
         """A quantity that MUST be `kind: input` — the wall: engines consume only

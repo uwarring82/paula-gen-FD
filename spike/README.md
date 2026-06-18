@@ -64,6 +64,19 @@ them ~6× across the manifold (mirror pairs with equal |CG| differ 5×). So the
 runner reports a **drive DIAGNOSTIC** (|CG| vs measured → apparatus factor), not
 a σ-validation; an absolute-rate engine would need an antenna model.
 
+## Engine: `projection` (Raman → motional mode)
+
+[`engines/projection.py`](engines/projection.py) predicts which motional mode
+each Raman (TPSR) beam combination addresses, from the effective k-vector
+direction (Δk = k_B − k_R) and the radial-mode tilt — both consumed from the
+ledger (`raman_*_combination_25mg` Δk vectors + `radial_mode_tilt_25mg`). The
+coupling onto a mode is the direction cosine |Δk̂·ê_mode|; the axial (lf) mode is
+along z, the two radial modes (mf/hf) lie in the x-y plane tilted 30°. The
+geometry **reproduces Doerr 2024's documented addressing** (CC carrier-only, OC
+axial, AC all three at 45°, ROC radial) — shown as a **projection DIAGNOSTIC**
+(combination × mode, with a ✓/✗ against Doerr). It is the *geometric* part only;
+absolute η (|Δk| + mode frequency) is a future sideband engine.
+
 ## Engine: `cooling` (Doppler scattering)
 
 [`engines/cooling.py`](engines/cooling.py) is clean textbook two-level physics
@@ -86,12 +99,14 @@ spike/
     modes.py        axial + radial normal modes (equilibrium + Hessian)
     drive.py        relative microwave Rabi couplings (Clebsch-Gordan)
     cooling.py      two-level scattering rate + Doppler limit
+    projection.py   Raman combination -> motional mode (Delta_k . mode axis)
   runner.py         composition root: registry, ValidationResult, table, diagnostics
   validate_twin.py  CLI shim -> runner.main
   test_levels.py    levels physics + Weber/Doerr benchmarks + hyperfine spectrum
   test_modes.py     axial+radial eigenvalues + benchmarks + linalg robustness
   test_drive.py     Clebsch-Gordan vs sympy + symmetry + polarization
   test_cooling.py   scatter rate + Doppler limit + benchmark
+  test_projection.py  mode-axis geometry + addressed-modes vs Doerr + from_ledger
   test_runner.py    runner: result math, tension detection, wall refusal, coverage
 ```
 

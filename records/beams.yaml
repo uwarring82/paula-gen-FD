@@ -4,8 +4,8 @@
 # parameter (power/intensity, detuning, k-vector, polarisation, waist at the ion)
 # is input by default — the twin consumes it (invariant 5).
 #
-# Canonical source: the laser-parameter table (Clos 2017, Tab. 3.1; confirmed by
-# Wittemer 2019, Tab. 3.1), giving per beam: wavelength, polarisation,
+# Canonical source: the laser-parameter table (Clos 2017, Tab. 3.2 "Specifications
+# of all laser systems"; confirmed by Wittemer 2019, Tab. 3.1), giving per beam: wavelength, polarisation,
 # transition, natural linewidth Gamma_nat/(2pi), detuning Delta/Gamma_nat, and
 # intensity I/Isat (the saturation parameter s). All BD/RD beams are sigma+.
 # Detunings are recorded in Hz (= (Delta/Gamma) * Gamma_nat); the saturation
@@ -47,16 +47,22 @@
 #   OC  = B1+R2 (orthogonal)   Delta_k || z        axial lf mode
 #   AC  = B3+R1 (antiparallel) Delta_k || -(x+z)   all three modes
 #   ROC = B3+R2 (orthogonal)   Delta_k || x        radial modes
-# The Delta_k DIRECTION is recorded (trap x,y,z frame); the axial Lamb-Dicke
-# coupling is raman_axial_lamb_dicke_25mg; the radial tilt that complicates AC's
-# radial projection is radial_mode_tilt_25mg (records/fields.yaml).
+# The Delta_k DIRECTION is recorded as a NORMALISED vector in the trap x,y,z
+# frame (so the mode-projection engine consumes it directly). Doerr fixes the
+# AXIS of each Delta_k ("|| x", "|| z", "|| -(x+z)"), not its overall SIGN; the
+# sign is convention-dependent and immaterial here because the engine uses the
+# magnitude |Delta_k_hat . e_mode|. The magnitudes |Delta_k|/k from the beam
+# angles (CC 0, OC sqrt2, AC 2, ROC sqrt2) are noted for a future sideband
+# engine. The axial Lamb-Dicke coupling is
+# raman_axial_lamb_dicke_25mg; the radial tilt that complicates AC's radial
+# projection is radial_mode_tilt_25mg (records/fields.yaml).
 
 - name: raman_cc_combination_25mg
-  value: "dk~0"
-  units: "k-vector direction (trap x,y,z)"
+  value: [0.0, 0.0, 0.0]
+  units: "normalised k-vector direction (trap x,y,z)"
   kind: input
   uncertainty: {value: 0.0, type: exact}
-  source: {ref: doerr2024, loc: "Sec. 2.1, p. 12 (beam combinations)", extraction_note: "Colinear-Carrier CC = B1 (pi) + R1 (sigma+ + sigma-) superimposed PARALLEL -> Delta_k = k_B - k_R ~ 0. Confirmed by Hasse 2025 glossary (CC = co-linear carrier, B1 and R1).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: doerr2024, loc: "Sec. 2.1.4, p. 12 (beam combinations)", extraction_note: "Colinear-Carrier CC = B1 (pi) + R1 (sigma+ + sigma-) superimposed PARALLEL -> Delta_k = k_B - k_R ~ 0. Confirmed by Hasse 2025 glossary (CC = co-linear carrier, B1 and R1).", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -66,11 +72,11 @@
   status: provisional
 
 - name: raman_oc_combination_25mg
-  value: "+z"
-  units: "k-vector direction (trap x,y,z)"
+  value: [0.0, 0.0, 1.0]
+  units: "normalised k-vector direction (trap x,y,z)"
   kind: input
   uncertainty: {value: 0.0, type: exact}
-  source: {ref: doerr2024, loc: "Sec. 2.1, p. 12 (beam combinations)", extraction_note: "Orthogonal Carrier OC = B1 (pi) + R2 (sigma+ - sigma-) in an orthogonal configuration -> Delta_k parallel to the z-axis. Addresses the axial low-frequency (lf) mode (~1.3 MHz).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: doerr2024, loc: "Sec. 2.1.4, p. 12 (beam combinations)", extraction_note: "Orthogonal Carrier OC = B1 (pi) + R2 (sigma+ - sigma-) in an orthogonal configuration -> Delta_k parallel to the z-axis. Addresses the axial low-frequency (lf) mode (~1.3 MHz).", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -80,11 +86,11 @@
   status: provisional
 
 - name: raman_ac_combination_25mg
-  value: "-(ex+ez)/sqrt2"
-  units: "k-vector direction (trap x,y,z)"
+  value: [-0.70710678, 0.0, -0.70710678]
+  units: "normalised k-vector direction (trap x,y,z)"
   kind: input
   uncertainty: {value: 0.0, type: exact}
-  source: {ref: doerr2024, loc: "Sec. 2.1, p. 12 + Fig. 2.4, p. 13 (beam combinations)", extraction_note: "Antilinear Carrier AC = B3 + R1, superimposed but ANTIPARALLEL -> Delta_k || -(e_x + e_z), at 45 deg to the lf-mode axis in the x-z plane. Has non-zero projection onto ALL THREE modes (axial lf + radial mf ~3.0 + radial hf ~4.5 MHz).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: doerr2024, loc: "Sec. 2.1.4, p. 12 + Fig. 2.4, p. 13 (beam combinations)", extraction_note: "Antilinear Carrier AC = B3 + R1, superimposed but ANTIPARALLEL -> Delta_k || -(e_x + e_z), at 45 deg to the lf-mode axis in the x-z plane. Has non-zero projection onto ALL THREE modes (axial lf + radial mf ~3.0 + radial hf ~4.5 MHz).", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -98,11 +104,11 @@
   status: provisional
 
 - name: raman_roc_combination_25mg
-  value: "+x"
-  units: "k-vector direction (trap x,y,z)"
+  value: [1.0, 0.0, 0.0]
+  units: "normalised k-vector direction (trap x,y,z)"
   kind: input
   uncertainty: {value: 0.0, type: exact}
-  source: {ref: doerr2024, loc: "Sec. 2.1, p. 12 (beam combinations)", extraction_note: "Radial Orthogonal Carrier ROC = B3 + R2 in another orthogonal configuration -> Delta_k parallel to the x-axis. Addresses the radial (mf/hf) modes.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: doerr2024, loc: "Sec. 2.1.4, p. 12 (beam combinations)", extraction_note: "Radial Orthogonal Carrier ROC = B3 + R2 in another orthogonal configuration -> Delta_k parallel to the x-axis. Addresses the radial (mf/hf) modes.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -132,7 +138,7 @@
   units: Hz
   kind: input
   uncertainty: {value: 2.0e5, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1", extraction_note: "Natural linewidth of the 25Mg+ 3S1/2->3P3/2 cooling/detection/Raman transition (~279.6 nm). Confirmed by Wittemer 2019 Tab. 3.1.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1", extraction_note: "Natural linewidth of the 25Mg+ 3S1/2->3P3/2 cooling/detection/Raman transition (~279.6 nm). Confirmed by Wittemer 2019 Tab. 3.1.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -146,7 +152,7 @@
   units: Hz
   kind: input
   uncertainty: {value: 2.0e5, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1", extraction_note: "Natural linewidth of the 25Mg+ 3S1/2->3P1/2 repump transition (280.353 nm). Confirmed by Wittemer 2019 Tab. 3.1.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1", extraction_note: "Natural linewidth of the 25Mg+ 3S1/2->3P1/2 repump transition (280.353 nm). Confirmed by Wittemer 2019 Tab. 3.1.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -174,7 +180,7 @@
   units: m
   kind: input
   uncertainty: {value: 5.0e-12, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1", extraction_note: "Blue Doppler (BD/BDX/BDD) wavelength 279.635 nm, S1/2->P3/2. Raman is the same line (~279.6 nm).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1", extraction_note: "Blue Doppler (BD/BDX/BDD) wavelength 279.635 nm, S1/2->P3/2. Raman is the same line (~279.6 nm).", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -188,7 +194,7 @@
   units: m
   kind: input
   uncertainty: {value: 5.0e-12, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1", extraction_note: "Red Doppler / Repumper (RD/RP) wavelength 280.353 nm, S1/2->P1/2 (the fine-structure-split repump line; distinct from the 279.635 nm BD line).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1", extraction_note: "Red Doppler / Repumper (RD/RP) wavelength 280.353 nm, S1/2->P1/2 (the fine-structure-split repump line; distinct from the 279.635 nm BD line).", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -217,7 +223,7 @@
   units: Hz
   kind: input
   uncertainty: {value: 1.0e6, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (Delta/Gamma = -0.5)", extraction_note: "BD cooling-beam detuning Delta/Gamma = -0.5 -> -20.9 MHz. Doerr 2024 states '~20 MHz = half the natural linewidth'.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1 (Delta/Gamma = -0.5)", extraction_note: "BD cooling-beam detuning Delta/Gamma = -0.5 -> -20.9 MHz. Doerr 2024 states '~20 MHz = half the natural linewidth'.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -231,7 +237,7 @@
   units: dimensionless
   kind: input
   uncertainty: {value: 0.1, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (I/Isat = 0.5)", extraction_note: "BD cooling-beam intensity I/Isat = 0.5 (saturation parameter s). With Isat and the BD waist -> beam power.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1 (I/Isat = 0.5)", extraction_note: "BD cooling-beam intensity I/Isat = 0.5 (saturation parameter s). With Isat and the BD waist -> beam power.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -245,7 +251,7 @@
   units: Hz
   kind: input
   uncertainty: {value: 4.0e7, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (Delta/Gamma = -10)", extraction_note: "BDD (Blue Doppler Detuned) far-red detuning Delta/Gamma = -10 -> -418 MHz, to capture/cool hot ions.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1 (Delta/Gamma = -10)", extraction_note: "BDD (Blue Doppler Detuned) far-red detuning Delta/Gamma = -10 -> -418 MHz, to capture/cool hot ions.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -259,7 +265,7 @@
   units: dimensionless
   kind: input
   uncertainty: {value: 4.0, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (I/Isat = 20)", extraction_note: "BDD intensity I/Isat = 20 (strongly saturated, far-detuned).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1 (I/Isat = 20)", extraction_note: "BDD intensity I/Isat = 20 (strongly saturated, far-detuned).", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -273,7 +279,7 @@
   units: Hz
   kind: input
   uncertainty: {value: 2.0e6, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (Delta/Gamma = -0.1)", extraction_note: "BDX detection-beam detuning Delta/Gamma = -0.1 -> -4.18 MHz (near resonance). Doerr 2024 describes it as 'near resonance'.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1 (Delta/Gamma = -0.1)", extraction_note: "BDX detection-beam detuning Delta/Gamma = -0.1 -> -4.18 MHz (near resonance). Doerr 2024 describes it as 'near resonance'.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: detection}
   observation_type: direct
   derived_from: []
@@ -287,7 +293,7 @@
   units: dimensionless
   kind: input
   uncertainty: {value: 0.05, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (I/Isat = 0.2)", extraction_note: "BDX intensity I/Isat = 0.2 (kept low for low-perturbation detection).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1 (I/Isat = 0.2)", extraction_note: "BDX intensity I/Isat = 0.2 (kept low for low-perturbation detection).", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: detection}
   observation_type: direct
   derived_from: []
@@ -303,7 +309,7 @@
   units: Hz
   kind: input
   uncertainty: {value: 1.0e6, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (RD, Delta/Gamma = -0.5)", extraction_note: "RD (Red Doppler) preparation beam, S1/2 |F=2> -> 3P_1/2, sigma+ (dmF=+1), Delta/Gamma = -0.5 -> -20.65 MHz. Repumps toward |down>=|3,3>.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1 (RD, Delta/Gamma = -0.5)", extraction_note: "RD (Red Doppler) preparation beam, S1/2 |F=2> -> 3P_1/2, sigma+ (dmF=+1), Delta/Gamma = -0.5 -> -20.65 MHz. Repumps toward |down>=|3,3>.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -317,7 +323,7 @@
   units: dimensionless
   kind: input
   uncertainty: {value: 0.1, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (RD, I/Isat = 0.5)", extraction_note: "RD intensity I/Isat = 0.5.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1 (RD, I/Isat = 0.5)", extraction_note: "RD intensity I/Isat = 0.5.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -331,7 +337,7 @@
   units: Hz
   kind: input
   uncertainty: {value: 1.0e6, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (RP, Delta/Gamma = -0.5)", extraction_note: "RP (Repumper) preparation beam, S1/2 |F=3> -> 3P_1/2, sigma+, Delta/Gamma = -0.5 -> -20.65 MHz. Pumps mF up toward |down>.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1 (RP, Delta/Gamma = -0.5)", extraction_note: "RP (Repumper) preparation beam, S1/2 |F=3> -> 3P_1/2, sigma+, Delta/Gamma = -0.5 -> -20.65 MHz. Pumps mF up toward |down>.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
@@ -345,7 +351,7 @@
   units: dimensionless
   kind: input
   uncertainty: {value: 0.2, type: systematic}
-  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (RP, I/Isat = 1)", extraction_note: "RP intensity I/Isat = 1 (at saturation).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  source: {ref: clos2017, loc: "Tab. 3.2, Sec. 3.1 (RP, I/Isat = 1)", extraction_note: "RP intensity I/Isat = 1 (at saturation).", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []

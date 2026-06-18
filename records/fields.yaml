@@ -272,5 +272,9 @@
     pseudopotential asymmetry (Wittemer 2019: the mode angle is non-zero even at
     kappa_xy = 0 for typical RF amplitudes). This tilt is why the AC Raman
     combination (k in the x-z plane) needs a two-step projection to address the
-    radial modes (see raman_ac_combination_25mg in records/beams.yaml).
+    radial modes (see raman_ac_combination_25mg in records/beams.yaml). NOTE:
+    Doerr fixes only the two orthogonal radial directions and the 30 deg tilt, NOT
+    which of the mid-/high-frequency modes (3.0 / 4.5 MHz) sits on which tilted
+    axis; the engine's mf=near-x, hf=near-y assignment is a labelling convention
+    and does not affect the projection magnitudes.
   status: provisional
