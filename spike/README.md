@@ -64,6 +64,16 @@ them ~6× across the manifold (mirror pairs with equal |CG| differ 5×). So the
 runner reports a **drive DIAGNOSTIC** (|CG| vs measured → apparatus factor), not
 a σ-validation; an absolute-rate engine would need an antenna model.
 
+## Engine: `cooling` (Doppler scattering)
+
+[`engines/cooling.py`](engines/cooling.py) is clean textbook two-level physics
+(no apparatus model): from the natural linewidth Γ, detuning Δ and saturation
+parameter s = I/Isat (all in the ledger from the laser table), the scattering
+rate is R = (Γ/2) s/(1 + s + (2Δ/Γ)²) and the Doppler limit is
+T_D = ℏΓ/(2k_B). It **reproduces the ~1 mK Doppler limit** (1.0030 mK vs the
+theses' 1.0000 mK) and notes the optimal detuning −Γ/2 = −20.9 MHz *is* the BD
+cooling setting. The runner adds a cooling diagnostic (scatter rate per beam).
+
 ## Layout
 
 ```
@@ -75,11 +85,13 @@ spike/
     levels.py       2S_1/2 hyperfine+Zeeman engine (closed-form Breit-Rabi)
     modes.py        axial + radial normal modes (equilibrium + Hessian)
     drive.py        relative microwave Rabi couplings (Clebsch-Gordan)
-  runner.py         composition root: registry, ValidationResult, table, drive diagnostic
+    cooling.py      two-level scattering rate + Doppler limit
+  runner.py         composition root: registry, ValidationResult, table, diagnostics
   validate_twin.py  CLI shim -> runner.main
   test_levels.py    levels physics + Weber/Doerr benchmarks + hyperfine spectrum
   test_modes.py     axial+radial eigenvalues + benchmarks + linalg robustness
   test_drive.py     Clebsch-Gordan vs sympy + symmetry + polarization
+  test_cooling.py   scatter rate + Doppler limit + benchmark
   test_runner.py    runner: result math, tension detection, wall refusal, coverage
 ```
 

@@ -10,6 +10,7 @@ ledger does not provide them.
 
 # --- CODATA 2018 fundamental constants (SI) ---------------------------------
 H_PLANCK = 6.62607015e-34        # J*s          (exact, SI definition)
+K_BOLTZMANN = 1.380649e-23       # J/K          (exact, SI definition)
 MU_B = 9.2740100783e-24          # J/T          Bohr magneton
 MU_N = 5.0507837461e-27          # J/T          nuclear magneton
 G_E = 2.00231930436256           # —            free-electron g-factor

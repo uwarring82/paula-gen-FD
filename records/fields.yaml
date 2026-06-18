@@ -213,3 +213,34 @@
     responsivities are the independent tests. configuration omitted (this IS a
     field, apparatus-dependent, not null) while provisional.
   status: provisional
+
+# --- Doppler cooling limit (cooling-engine benchmark) ------------------------
+
+- name: doppler_cooling_limit_25mg
+  value: 1.0e-3                   # K (~1 mK)
+  units: K
+  kind: benchmark                # the cooling engine reproduces it from Gamma
+  uncertainty: {value: 1.0e-4, type: systematic}    # theses quote "~1 mK"
+  source:
+    ref: doerr2024
+    loc: "Sec. 2.1.1, p. 9 (Doppler limit ~1 mK)"
+    extraction_note: >-
+      Doppler cooling limit of 25Mg+ on the S1/2->P3/2 transition, T_D ~ 1 mK,
+      stated by Doerr (and Kaufmann/Friedenauer). It is the theoretical limit
+      T_D = hbar*Gamma/(2 k_B), reached at detuning -Gamma/2 (= the BD cooling
+      setting).
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: inferred
+  derived_from: []
+  generation: legacy
+  measured_on: 2024-01-01         # PLACEHOLDER: a theoretical limit, not a measurement
+  conditions: "Doppler cooling on S1/2->P3/2, at the optimal detuning -Gamma/2"
+  caveats: >-
+    Theoretical limit T_D = hbar*Gamma/(2 k_B). The cooling engine reproduces it
+    (1.003 mK) from mg_p32_natural_linewidth, so this is a THEORY-consistency
+    check (both derive from Gamma), not an independent measurement; a measured
+    Doppler temperature / mean phonon number would be a stronger benchmark.
+    measured_on is a placeholder (theoretical limit, not measured).
+  status: provisional

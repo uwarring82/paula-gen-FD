@@ -16,6 +16,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Callable
 
+from .engines.cooling import DopplerCooling
 from .engines.drive import HyperfineDrive
 from .engines.levels import GroundStateZeeman
 from .engines.modes import AxialModes, RadialModes
@@ -146,11 +147,25 @@ def _validate_weber_clock(ledger: Ledger) -> ValidationResult:
     )
 
 
+def _validate_doppler_limit(ledger: Ledger) -> ValidationResult:
+    gamma = ledger.input_quantity("mg_p32_natural_linewidth")
+    bench = ledger.benchmark_quantity("doppler_cooling_limit_25mg")
+    eng = DopplerCooling.from_ledger(ledger)
+    return ValidationResult(
+        benchmark=bench.name, engine="cooling",
+        subsystem=ledger.record(bench.name)["scope"]["subsystem"],
+        predicted=eng.doppler_limit(), measured=bench.value, units=bench.units,
+        sigma_pred=_central_sigma(lambda g: DopplerCooling(g).doppler_limit(), gamma.value, gamma.sigma),
+        sigma_meas=bench.sigma, consumed=("mg_p32_natural_linewidth",),
+    )
+
+
 REGISTRY = [
     Validation("clock_transition_25mg", "levels", _validate_clock),
     Validation("clock_transition_weber_25mg", "levels", _validate_weber_clock),
     Validation("omega_z_axial_stretch_2ion_25mg", "modes", _validate_stretch),
     Validation("omega_radial_rocking_2ion_25mg", "modes", _validate_radial_rocking),
+    Validation("doppler_cooling_limit_25mg", "cooling", _validate_doppler_limit),
 ]
 
 
@@ -222,16 +237,49 @@ def drive_diagnostic(ledger: Ledger) -> str:
     return "\n".join(out)
 
 
+_COOLING_BEAMS = [
+    ("BD (cooling)", "bd_cooling_detuning", "bd_cooling_saturation"),
+    ("BDX (detection)", "bdx_detection_detuning", "bdx_detection_saturation"),
+    ("BDD (far cool)", "bdd_far_cooling_detuning", "bdd_far_cooling_saturation"),
+]
+
+
+def cooling_diagnostic(ledger: Ledger) -> str:
+    """Steady-state scattering rate at each Blue Doppler beam setting (detuning +
+    saturation from the laser table), via the cooling engine."""
+    if "mg_p32_natural_linewidth" not in ledger:
+        return ""
+    eng = DopplerCooling.from_ledger(ledger)
+    rows = []
+    for label, dname, sname in _COOLING_BEAMS:
+        if dname in ledger and sname in ledger:
+            d, s = ledger.value(dname), ledger.value(sname)
+            rows.append([label, f"{d / 1e6:+.1f}", f"{s:g}", f"{eng.scatter_rate(d, s) / 1e6:.1f}"])
+    if not rows:
+        return ""
+    head = ["beam", "detuning/MHz", "s=I/Isat", "scatter/Mphotons/s"]
+    w = [max(len(head[i]), *(len(r[i]) for r in rows)) for i in range(len(head))]
+    line = lambda c: "  ".join(c[i].ljust(w[i]) for i in range(len(c)))  # noqa: E731
+    out = ["COOLING DIAGNOSTIC — Doppler scattering per Blue Doppler beam (engine x ledger)",
+           "", line(head), line(["-" * x for x in w])] + [line(r) for r in rows]
+    out.append("")
+    out.append(f"  max (saturated, on resonance) = {eng.max_scatter_rate() / 1e6:.0f} Mphotons/s; "
+               f"T_D = {eng.doppler_limit() * 1e3:.3f} mK at -Gamma/2 = {eng.optimal_detuning() / 1e6:.1f} MHz.")
+    return "\n".join(out)
+
+
 # --- rendering --------------------------------------------------------------
 def _cell(value: float, units: str, kind: str) -> str:
     if units == "Hz":
-        return f"{value / 1e6:.6f}" if kind == "value" else f"{value / 1e3:+.2f}"
-    return f"{value:.6g}" if kind == "value" else f"{value:+.3g}"
+        return f"{value / 1e6:.6f} MHz" if kind == "value" else f"{value / 1e3:+.2f} kHz"
+    if units == "K":
+        return f"{value * 1e3:.4f} mK" if kind == "value" else f"{value * 1e6:+.2f} uK"
+    return f"{value:.6g} {units}" if kind == "value" else f"{value:+.3g} {units}"
 
 
 def render_table(results: list[ValidationResult]) -> str:
-    head = ["benchmark", "engine", "subsystem", "predicted/MHz", "benchmark/MHz",
-            "residual/kHz", "n_sigma", "status"]
+    head = ["benchmark", "engine", "subsystem", "predicted", "reference",
+            "residual", "n_sigma", "status"]
     rows = []
     for r in results:
         if r.error:
@@ -262,9 +310,9 @@ def main(argv=None) -> int:
         else:
             print(f"\n  {r.benchmark}: consumed {', '.join(r.consumed)}")
 
-    diag = drive_diagnostic(ledger)
-    if diag:
-        print("\n" + diag)
+    for diag in (drive_diagnostic(ledger), cooling_diagnostic(ledger)):
+        if diag:
+            print("\n" + diag)
 
     uncovered = uncovered_benchmarks(ledger)
     if uncovered:

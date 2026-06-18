@@ -7,6 +7,34 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 15) — Cooling engine (Doppler scattering + limit)
+
+UW: "go for it" on the cooling/scattering engine.
+
+**`spike.engines.cooling`** — clean two-level physics (no apparatus model): from
+the natural linewidth Gamma, detuning Delta and saturation parameter s = I/Isat
+(all in the ledger from the laser table), R_sc = (Gamma/2) s/(1 + s + (2Delta/
+Gamma)^2) and T_D = hbar*Gamma/(2 k_B). Added k_B to constants.py.
+
+**Validation (5th in the composition root).** The engine reproduces the Doppler
+limit from Gamma: predicted **1.0030 mK** vs the theses' stated **~1 mK**
+(`doppler_cooling_limit_25mg` benchmark), +3 uK = 0.03 sigma. The optimal
+detuning -Gamma/2 = -20.9 MHz EQUALS the BD cooling setting (bd_cooling_detuning),
+i.e. the lab cools at the textbook-optimal detuning. Honest framing: the limit is
+T_D = hbar*Gamma/(2 k_B), so this is a theory-consistency check (both derive from
+Gamma); a measured Doppler temperature / mean phonon number would be a stronger
+benchmark (noted on the record).
+
+**Capability + diagnostic.** Scatter rate per Blue Doppler beam (from detuning +
+s): BD 26.3, BDX 21.2, BDD 6.2 Mphotons/s; max (saturated, on resonance) =
+Gamma/2 = 131 Mphotons/s. Added a `cooling_diagnostic` to the runner. Made the
+results table unit-aware (Hz -> MHz/kHz, K -> mK/uK).
+
+Tests 75 -> 82; substrate green. The composition root now spans levels (clock x2),
+modes (axial + radial), and cooling (Doppler limit) — three subsystems.
+
+---
+
 ## 2026-06-18 (later 14) — Beams completed from the canonical laser table
 
 UW: check clos2017, hasse2025, wittemer2019, friedenauer2010 (to fill the beam
