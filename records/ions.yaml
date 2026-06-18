@@ -84,6 +84,55 @@
     specific source location). source.loc as for nuclear_spin_24mg.
   status: provisional
 
+# --- g-factors (atomic constants consumed by the levels engine) -------------
+
+- name: g_factor_electron_2s12
+  value: 2.00231930436256        # g_J(2S_1/2) ~ free-electron g_e
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 1.0e-5, type: systematic}   # g_J(ion) approximated by g_e
+  source:
+    ref: codata2018
+    loc: "free-electron g-factor g_e"
+    extraction_note: >-
+      Electronic g-factor of the 3s 2S_1/2 state. For an L=0 state g_J = g_S, so
+      it is approximated here by the CODATA free-electron value g_e; the bound-
+      state (relativistic/QED) correction for Mg+ is ~1e-5, negligible against
+      the field uncertainty. Consumed by the levels engine.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  configuration: null
+  caveats: >-
+    Isotope-independent (electronic). Value is the free-electron g_e; the small
+    Mg+ 2S_1/2 bound-state correction is not included.
+  status: provisional
+
+- name: g_factor_nuclear_25mg
+  value: -0.34218                # g_I = mu_I/(I mu_N) = -0.85545/2.5
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 1.0e-5, type: systematic}
+  source:
+    ref: stone2005
+    loc: "25Mg entry: mu = -0.85545 mu_N, I = 5/2"
+    extraction_note: >-
+      Nuclear g-factor of 25Mg, g_I = mu_I/(I mu_N) = -0.85545/2.5 = -0.34218
+      (sign included). Enters the m_F=0 clock only weakly (~12 Hz at 5.5 G via
+      g_J mu_B - g_I mu_N); dominates the m_F != 0 Zeeman slopes.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  configuration: null
+  caveats: "Derived from the tabulated nuclear moment; g_I < 0 for 25Mg."
+  status: provisional
+
 # --- the 25Mg+ ground-state hyperfine manifold (F = 2 and F = 3) -------------
 
 - name: hyperfine_level_f2_25mg
@@ -275,7 +324,7 @@
     extracted_on: 2026-06-18
   scope: {isotope: 25Mg, subsystem: internal_state}
   observation_type: derived
-  derived_from: [hyperfine_splitting_calc_25mg]
+  derived_from: [hyperfine_splitting_calc_25mg, g_factor_electron_2s12, g_factor_nuclear_25mg]
   generation: legacy
   configuration: null
   caveats: >-

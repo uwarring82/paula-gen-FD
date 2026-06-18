@@ -250,6 +250,34 @@ colla2025:
   verified: true
   note: "Nature Communications 16, 2502 (2025)."
 
+# --- reference data (fundamental / atomic constants) ------------------------
+
+codata2018:
+  title: "CODATA Recommended Values of the Fundamental Physical Constants: 2018"
+  author: "E. Tiesinga, P. J. Mohr, D. B. Newell, B. N. Taylor"
+  year: 2021
+  degree: dataset
+  link: "https://physics.nist.gov/cuu/Constants/"
+  doi: "10.1103/RevModPhys.93.025010"
+  archived: true
+  verified: false
+  note: >-
+    Rev. Mod. Phys. 93, 025010 (2021) + NIST constants portal. Source of h,
+    mu_B, mu_N and the free-electron g-factor g_e (used to approximate g_J of the
+    2S_1/2 state). DOI/URL not re-resolved this session.
+
+stone2005:
+  title: "Table of nuclear magnetic dipole and electric quadrupole moments"
+  author: "N. J. Stone"
+  year: 2005
+  degree: review
+  doi: "10.1016/j.adt.2005.04.001"
+  archived: true
+  verified: false
+  note: >-
+    At. Data Nucl. Data Tables 90, 75-176 (2005). Source of the 25Mg nuclear
+    moment mu = -0.85545 mu_N -> g_I = -0.34218. DOI not re-resolved this session.
+
 # --- known corpus members with NO public resolvable copy (honestly flagged) --
 
 schmitz2010:

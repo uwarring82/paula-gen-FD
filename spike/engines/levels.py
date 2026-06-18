@@ -56,11 +56,19 @@ class GroundStateZeeman:
     # ------------------------------------------------------------------ #
     @classmethod
     def from_ledger(cls, ledger, a_name="hyperfine_a_constant_25mg",
-                    i_name="nuclear_spin_25mg", g_J=C.G_J_2S12, g_I=C.G_I_25MG):
+                    i_name="nuclear_spin_25mg", gj_name="g_factor_electron_2s12",
+                    gi_name="g_factor_nuclear_25mg", g_J=None, g_I=None):
         """Build the engine from `input` ledger records (the wall: it must not
-        read benchmarks). ledger.input_quantity() enforces kind:input."""
+        read benchmarks). Every consumed quantity — A, I, and the g-factors —
+        goes through ledger.input_quantity(), which enforces kind:input.
+        g_J/g_I are read from the ledger when present, else fall back to the
+        CODATA/tabulated values in constants.py (backward compatible)."""
         A = ledger.input_quantity(a_name).value
         I = ledger.input_quantity(i_name).value
+        if g_J is None:
+            g_J = ledger.input_quantity(gj_name).value if gj_name in ledger else C.G_J_2S12
+        if g_I is None:
+            g_I = ledger.input_quantity(gi_name).value if gi_name in ledger else C.G_I_25MG
         return cls(A_hz=A, I=I, g_J=g_J, g_I=g_I)
 
     # ------------------------------------------------------------------ #

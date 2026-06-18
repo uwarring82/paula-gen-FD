@@ -7,6 +7,34 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 6) — Full wall coverage: every engine input via the ledger
+
+Two review-driven refinements so that *every* quantity the engine consumes —
+constants included — comes through the wall.
+
+1. **Closed the wall gap.** `validate_twin` had pulled the field
+   (`b_field_quantization_freddy`) and the measured clock outside the wall, so
+   only A and I were kind-checked. Added `Ledger.input_quantity()` (must be
+   `kind:input`) and `benchmark_quantity()` (must be `kind:benchmark`); the
+   runner now routes the field via `input_quantity` and the clock via
+   `benchmark_quantity`, and `from_ledger` uses `input_quantity` for A/I. A field
+   accidentally flipped to `benchmark` (or the clock to `input`) now fails loudly.
+
+2. **g_J / g_I → ledger inputs.** The only remaining magic numbers in the levels
+   engine. Added `g_factor_electron_2s12` (= free-electron g_e, sourced to
+   `codata2018`) and `g_factor_nuclear_25mg` (= -0.34218 from the 25Mg moment,
+   sourced to `stone2005`) as `input` records; `from_ledger` reads them through
+   the wall, falling back to `constants.py` only if absent. Updated
+   `qubit_quadratic_zeeman_coeff_25mg.derived_from` to include them (it genuinely
+   depends on g_J/g_I). Values equal the old constants, so the prediction is
+   unchanged (residual still -2651 Hz, 1.09 sigma).
+
+Substrate 18 -> 20 records (+3 warnings: the two new sources are `verified:false`
+pending a click-through, plus the known `doerr2024`). Tests 33 -> 36. The
+pattern is now set for the next engine: every physical input is ledger-driven.
+
+---
+
 ## 2026-06-18 (later 5) — First physics engine: the levels (Breit-Rabi) spike
 
 Started the twin: a `spike/` package (UW chose in-repo, split later) with the

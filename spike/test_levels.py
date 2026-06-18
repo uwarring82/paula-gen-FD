@@ -125,3 +125,13 @@ def test_benchmark_quantity_refuses_input():
     with pytest.raises(ValueError):
         ledger.benchmark_quantity("hyperfine_a_constant_25mg")
     assert ledger.benchmark_quantity("clock_transition_25mg").kind == "benchmark"
+
+
+def test_from_ledger_sources_g_factors_from_ledger():
+    # the wall now covers the constants too: g_J/g_I come from input records
+    ledger = Ledger.load()
+    e = GroundStateZeeman.from_ledger(ledger)
+    assert e.g_J == ledger.input_quantity("g_factor_electron_2s12").value
+    assert e.g_I == ledger.input_quantity("g_factor_nuclear_25mg").value
+    # and the prediction is unchanged from the constants.py values
+    assert e.clock_transition(5.5 * C.GAUSS) == pytest.approx(1788829549.0, abs=20.0)
