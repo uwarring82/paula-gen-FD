@@ -7,6 +7,46 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 5) — First physics engine: the levels (Breit-Rabi) spike
+
+Started the twin: a `spike/` package (UW chose in-repo, split later) with the
+first engine. Physics/solver code stays OUT of the substrate (`records/`,
+`validator/`); the spike imports the ledger and is checked against benchmarks.
+
+**`spike.engines.levels`** — 25Mg+ ground-state (2S_1/2) hyperfine+Zeeman
+structure, closed-form Breit-Rabi (exact for J=1/2, no numpy; sign-safe for the
+inverted A<0 manifold). `from_ledger` consumes ONLY `input` records (refuses
+benchmarks). `spike/validate_twin.py` predicts the clock from ledger inputs and
+compares to the measured benchmark:
+
+    predicted 1788.829549 MHz  vs  measured 1788.832200 MHz
+    residual -2651 Hz = 1.09 sigma  -> CONSISTENT
+
+So the hand-built forward validation (later 4) is now real engine code.
+
+**Adversarial review** (3 agents: physics re-derivation, code, break-it). All
+three: physics CORRECT — the closed form matches an independent 12x12
+diagonalization to ~1e-7 Hz from 0 to 1e5 G; conservation, antisymmetry,
+sign-handling, state counts all hold. Findings were robustness/docs, now fixed:
+- **(medium) I=0 reachable crash** — `nuclear_spin_24mg/26mg` are I=0 `input`s;
+  `from_ledger` built then `clock_transition` threw a bare `KeyError`. Added a
+  domain guard (I >= 1/2; clock needs half-integer I) + tests.
+- **(medium) runnability docstring** — dropped the false `python spike/...py`
+  claim (relative imports); `python -m spike.validate_twin` from a source
+  checkout is the supported path.
+- **(low) sigma robustness** — a missing uncertainty no longer silently flips
+  the run to "tension"; non-finite sigma now raises, 0/0 handled.
+- **(low) missing-`kind`** — `quantity()` no longer defaults a kindless record
+  to `input` (aligns with the wall).
+- **(low/doc) g_I "independent"** — corrected: g_I enters the m_F=0 clock at
+  ~12 Hz/5.5 G via (g_J mu_B - g_I mu_N), which the engine retains exactly
+  (engine K 2195.77 vs the g_I-neglected ledger 2195.37 Hz/G^2; noted).
+
+Tests 30 -> 33; substrate green; CI runs the spike tests + the clock
+reproduction.
+
+---
+
 ## 2026-06-18 (later 4) — Forward clock validation across the wall
 
 Promoted the back-inferred field to a proper **forward validation** (UW: "go").

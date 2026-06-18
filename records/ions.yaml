@@ -281,7 +281,10 @@
   caveats: >-
     Leading-quadratic (small-x) Breit-Rabi approximation; the g_I (nuclear) term
     is neglected (~1/1836) and the free-electron g_J is used. Valid for the
-    first-order-field-insensitive mF=0<->mF=0 clock transition.
+    first-order-field-insensitive mF=0<->mF=0 clock transition. The spike levels
+    engine retains the full (g_J mu_B - g_I mu_N) form, so its K is ~0.4 Hz/G^2
+    (~0.02%) larger than this g_I-neglected value — immaterial at the current
+    uncertainty.
   status: provisional
 
 - name: b_field_from_clock_25mg

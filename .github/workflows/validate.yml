@@ -24,3 +24,9 @@ jobs:
 
       - name: Validate the parameter substrate (schema + graph invariants)
         run: python validator/validate.py
+
+      - name: Twin spike — levels engine tests
+        run: pytest -q spike/
+
+      - name: Twin spike — reproduce the clock benchmark from ledger inputs
+        run: python -m spike.validate_twin

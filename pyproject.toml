@@ -22,7 +22,7 @@ dev = ["pytest>=7.0", "pre-commit>=3.0"]
 iontrap-validate = "validator.validate:main_cli"
 
 [tool.setuptools]
-packages = ["validator"]
+packages = ["validator", "spike", "spike.engines"]
 
 [tool.pytest.ini_options]
-testpaths = ["validator"]
+testpaths = ["validator", "spike"]
