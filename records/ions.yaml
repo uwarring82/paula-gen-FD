@@ -428,3 +428,35 @@
     propagated through the prediction (~2.4 kHz); the measured clock's
     statistical part is only ~0.2 kHz — hence type: systematic.
   status: provisional
+
+# --- second, independent clock measurement (Weber 2025) ----------------------
+
+- name: clock_transition_weber_25mg
+  value: 1.7888328e9            # Hz, |F=3,mF=0> <-> |F=2,mF=0>
+  units: Hz
+  kind: benchmark               # in-house measurement the levels engine must reproduce
+  uncertainty: {value: 6.0e2, type: statistical}    # 1788.8328(6) MHz -> ±0.6 kHz
+  source:
+    ref: weber2025
+    loc: "Table 3, p. 29 (|3,0> <-> |2,0>)"
+    extraction_note: >-
+      Measured field-insensitive clock transition |F=3,mF=0> <-> |F=2,mF=0>,
+      omega_q/(2pi) = 1788.8328(6) MHz (responsivity +0.0248 MHz/G), at the
+      Zeeman-spectroscopy field B = 5.6454(9) G. An INDEPENDENT measurement of the
+      clock, distinct from Doerr's 1788.8322(2) MHz (clock_transition_25mg).
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  configuration: {trap: null, beams: null, b_field: nominal}
+  measured_on: 2025-07-01        # PLACEHOLDER (Weber thesis, July 2025) — see caveat
+  conditions: "first-order-field-insensitive mF=0<->mF=0 transition; B = 5.6454(9) G"
+  caveats: >-
+    Independent clock confirmation: Weber 1788.8328(6) vs Doerr 1788.8322(2) MHz
+    agree to ~0.6 kHz. The levels engine reproduces ALL 8 of Weber's measured
+    ground-state |3,mF>↔|2,m'F> transitions to <5.3 kHz and the responsivities to
+    ~0.0005 MHz/G (see spike/test_levels.py). measured_on is a PLACEHOLDER (Weber
+    July 2025); the b_field slot 'nominal' is a placeholder label.
+  status: provisional

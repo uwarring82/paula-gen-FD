@@ -130,8 +130,24 @@ def _validate_radial_rocking(ledger: Ledger) -> ValidationResult:
     )
 
 
+def _validate_weber_clock(ledger: Ledger) -> ValidationResult:
+    Bq = ledger.input_quantity("b_field_zeeman_weber_25mg")
+    bench = ledger.benchmark_quantity("clock_transition_weber_25mg")
+    eng = GroundStateZeeman.from_ledger(ledger)
+    return ValidationResult(
+        benchmark=bench.name, engine="levels",
+        subsystem=ledger.record(bench.name)["scope"]["subsystem"],
+        predicted=eng.clock_transition(Bq.value), measured=bench.value, units=bench.units,
+        sigma_pred=_central_sigma(eng.clock_transition, Bq.value, Bq.sigma), sigma_meas=bench.sigma,
+        consumed=("hyperfine_a_constant_25mg", "nuclear_spin_25mg",
+                  "g_factor_electron_2s12", "g_factor_nuclear_25mg",
+                  "b_field_zeeman_weber_25mg"),
+    )
+
+
 REGISTRY = [
     Validation("clock_transition_25mg", "levels", _validate_clock),
+    Validation("clock_transition_weber_25mg", "levels", _validate_weber_clock),
     Validation("omega_z_axial_stretch_2ion_25mg", "modes", _validate_stretch),
     Validation("omega_radial_rocking_2ion_25mg", "modes", _validate_radial_rocking),
 ]

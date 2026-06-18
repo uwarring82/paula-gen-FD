@@ -139,6 +139,17 @@ def test_hyperfine_transitions_require_half_integer_I():
         GroundStateZeeman(A_hz=A_25MG, I=1.0).hyperfine_transitions(5.5 * C.GAUSS)
 
 
+def test_reproduces_weber_2025_zeeman_manifold():
+    # Weber 2025 Table 3: 8 MEASURED |3,mF> <-> |2,m'F> transitions at B=5.6454(9) G
+    weber = {  # (mF_F3, mF_F2): MHz
+        (3, 2): 1775.598, (1, 2): 1780.9055, (1, 0): 1786.1917, (0, 0): 1788.8328,
+        (0, -1): 1791.4636, (-1, -1): 1794.0978, (-1, -2): 1796.721, (-3, -2): 1801.9661,
+    }
+    hf = GroundStateZeeman.from_ledger(Ledger.load()).hyperfine_transitions(5.6454 * C.GAUSS)
+    worst = max(abs(hf[(float(u), float(l))] / 1e6 - v) for (u, l), v in weber.items())
+    assert worst < 6e-3   # all 8 measured transitions reproduced to < 6 kHz
+
+
 def test_input_quantity_refuses_benchmark():
     ledger = Ledger.load()
     # the wall, at the ledger boundary: a benchmark cannot be consumed as an input

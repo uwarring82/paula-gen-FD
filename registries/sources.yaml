@@ -332,12 +332,18 @@ kaufmann2022:
     abstract in the Freiburg multi-ion-trap context, consistent with an MSc ~2022.
 
 weber2025:
+  title: "A Tunable Quantum Magnetometer Based on Single Trapped Ions"
   author: "Andreas Weber"
   year: 2025
   degree: msc
+  institution: "Albert-Ludwigs-Universität Freiburg"
   archived: false
   verified: false
-  note: "NOT FOUND in any public archive; not independently confirmable from secondary sources."
+  note: >-
+    MSc thesis (supervisor T. Schätz, July 2025); local PDF weber2025.pdf, not in
+    a public archive. Table 3 (p. 29) lists 8 MEASURED 25Mg+ ground-state
+    |3,mF>↔|2,m'F> qubit transition frequencies and Zeeman-spectroscopy field
+    B = 5.6454(9) G (Eq. 4.2); confirms A = 596.254376(54) MHz.
 
 # --- internal PAULA analysis notebooks (own primary sources; local-only) -----
 # Mathematica notebooks kept local (sources/Mathematica/, untracked); citable as

@@ -7,6 +7,37 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 10) — Levels engine vs Weber 2025 measured manifold
+
+UW: compare the ground-state manifold splittings against weber2025.pdf.
+
+Extracted Weber 2025 ("A Tunable Quantum Magnetometer …", MSc, Schätz group)
+Table 3: **8 MEASURED** 25Mg+ ground-state |3,mF⟩↔|2,m′F⟩ qubit transition
+frequencies (1775.6–1802.0 MHz) at the Zeeman-spectroscopy field
+**B = 5.6454(9) G**, and it independently confirms A = 596.254376(54) MHz.
+
+**The levels engine reproduces all 8 measured transitions to < 5.3 kHz** (clock
++0.31 kHz) and the listed responsivities (dω/dB) to ~0.0005 MHz/G — a real
+MEASURED validation of `hyperfine_transitions` (the modes were calc cross-checks;
+this is measurement). The clock responsivity +0.0248 MHz/G matches exactly.
+
+Formalised the high-value, non-circular pieces:
+- `weber2025` source (title added); `b_field_zeeman_weber_25mg` (precise MEASURED
+  field 5.6454(9) G, input); `clock_transition_weber_25mg` (measured clock
+  benchmark, 1788.8328(6) MHz).
+- `_validate_weber_clock` (4 validations now): predicted 1788.8331 vs measured
+  1788.8328 MHz, +0.31 kHz = 0.51σ. INDEPENDENT of Doerr's clock (1788.8322);
+  the two measurements agree to ~0.6 kHz, consistent with the field difference.
+- Full 8-transition comparison captured as a regression test
+  (`test_reproduces_weber_2025_zeeman_manifold`).
+
+Caveat: B = 5.6454 G was determined FROM these transitions (Zeeman
+spectroscopy), so the field-SENSITIVE comparison is partly circular; the
+field-insensitive clock and the responsivities are the independent tests. Tests
+67 -> 68; substrate green (weber2025 honestly flagged unarchived).
+
+---
+
 ## 2026-06-18 (later 9) — Radial modes, hyperfine spectrum, provenance fix
 
 UW asked to add radial modes and the full ground-state hyperfine transitions.

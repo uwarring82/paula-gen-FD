@@ -181,3 +181,35 @@
     fed into the engine. Same measured_on / mixed-isotope schema notes as
     omega_z_axial_stretch_2ion_25mg.
   status: provisional
+
+# --- precise MEASURED field from Weber 2025 Zeeman spectroscopy --------------
+
+- name: b_field_zeeman_weber_25mg
+  value: 5.6454e-4               # T (5.6454 G), measured via Zeeman spectroscopy
+  units: T
+  kind: input
+  uncertainty: {value: 9.0e-8, type: systematic}    # 0.0009 G (weighted sample spread sw)
+  source:
+    ref: weber2025
+    loc: "Eq. (4.2), p. 30; from Table 3, p. 29"
+    extraction_note: >-
+      Static field at the ion, B = 5.6454(9) G, determined by Zeeman
+      spectroscopy of the 25Mg+ ground-state qubit transitions (weighted mean
+      over 8 transitions). The (9) is the conservative weighted sample spread
+      sw = 8.9e-4 G that Weber quotes (the standard error of the mean is much
+      smaller, 5.6e-6 G).
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: apparatus, subsystem: fields}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  caveats: >-
+    A precise MEASURED operating field — much tighter than the approximate ~5.5 G
+    (b_field_quantization_freddy, Doerr) and consistent with the 5.61 G
+    back-inferred from the Doerr clock (b_field_from_clock_25mg). Determined FROM
+    the qubit transitions, so using it to predict those field-sensitive
+    transitions is partly circular; the field-insensitive clock and the
+    responsivities are the independent tests. configuration omitted (this IS a
+    field, apparatus-dependent, not null) while provisional.
+  status: provisional
