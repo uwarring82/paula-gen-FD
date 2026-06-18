@@ -7,6 +7,36 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 14) — Beams completed from the canonical laser table
+
+UW: check clos2017, hasse2025, wittemer2019, friedenauer2010 (to fill the beam
+gaps from later-13).
+
+**Found the canonical laser table** — Clos 2017 Tab. 3.1 (confirmed by Wittemer
+2019 Tab. 3.1): per beam, wavelength | polarisation | transition |
+Gamma_nat/(2pi) | detuning Delta/Gamma | intensity I/Isat.
+
+**RESOLVED the P1/2-vs-P3/2 ambiguity:** RD/RP operate on **3P_1/2** (280.353 nm),
+distinct from BD/BDX/BDD on 3P_3/2 (279.635 nm). Confirmed by ALL FOUR theses
+(Clos, Wittemer, Hasse 'coupling 2S1/2 and 2P1/2'; Friedenauer 'S1/2 F=2 ->
+2P1/2'). Doerr's beam-section P1/2 was right; the stray 'P3/2 F=3' was wrong.
+
+**Filled the gaps** and rewrote `records/beams.yaml` (17 optics/detection records,
+53 total):
+- detunings (Delta/Gamma * Gamma): BD -0.5G = -20.9 MHz, BDD -10G = -418 MHz,
+  BDX -0.1G = -4.18 MHz (near resonance), RD/RP -0.5G(P1/2) = -20.65 MHz;
+- intensities I/Isat (saturation parameter s): BD 0.5, BDD 20, BDX 0.2, RD 0.5,
+  RP 1 — recorded as separate `*_saturation` records;
+- constants: Gamma_P3/2 = 41.8 MHz, Gamma_P1/2 = 41.3 MHz, Isat = 255 mW/cm^2
+  (2550 W/m^2, Friedenauer), BD wavelength 279.635 nm, RD wavelength 280.353 nm,
+  BD detection waist ~50 um (Clos; Wittemer ~40 um; Friedenauer/LMU ~30 um).
+
+Beam POWER is now recoverable (P = s * Isat * beam area) though not yet stored as
+a value. This is exactly the input set a future cooling/scattering engine needs
+(scatter rate R = (Gamma/2) s / (1 + s + (2 Delta/Gamma)^2)).
+
+---
+
 ## 2026-06-18 (later 13) — Established the cooling/preparation/detection beams
 
 UW: establish the cooling (BD), preparation (RD/RP) and detection (BDX) beams

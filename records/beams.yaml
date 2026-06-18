@@ -1,27 +1,31 @@
 # =============================================================================
 # records/beams.yaml  —  BEAMS domain
-# Raman pair, cooling, preparation, detection beams. Each beam parameter
-# (power, detuning, k-vector, polarisation, waist at the ion) is input by
-# default — the twin consumes it (invariant 5).
+# Raman pair, cooling (BD), detection (BDX), preparation (RD/RP) beams. Each beam
+# parameter (power/intensity, detuning, k-vector, polarisation, waist at the ion)
+# is input by default — the twin consumes it (invariant 5).
 #
-# PROVENANCE: automated extraction (docs/LOGBOOK.md, 2026-06-18), unreviewed.
-# Coverage, not completeness: beam waists and powers were NOT locatable with a
-# precise source in this pass and are deliberately omitted rather than guessed.
+# Canonical source: the laser-parameter table (Clos 2017, Tab. 3.1; confirmed by
+# Wittemer 2019, Tab. 3.1), giving per beam: wavelength, polarisation,
+# transition, natural linewidth Gamma_nat/(2pi), detuning Delta/Gamma_nat, and
+# intensity I/Isat (the saturation parameter s). All BD/RD beams are sigma+.
+# Detunings are recorded in Hz (= (Delta/Gamma) * Gamma_nat); the saturation
+# parameter s = I/Isat is recorded separately (a future cooling/scattering engine
+# consumes detuning + Gamma + s). Beam POWER is not tabulated directly but
+# follows from s * Isat * (beam area); Isat and the BD waist are recorded below.
 # =============================================================================
 
 - name: raman_detuning_from_p32
   value: 20.0e9
   units: Hz
-  kind: input                     # beam detuning the twin consumes (input by default)
-  uncertainty: {value: 1.0e9, type: systematic}   # nominal value; tolerance estimated, not stated
+  kind: input
+  uncertainty: {value: 1.0e9, type: systematic}
   source:
     ref: doerr2024
     loc: "Sec. 2.1.4, p. 11"
     extraction_note: >-
       Two-photon stimulated-Raman (TPSR) single-photon detuning of the virtual
-      level from the 3P_3/2 |F=4,mF=4> state: Delta_R/(2pi) = 20 GHz. Restated
-      in the level-scheme caption (Fig. 2.1, p. 7). The driven S->P transition
-      is near 280 nm. Verbatim: "...detuned by Delta_R/(2pi) = 20 GHz from the
+      level from the 3P_3/2 |F=4,mF=4> state: Delta_R/(2pi) = 20 GHz (Raman line
+      ~279.6 nm). Verbatim: "...detuned by Delta_R/(2pi) = 20 GHz from the
       P3/2 |F = 4, mF = 4> state".
     extracted_by: claude-agent
     extracted_on: 2026-06-18
@@ -29,178 +33,234 @@
   observation_type: direct
   derived_from: []
   generation: freddy
-  caveats: >-
-    Quoted as a round nominal value (20 GHz); the recorded uncertainty is an
-    estimated tolerance, not a stated error. Beam configuration slot (raman_R*)
-    not asserted pending confirmation of the actual setting label, so
-    configuration is omitted.
+  caveats: "Round nominal value (20 GHz); recorded uncertainty is an estimated tolerance."
   status: provisional
 
-# =============================================================================
-# Doppler cooling (BD), detection (BDX) and preparation (RD/RP) beams — the
-# lab labels. The Blue Doppler (BD) laser (~279.635 nm, S1/2 -> P3/2, sigma+) is
-# AOM-split into BDX (near resonance, detection), BD (~Gamma/2 red, Doppler-limit
-# cooling) and BDD (far red, cooling hot ions); all drive the cycling transition
-# |down> = |F=3,mF=3> <-> P3/2 |F=4,mF=4>. RD/RP (sigma+) optically pump the ion
-# into |down> for preparation. Powers and waists at the ion are NOT given in the
-# sources and are omitted (flagged), so this is coverage, not completeness.
-# =============================================================================
+# --- shared constants -------------------------------------------------------
 
 - name: mg_p32_natural_linewidth
-  value: 4.2e7                    # Gamma/(2pi) ~ 42 MHz
+  value: 4.18e7                    # Gamma(3P_3/2)/(2pi) = 41.8 MHz
   units: Hz
   kind: input
-  uncertainty: {value: 2.0e6, type: systematic}   # quoted "approximately 42 MHz"
-  source:
-    ref: kaufmann2022
-    loc: "Sec. 2.1.4, p. 10"
-    extraction_note: >-
-      Natural linewidth Gamma/(2pi) ~ 42 MHz of the 25Mg+ 3p 2P_3/2 cooling
-      transition (~280 nm). Sets the Doppler limit (~1 mK) and the BD cooling
-      detuning (~Gamma/2). Also stated in Doerr 2024.
-    extracted_by: claude-agent
-    extracted_on: 2026-06-18
+  uncertainty: {value: 2.0e5, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1", extraction_note: "Natural linewidth of the 25Mg+ 3S1/2->3P3/2 cooling/detection/Raman transition (~279.6 nm). Confirmed by Wittemer 2019 Tab. 3.1.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
   generation: legacy
-  configuration: null             # atomic constant (apparatus-independent)
-  caveats: "Atomic constant; quoted approximately. The literature 2P_3/2 linewidth is ~41.8 MHz."
+  configuration: null
+  caveats: "Atomic constant (apparatus-independent). Sets the Doppler limit (~1 mK) and the BD cooling detuning (-Gamma/2)."
+  status: provisional
+
+- name: mg_p12_natural_linewidth
+  value: 4.13e7                    # Gamma(3P_1/2)/(2pi) = 41.3 MHz
+  units: Hz
+  kind: input
+  uncertainty: {value: 2.0e5, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1", extraction_note: "Natural linewidth of the 25Mg+ 3S1/2->3P1/2 repump transition (280.353 nm). Confirmed by Wittemer 2019 Tab. 3.1.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  configuration: null
+  caveats: "Atomic constant. The RD/RP repumpers operate on this 3P_1/2 line."
+  status: provisional
+
+- name: mg_saturation_intensity
+  value: 2550.0                    # W/m^2 (= 255 mW/cm^2)
+  units: W/m^2
+  kind: input
+  uncertainty: {value: 5.0e1, type: systematic}
+  source: {ref: friedenauer2010, loc: "Sec. 4.1 (Isat ~ 255 mW/cm^2)", extraction_note: "Saturation intensity of 25Mg+ on the cooling transition, Isat ~ 255 mW/cm^2 = 2550 W/m^2. At a ~30 um waist this corresponds to ~3 uW (s=1).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  configuration: null
+  caveats: "Atomic constant (from the Friedenauer/LMU lineage). Lets beam power be recovered from the s = I/Isat values + the beam waist."
   status: provisional
 
 - name: bd_laser_wavelength
-  value: 2.79635e-7               # m (279.635 nm)
+  value: 2.79635e-7               # m (279.635 nm), S1/2->P3/2
   units: m
   kind: input
   uncertainty: {value: 5.0e-12, type: systematic}
-  source:
-    ref: kaufmann2022
-    loc: "Sec. 2.1.4, p. 10 (279.635 nm)"
-    extraction_note: >-
-      Blue Doppler (BD) laser wavelength, 279.635 nm, driving the 25Mg+
-      S_1/2 -> P_3/2 cooling/detection transition.
-    extracted_by: claude-agent
-    extracted_on: 2026-06-18
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1", extraction_note: "Blue Doppler (BD/BDX/BDD) wavelength 279.635 nm, S1/2->P3/2. Raman is the same line (~279.6 nm).", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
   generation: legacy
-  configuration: null             # transition wavelength (atomic)
+  configuration: null
   caveats: "Transition wavelength (apparatus-independent)."
   status: provisional
 
-- name: bd_doppler_cooling_detuning
-  value: -2.0e7                   # Hz, ~ -Gamma/2 (red)
-  units: Hz
+- name: rd_laser_wavelength
+  value: 2.80353e-7               # m (280.353 nm), S1/2->P1/2
+  units: m
   kind: input
-  uncertainty: {value: 2.0e6, type: systematic}
-  source:
-    ref: doerr2024
-    loc: "Sec. 2.1.1, p. 9"
-    extraction_note: >-
-      BD (Blue Doppler) cooling-beam detuning ~ -20 MHz = -Gamma/2 (half the
-      natural linewidth, red), used to Doppler-cool to the ~1 mK limit. sigma+
-      polarised; drives |down>=|3,3> <-> P3/2|4,4>. Verbatim: "detuned by ~20 MHz,
-      which is half of the natural linewidth".
-    extracted_by: claude-agent
-    extracted_on: 2026-06-18
-  scope: {isotope: 25Mg, subsystem: optics}
-  observation_type: direct
-  derived_from: []
-  generation: freddy
-  conditions: "Blue Doppler cooling beam; sigma+; |3,3> <-> P3/2|4,4>; ~ -Gamma/2 red"
-  caveats: "Quoted '~20 MHz = half linewidth'. Beam power/waist at the ion not given (omitted)."
-  status: provisional
-
-- name: bdd_far_cooling_detuning
-  value: -4.2e8                   # Hz, ~ -10 Gamma (far red)
-  units: Hz
-  kind: input
-  uncertainty: {value: 8.0e7, type: systematic}   # ~10-12 Gamma range
-  source:
-    ref: kaufmann2022
-    loc: "Sec. 2.1.4, p. 10 (~10-12 Gamma)"
-    extraction_note: >-
-      BDD (Blue Doppler Detuned) far-red cooling beam, detuned ~10-12 Gamma
-      (~420-500 MHz) to capture/cool hot ions. Recorded at ~ -10 Gamma. Doerr
-      2024 describes it qualitatively as 'far red-detuned, Doppler cooling fast
-      ions'.
-    extracted_by: claude-agent
-    extracted_on: 2026-06-18
+  uncertainty: {value: 5.0e-12, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1", extraction_note: "Red Doppler / Repumper (RD/RP) wavelength 280.353 nm, S1/2->P1/2 (the fine-structure-split repump line; distinct from the 279.635 nm BD line).", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
   generation: legacy
-  conditions: "Blue Doppler Detuned (far-red) cooling beam; cools hot ions"
-  caveats: "Kaufmann quotes ~10 Gamma and ~12 Gamma for two cooling components; the value/uncertainty span that range. Confirm the exact setting."
+  configuration: null
+  caveats: "Transition wavelength. RESOLVES the earlier P1/2-vs-P3/2 ambiguity: RD/RP are on 3P_1/2."
+  status: provisional
+
+- name: bd_detection_waist
+  value: 5.0e-5                   # m (~50 um), Blue Doppler at the ion
+  units: m
+  kind: input
+  uncertainty: {value: 1.0e-5, type: systematic}
+  source: {ref: clos2017, loc: "Sec. 4 (w_BD ~ 50 um)", extraction_note: "1/e^2 waist of the Blue Doppler detection beam at the ion, w_BD ~ 50 um. Wittemer 2019 quotes ~40 um typical; Friedenauer (LMU apparatus) ~30 um.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: apparatus, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  caveats: "Approximate (~50 um, Freiburg apparatus). Apparatus-dependent; configuration omitted while provisional."
+  status: provisional
+
+# --- cooling + detection (Blue Doppler: BD / BDD / BDX, all sigma+) ----------
+
+- name: bd_cooling_detuning
+  value: -2.09e7                  # Hz = -0.5 * Gamma  (Doppler-limit cooling)
+  units: Hz
+  kind: input
+  uncertainty: {value: 1.0e6, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (Delta/Gamma = -0.5)", extraction_note: "BD cooling-beam detuning Delta/Gamma = -0.5 -> -20.9 MHz. Doerr 2024 states '~20 MHz = half the natural linewidth'.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  conditions: "Blue Doppler cooling beam; sigma+; |3,3> <-> P3/2|4,4>; -0.5 Gamma; cools to ~1 mK; s = bd_cooling_saturation"
+  caveats: "Detuning = (Delta/Gamma)*mg_p32_natural_linewidth. Consistent across Clos/Wittemer (legacy) and Doerr (freddy)."
+  status: provisional
+
+- name: bd_cooling_saturation
+  value: 0.5                      # I/Isat
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 0.1, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (I/Isat = 0.5)", extraction_note: "BD cooling-beam intensity I/Isat = 0.5 (saturation parameter s). With Isat and the BD waist -> beam power.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  conditions: "Blue Doppler cooling beam saturation parameter"
+  caveats: "Quoted operating value."
+  status: provisional
+
+- name: bdd_far_cooling_detuning
+  value: -4.18e8                  # Hz = -10 * Gamma  (far red, hot ions)
+  units: Hz
+  kind: input
+  uncertainty: {value: 4.0e7, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (Delta/Gamma = -10)", extraction_note: "BDD (Blue Doppler Detuned) far-red detuning Delta/Gamma = -10 -> -418 MHz, to capture/cool hot ions.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  conditions: "Blue Doppler Detuned (far-red) cooling beam; sigma+; cools hot ions; s = bdd_far_cooling_saturation"
+  caveats: "Kaufmann 2022 quotes ~10-12 Gamma; recorded at -10 Gamma per Clos/Wittemer Tab. 3.1."
+  status: provisional
+
+- name: bdd_far_cooling_saturation
+  value: 20.0                     # I/Isat
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 4.0, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (I/Isat = 20)", extraction_note: "BDD intensity I/Isat = 20 (strongly saturated, far-detuned).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  conditions: "BDD saturation parameter"
+  caveats: "Quoted operating value."
   status: provisional
 
 - name: bdx_detection_detuning
-  value: 0.0                      # Hz, near resonance
+  value: -4.18e6                  # Hz = -0.1 * Gamma  (near resonance)
   units: Hz
   kind: input
-  uncertainty: {value: 5.0e6, type: systematic}   # 'near resonance'; exact small detuning unspecified
-  source:
-    ref: doerr2024
-    loc: "Sec. 2.1.1, p. 9"
-    extraction_note: >-
-      BDX (Blue Doppler Detection) beam operated NEAR RESONANCE (detuning ~ 0)
-      for fluorescence detection of |down>; from it the probability P_down is
-      read out. sigma+; drives |3,3> <-> P3/2|4,4>.
-    extracted_by: claude-agent
-    extracted_on: 2026-06-18
+  uncertainty: {value: 2.0e6, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (Delta/Gamma = -0.1)", extraction_note: "BDX detection-beam detuning Delta/Gamma = -0.1 -> -4.18 MHz (near resonance). Doerr 2024 describes it as 'near resonance'.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: detection}
   observation_type: direct
   derived_from: []
-  generation: freddy
-  conditions: "Blue Doppler Detection beam; near resonance; sigma+; fluorescence readout of |down>"
-  caveats: "'Near resonance' only — the exact small detuning is not stated; recorded as 0 with a ~few-MHz uncertainty. Power/waist not given."
+  generation: legacy
+  conditions: "Blue Doppler Detection beam; sigma+; near resonance; fluorescence readout of |down>; s = bdx_detection_saturation"
+  caveats: "Detuning = -0.1 Gamma."
   status: provisional
 
-- name: rd_repump_polarization
-  value: "sigma+"
-  units: polarization
+- name: bdx_detection_saturation
+  value: 0.2                      # I/Isat
+  units: dimensionless
   kind: input
-  uncertainty: {value: 0, type: exact}
-  source:
-    ref: doerr2024
-    loc: "Sec. 2.1.1, p. 9"
-    extraction_note: >-
-      RD (Red Doppler) preparation beam: sigma+ polarised, excites S_1/2 |F=2>
-      to the P state (Doerr's beam section says P_1/2; cf. a separate statement
-      P_3/2 F=3), driving dmF=+1, repumping toward |down>. Detuning/power/waist
-      not stated; the recorded quantity is the polarisation.
-    extracted_by: claude-agent
-    extracted_on: 2026-06-18
+  uncertainty: {value: 0.05, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (I/Isat = 0.2)", extraction_note: "BDX intensity I/Isat = 0.2 (kept low for low-perturbation detection).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: detection}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  conditions: "BDX saturation parameter"
+  caveats: "Quoted operating value."
+  status: provisional
+
+# --- preparation (Red Doppler / Repumper: RD / RP, sigma+, on 3P_1/2) --------
+
+- name: rd_repump_detuning
+  value: -2.065e7                 # Hz = -0.5 * Gamma(P1/2)
+  units: Hz
+  kind: input
+  uncertainty: {value: 1.0e6, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (RD, Delta/Gamma = -0.5)", extraction_note: "RD (Red Doppler) preparation beam, S1/2 |F=2> -> 3P_1/2, sigma+ (dmF=+1), Delta/Gamma = -0.5 -> -20.65 MHz. Repumps toward |down>=|3,3>.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
-  generation: freddy
-  conditions: "Red Doppler preparation beam; S1/2 F=2 -> P; dmF=+1; pumps toward |down>"
-  caveats: >-
-    Categorical record (polarisation) — no numeric detuning/power/waist in the
-    source. Excited-state target ambiguous in Doerr (P_1/2 in the beam section
-    vs P_3/2 F=3 elsewhere); flag for confirmation.
+  generation: legacy
+  conditions: "Red Doppler preparation beam; sigma+; S1/2 F=2 -> 3P_1/2; dmF=+1; s = rd_repump_saturation"
+  caveats: "Detuning = -0.5 * mg_p12_natural_linewidth. Target P1/2 confirmed across Clos/Wittemer/Hasse/Friedenauer."
   status: provisional
 
-- name: rp_repump_polarization
-  value: "sigma+"
-  units: polarization
+- name: rd_repump_saturation
+  value: 0.5                      # I/Isat
+  units: dimensionless
   kind: input
-  uncertainty: {value: 0, type: exact}
-  source:
-    ref: doerr2024
-    loc: "Sec. 2.1.1, p. 9"
-    extraction_note: >-
-      RP (Repumper) preparation beam: sigma+ polarised, pumps the ion from
-      S_1/2 |F=3> to the P state (increasing mF), repumping toward |down>.
-      Detuning/power/waist not stated; the recorded quantity is the polarisation.
-    extracted_by: claude-agent
-    extracted_on: 2026-06-18
+  uncertainty: {value: 0.1, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (RD, I/Isat = 0.5)", extraction_note: "RD intensity I/Isat = 0.5.", extracted_by: claude-agent, extracted_on: 2026-06-18}
   scope: {isotope: 25Mg, subsystem: optics}
   observation_type: direct
   derived_from: []
-  generation: freddy
-  conditions: "Repumper preparation beam; S1/2 F=3 -> P; pumps mF up toward |down>"
-  caveats: "Categorical record (polarisation); no numeric detuning/power/waist in the source. Same P_1/2 vs P_3/2 ambiguity as rd_repump_polarization."
+  generation: legacy
+  conditions: "RD saturation parameter"
+  caveats: "Quoted operating value."
+  status: provisional
+
+- name: rp_repump_detuning
+  value: -2.065e7                 # Hz = -0.5 * Gamma(P1/2)
+  units: Hz
+  kind: input
+  uncertainty: {value: 1.0e6, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (RP, Delta/Gamma = -0.5)", extraction_note: "RP (Repumper) preparation beam, S1/2 |F=3> -> 3P_1/2, sigma+, Delta/Gamma = -0.5 -> -20.65 MHz. Pumps mF up toward |down>.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  conditions: "Repumper preparation beam; sigma+; S1/2 F=3 -> 3P_1/2; pumps mF up; s = rp_repump_saturation"
+  caveats: "Detuning = -0.5 * mg_p12_natural_linewidth."
+  status: provisional
+
+- name: rp_repump_saturation
+  value: 1.0                      # I/Isat
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 0.2, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.1, Sec. 3.1 (RP, I/Isat = 1)", extraction_note: "RP intensity I/Isat = 1 (at saturation).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  conditions: "RP saturation parameter"
+  caveats: "Quoted operating value."
   status: provisional
