@@ -87,3 +87,31 @@
     consistent with a generation-dependent calibration — do not treat as a
     single apparatus-wide constant.
   status: provisional
+
+- name: b_field_quantization_freddy
+  value: 5.5e-4                 # T (~5.5 G), the freddy-generation operating field
+  units: T
+  kind: input                   # independently calibrated -> a legitimate input
+  uncertainty: {value: 1.0e-5, type: systematic}   # source states only "~5.5 G"
+  source:
+    ref: doerr2024
+    loc: "Sec. 2.1.1, p. 7"
+    extraction_note: >-
+      Operating magnetic field of the freddy generation, |B| ~ 5.5 G, calibrated
+      INDEPENDENTLY (from the ~2pi*2.72 MHz splitting of adjacent ground-state
+      Zeeman levels) — NOT from the clock transition. Consumed by the twin to
+      PREDICT the clock transition (clock_transition_predicted_25mg).
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: apparatus, subsystem: fields}
+  observation_type: inferred
+  derived_from: []
+  generation: freddy
+  configuration: null
+  caveats: >-
+    Stated only as "~5.5 G", so its ~0.1 G uncertainty dominates the clock
+    prediction. Distinct from the Clos-generation b_field_quantization (5.85 G).
+    Because it is calibrated independently of the clock transition, it is a
+    legitimate INPUT (no wall leakage); cf. b_field_from_clock_25mg, the field
+    BACK-INFERRED from the clock benchmark (5.61 G).
+  status: provisional

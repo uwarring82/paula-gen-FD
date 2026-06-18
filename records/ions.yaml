@@ -309,8 +309,66 @@
   caveats: >-
     Benchmark-derived DIAGNOSTIC (inferred from the measured clock transition),
     NOT an independent field input — must never be fed back as a B-field input.
-    The implied 5.61 G is consistent with Doerr's independently stated ~5.5 G
-    (Sec. 2.1.1) and, more loosely, the Clos-generation 5.85 G
-    (b_field_quantization). measured_on inherits clock_transition_25mg's
+    The implied 5.61 G is consistent with the independent input
+    b_field_quantization_freddy (~5.5 G) and, more loosely, the Clos-generation
+    5.85 G (b_field_quantization). This is the field-space mirror of the
+    frequency-space validation (clock_transition_predicted_25mg /
+    clock_transition_residual_25mg). measured_on inherits clock_transition_25mg's
     placeholder date.
+  status: provisional
+
+# --- forward validation: predict the clock from independent inputs, compare --
+
+- name: clock_transition_predicted_25mg
+  value: 1.78882954e9           # Hz = nu_hf0 + K*B^2 at B = 5.5 G
+  units: Hz
+  kind: input                   # all-input closure -> the twin's PREDICTION
+  uncertainty: {value: 2.4e3, type: systematic}   # dominated by the ~0.1 G field uncertainty
+  source:
+    ref: itano_wineland_1981
+    loc: "derived: nu_hf0 + K*B^2 (Breit-Rabi small-x)"
+    extraction_note: >-
+      Twin PREDICTION of the |F=3,mF=0> <-> |F=2,mF=0> transition at the freddy
+      operating field: nu = nu_hf0 + K*B^2 with nu_hf0 = hyperfine_splitting_calc_25mg,
+      K = qubit_quadratic_zeeman_coeff_25mg, B = b_field_quantization_freddy
+      (5.5 G) -> 1788.8295 MHz. Computed purely from inputs; compared against the
+      measured benchmark clock_transition_25mg (1788.8322 MHz).
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: derived
+  derived_from: [hyperfine_splitting_calc_25mg, qubit_quadratic_zeeman_coeff_25mg, b_field_quantization_freddy]
+  generation: freddy
+  configuration: null
+  caveats: >-
+    The twin's prediction (input closure). Its agreement with the measured
+    benchmark — clock_transition_residual_25mg = +2.7(24) kHz, consistent with
+    zero — is the actual validation across the input/benchmark wall.
+  status: provisional
+
+- name: clock_transition_residual_25mg
+  value: 2.66e3                 # Hz = measured - predicted
+  units: Hz
+  kind: benchmark               # a transition-frequency residual (invariant 4) + benchmark by inheritance
+  uncertainty: {value: 2.4e3, type: statistical}
+  source:
+    ref: doerr2024
+    loc: "derived: clock_transition_25mg - clock_transition_predicted_25mg"
+    extraction_note: >-
+      Validation residual: measured clock (clock_transition_25mg, 1788.8322 MHz)
+      minus the twin prediction (clock_transition_predicted_25mg, 1788.8295 MHz)
+      = +2.7 kHz. The original ~69 kHz 'tension' reduces to this — consistent
+      with ZERO within the ~0.1 G field uncertainty (the field is stated only as
+      ~5.5 G; the clock implies 5.61 G).
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: internal_state}
+  observation_type: derived
+  derived_from: [clock_transition_25mg, clock_transition_predicted_25mg]
+  generation: freddy
+  measured_on: 2024-01-01        # inherits clock_transition_25mg's validity window (placeholder)
+  caveats: >-
+    Benchmark-by-default (a transition-frequency residual; invariant 4) and
+    benchmark by inheritance (closure touches the measured clock). The
+    twin-validation output for the 25Mg+ clock transition: consistent with zero.
   status: provisional

@@ -7,6 +7,29 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 4) — Forward clock validation across the wall
+
+Promoted the back-inferred field to a proper **forward validation** (UW: "go").
+The wall is now exercised end-to-end on real data:
+
+- **inputs** → `hyperfine_splitting_calc_25mg` (Itano nu_hf0), `qubit_quadratic_zeeman_coeff_25mg`
+  (K), and **`b_field_quantization_freddy`** — a NEW independent field input
+  (~5.5 G, calibrated from the ground-state Zeeman splitting, *not* from the
+  clock, so no leakage);
+- **prediction** → `clock_transition_predicted_25mg` = nu_hf0 + K·B² = 1788.8295
+  MHz (`input`, all-input closure);
+- **benchmark** → `clock_transition_25mg` = 1788.8322 MHz (measured);
+- **residual** → `clock_transition_residual_25mg` = +2.7(24) kHz (`benchmark`:
+  a transition-frequency residual, invariant 4, and benchmark by inheritance).
+
+So the original ~69 kHz "tension" reduces to a **2.7 kHz residual, consistent
+with zero** within the ~0.1 G field uncertainty (field stated as ~5.5 G; the
+clock implies 5.61 G). `b_field_from_clock_25mg` is kept as the field-space
+mirror of the same check. Numbers re-verified numerically; validator green
+(18 records, 1 expected warning).
+
+---
+
 ## 2026-06-18 (later 3) — Clock-transition tension resolved (quadratic Zeeman)
 
 **Decision (UW):** dissolve the ~69 kHz tension by the magnetic field; Itano &
