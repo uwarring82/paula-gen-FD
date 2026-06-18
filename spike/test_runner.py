@@ -50,7 +50,7 @@ def test_real_validations_consistent():
     names = {r.benchmark for r in results}
     assert names == {"clock_transition_25mg", "clock_transition_weber_25mg",
                      "omega_z_axial_stretch_2ion_25mg", "omega_radial_rocking_2ion_25mg",
-                     "doppler_cooling_limit_25mg"}
+                     "doppler_cooling_limit_25mg", "doppler_cooled_occupation_25mg"}
 
 
 def test_render_table_has_rows():

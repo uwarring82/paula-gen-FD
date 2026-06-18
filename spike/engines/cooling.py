@@ -42,6 +42,13 @@ def optimal_cooling_detuning(gamma_hz: float) -> float:
     return -gamma_hz / 2.0
 
 
+def mean_occupation(omega_hz: float, temperature: float) -> float:
+    """Thermal (Bose-Einstein) mean phonon number of a mode of frequency omega_hz
+    at temperature `temperature` [K]: n_bar = 1 / (exp(h*omega/(k_B*T)) - 1)."""
+    x = C.H_PLANCK * omega_hz / (C.K_BOLTZMANN * temperature)
+    return 1.0 / math.expm1(x)
+
+
 class DopplerCooling:
     """Doppler cooling / scattering on the S_1/2 -> P_3/2 transition, parameterised
     by the natural linewidth Gamma (= gamma_hz)."""
@@ -59,6 +66,12 @@ class DopplerCooling:
 
     def optimal_detuning(self) -> float:
         return optimal_cooling_detuning(self.gamma_hz)
+
+    def doppler_limit_occupation(self, omega_hz: float) -> float:
+        """Mean phonon number of a mode of frequency omega_hz when Doppler-cooled
+        to the limit T_D (a thermal state at T_D). Equals 1/(exp(2*omega/Gamma)-1),
+        so it depends only on the ratio omega/Gamma."""
+        return mean_occupation(omega_hz, self.doppler_limit())
 
     def scatter_rate(self, detuning_hz: float, s: float) -> float:
         return scatter_rate(detuning_hz, s, self.gamma_hz)

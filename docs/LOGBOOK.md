@@ -7,6 +7,46 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 18) — Measured Doppler-cooled occupation benchmark (Clos n_bar)
+
+UW: "ok. go" -> the Clos measured Doppler-temperature / mean-phonon benchmark.
+
+**Found the measurement** in Clos 2017, Fig. 3.14 (p. 51): a single Doppler-cooled
+25Mg+ ion has **n_bar = 10(1)** at omega_1/(2pi) = 1.915(2) MHz (from Rabi flops
+sensitive to the thermal motional distribution). Clos's own consistency estimate:
+the Doppler limit (Gamma = 41.8(4) MHz, delta = -Gamma/2, s = 0.5) is <~1 mK ->
+n_bar ~ 10 at 2 MHz.
+
+**Cooling engine** gained `mean_occupation(omega, T)` (Bose-Einstein) and
+`doppler_limit_occupation(omega)` = the thermal occupation at T_D, which reduces to
+the parameter-free **n_bar = 1/(exp(2 omega/Gamma) - 1)** (depends only on
+omega/Gamma, since T_D = hbar*Gamma/2kB). Records: `omega_z_axial_clos_25mg`
+(1.915(2) MHz input) + `doppler_cooled_occupation_25mg` (n_bar = 10(1) benchmark).
+
+**6th validation -- the first MEASURED motional test.** Predicted n_bar(1.915 MHz)
+= 10.42 vs measured 10(1) -> +0.42 sigma. Unlike the theory-consistency Doppler
+limit (both sides from Gamma), this is independent: the engine predicts n_bar from
+Gamma + omega, the 10(1) is the measurement. Cross-check: n_bar(2.0 MHz) = 9.96
+matches Clos's stated ~10. (Made the runner table render dimensionless cells.)
+
+**Adversarial verification (3-lens workflow, ultracode): all "correct".** Physics
+-- thermal-state-at-T_D is the standard model AND verbatim what Clos does (p_n =
+n_bar^n/(n_bar+1)^(n+1)); the full Bose-Einstein form (via expm1) matters at ~5%
+(classical kT/hw = 10.91 vs BE 10.42, and 10.42 is what matches Clos). Thesis --
+n_bar=10(1), omega_1=1.915(2), the conditions, Fig. 3.14, and **page 51 all
+confirmed** (page verified from the running headers); n_bar=10(1) is a genuine
+fit-extracted measurement (observation_type: fitted). Wiring -- wall-clean
+(consumes Gamma + omega, reads the benchmark separately), non-circular,
+sigma_pred = 0.053 (Gamma-dominated). Applied low-severity refinements: noted T_D
+is the optimal-detuning FLOOR (true steady-state n_bar sits >= it; the agreement
+validates the BD setting is near-ideal); flagged Clos's own Fig. 3.14
+carrier-vs-stretch text/caption ambiguity; added the Clos corroboration (explicit
+Gamma/delta/s conditions) to doppler_cooling_limit_25mg.
+
+Records 60 -> 62; tests 95 -> 98; substrate green.
+
+---
+
 ## 2026-06-18 (later 17) — Mode-projection engine (Raman -> motional mode)
 
 UW: "mode projection first" (before the Clos Doppler-temperature benchmark).

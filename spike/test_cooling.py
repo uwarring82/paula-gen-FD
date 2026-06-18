@@ -11,6 +11,7 @@ from spike import constants as C
 from spike.engines.cooling import (
     DopplerCooling,
     doppler_limit_temperature,
+    mean_occupation,
     optimal_cooling_detuning,
     scatter_rate,
 )
@@ -62,3 +63,30 @@ def test_from_ledger_refuses_benchmark():
     ledger = Ledger.load()
     with pytest.raises(ValueError):
         DopplerCooling.from_ledger(ledger, gamma_name="doppler_cooling_limit_25mg")
+
+
+# --- Doppler-cooled mean occupation (Clos measured benchmark) ---------------
+def test_mean_occupation_bose_einstein_and_high_T_limit():
+    # high-temperature limit: n ~ kB*T/(h*omega) - 1/2
+    n = mean_occupation(1.0e6, 1.0e-3)
+    approx = C.K_BOLTZMANN * 1.0e-3 / (C.H_PLANCK * 1.0e6) - 0.5
+    assert n == pytest.approx(approx, rel=1e-3)
+
+
+def test_doppler_limit_occupation_matches_clos():
+    c = DopplerCooling(41.8e6)
+    # Clos: n_bar ~ 10 at 2 MHz (his stated estimate); 10.4 at the 1.915 MHz measurement
+    assert c.doppler_limit_occupation(2.0e6) == pytest.approx(9.96, abs=0.1)
+    assert c.doppler_limit_occupation(1.915e6) == pytest.approx(10.42, abs=0.05)
+    # closed form: depends only on omega/Gamma -> 1/(exp(2 omega/Gamma) - 1)
+    assert c.doppler_limit_occupation(1.915e6) == pytest.approx(
+        1.0 / math.expm1(2 * 1.915e6 / 41.8e6))
+
+
+def test_from_ledger_reproduces_occupation_benchmark():
+    ledger = Ledger.load()
+    eng = DopplerCooling.from_ledger(ledger)
+    omega = ledger.input_quantity("omega_z_axial_clos_25mg").value
+    bench = ledger.benchmark_quantity("doppler_cooled_occupation_25mg")
+    pred = eng.doppler_limit_occupation(omega)
+    assert abs(pred - bench.value) < bench.sigma   # within the n_bar = 10(1) error bar

@@ -240,9 +240,73 @@
   caveats: >-
     Theoretical limit T_D = hbar*Gamma/(2 k_B). The cooling engine reproduces it
     (1.003 mK) from mg_p32_natural_linewidth, so this is a THEORY-consistency
-    check (both derive from Gamma), not an independent measurement; a measured
-    Doppler temperature / mean phonon number would be a stronger benchmark.
-    measured_on is a placeholder (theoretical limit, not measured).
+    check (both derive from Gamma), not an independent measurement; the measured
+    Doppler-cooled occupation doppler_cooled_occupation_25mg (Clos n_bar=10(1)) is
+    the stronger, independent benchmark. Clos 2017 (Sec. 3.3, p. 50) states the same
+    limit with the explicit conditions (Gamma=41.8(4) MHz, delta=-Gamma/2, s=0.5),
+    corroborating the Doerr value sourced here. measured_on is a placeholder
+    (theoretical limit, not measured).
+  status: provisional
+
+# --- Doppler-cooled occupation (independent MEASURED cooling benchmark) ------
+
+- name: omega_z_axial_clos_25mg
+  value: 1.915e6                  # Hz, axial COM at the Clos n-bar measurement
+  units: Hz
+  kind: input
+  uncertainty: {value: 2.0e3, type: systematic}    # 1.915(2) MHz
+  source:
+    ref: clos2017
+    loc: "Fig. 3.14 caption, p. 51"
+    extraction_note: >-
+      Axial COM (single-ion) secular frequency at which the Doppler-cooled mean
+      occupation was measured: omega_1/(2pi) = 1.915(2) MHz (N=1, omega_0/(2pi) =
+      1775.13(5) MHz).
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  caveats: >-
+    Clos-era axial frequency; the measurement condition for
+    doppler_cooled_occupation_25mg (distinct from the ~1.30 MHz freddy COM).
+  status: provisional
+
+- name: doppler_cooled_occupation_25mg
+  value: 10.0                     # mean phonon number n-bar, Doppler cooled
+  units: dimensionless
+  kind: benchmark                 # the cooling engine reproduces it from Gamma + omega
+  uncertainty: {value: 1.0, type: statistical}     # n-bar = 10(1)
+  source:
+    ref: clos2017
+    loc: "Fig. 3.14 caption, p. 51"
+    extraction_note: >-
+      Measured mean phonon number of a single Doppler-cooled 25Mg+ ion,
+      n_bar = 10(1), at omega_1/(2pi) = 1.915(2) MHz, from Rabi flops sensitive to
+      the thermal motional distribution (Fig. 3.14, top). Clos's own estimate from
+      the ~1 mK Doppler limit (Gamma = 41.8 MHz, delta = -Gamma/2, s = 0.5) is
+      n_bar ~ 10 at 2 MHz, consistent.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-18
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  measured_on: 2017-01-01         # APPROXIMATE: Clos 2017 thesis era; exact date not in source
+  conditions: "Single 25Mg+, Doppler cooled (BD: delta=-Gamma/2, s=0.5); axial mode omega_1/(2pi)=1.915 MHz"
+  caveats: >-
+    The independent MEASURED motional benchmark for the cooling engine (vs the
+    theory-consistency doppler_cooling_limit_25mg). The cooling engine predicts the
+    thermal occupation at the Doppler limit, n_bar = 1/(exp(2*omega/Gamma)-1) ~ 10.4
+    at 1.915 MHz, from Gamma and omega_z_axial_clos_25mg. T_D is the optimal-detuning
+    FLOOR; the true Doppler steady-state n_bar depends on detuning/saturation/geometry
+    and generally sits slightly above it, so the 0.42-sigma agreement validates that
+    the BD setting (delta=-Gamma/2, s=0.5) is near-ideal rather than asserting the
+    state is identically thermal at T_D. NOTE Clos's Fig. 3.14 is internally ambiguous
+    about the probe (caption "Rabi flops on the stretch states" vs body text "carrier
+    transition"); the n_bar=10(1) value itself is unambiguous. measured_on is
+    approximate (thesis era).
   status: provisional
 
 # --- radial-mode geometry (Raman addressing) ---------------------------------

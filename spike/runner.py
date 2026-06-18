@@ -161,12 +161,32 @@ def _validate_doppler_limit(ledger: Ledger) -> ValidationResult:
     )
 
 
+def _validate_doppler_occupation(ledger: Ledger) -> ValidationResult:
+    gamma = ledger.input_quantity("mg_p32_natural_linewidth")
+    omega = ledger.input_quantity("omega_z_axial_clos_25mg")
+    bench = ledger.benchmark_quantity("doppler_cooled_occupation_25mg")
+    eng = DopplerCooling.from_ledger(ledger)
+    nbar = lambda g, w: DopplerCooling(g).doppler_limit_occupation(w)  # noqa: E731
+    sigma_pred = math.hypot(
+        _central_sigma(lambda g: nbar(g, omega.value), gamma.value, gamma.sigma),
+        _central_sigma(lambda w: nbar(gamma.value, w), omega.value, omega.sigma),
+    )
+    return ValidationResult(
+        benchmark=bench.name, engine="cooling",
+        subsystem=ledger.record(bench.name)["scope"]["subsystem"],
+        predicted=eng.doppler_limit_occupation(omega.value), measured=bench.value,
+        units=bench.units, sigma_pred=sigma_pred, sigma_meas=bench.sigma,
+        consumed=("mg_p32_natural_linewidth", "omega_z_axial_clos_25mg"),
+    )
+
+
 REGISTRY = [
     Validation("clock_transition_25mg", "levels", _validate_clock),
     Validation("clock_transition_weber_25mg", "levels", _validate_weber_clock),
     Validation("omega_z_axial_stretch_2ion_25mg", "modes", _validate_stretch),
     Validation("omega_radial_rocking_2ion_25mg", "modes", _validate_radial_rocking),
     Validation("doppler_cooling_limit_25mg", "cooling", _validate_doppler_limit),
+    Validation("doppler_cooled_occupation_25mg", "cooling", _validate_doppler_occupation),
 ]
 
 
@@ -308,6 +328,8 @@ def _cell(value: float, units: str, kind: str) -> str:
         return f"{value / 1e6:.6f} MHz" if kind == "value" else f"{value / 1e3:+.2f} kHz"
     if units == "K":
         return f"{value * 1e3:.4f} mK" if kind == "value" else f"{value * 1e6:+.2f} uK"
+    if units in ("dimensionless", "1"):
+        return f"{value:.4g}" if kind == "value" else f"{value:+.3g}"
     return f"{value:.6g} {units}" if kind == "value" else f"{value:+.3g} {units}"
 
 

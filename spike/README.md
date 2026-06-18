@@ -21,11 +21,15 @@ registered engine validation against its benchmark and renders one table.
 $ python -m spike.validate_twin
 TWIN VALIDATION — engines reproduce benchmarks from ledger inputs
 
-benchmark                        engine  subsystem       predicted/MHz  measured/MHz  residual/kHz  n_sigma  status
-clock_transition_25mg            levels  internal_state  1788.829549    1788.832200   -2.65         1.09     ok
-omega_z_axial_stretch_2ion_25mg  modes   motion          2.251666       2.230000      +21.67        2.17     ok
+benchmark                        engine   subsystem       predicted        reference        residual    n_sigma  status
+clock_transition_25mg            levels   internal_state  1788.829549 MHz  1788.832200 MHz  -2.65 kHz   1.09     ok
+clock_transition_weber_25mg      levels   internal_state  1788.833107 MHz  1788.832800 MHz  +0.31 kHz   0.51     ok
+omega_z_axial_stretch_2ion_25mg  modes    motion          2.251666 MHz     2.230000 MHz     +21.67 kHz  2.17     ok
+omega_radial_rocking_2ion_25mg   modes    motion          2.569903 MHz     2.570000 MHz     -0.10 kHz   0.01     ok
+doppler_cooling_limit_25mg       cooling  motion          1.0030 mK        1.0000 mK        +3.04 uK    0.03     ok
+doppler_cooled_occupation_25mg   cooling  motion          10.42            10               +0.421      0.42     ok
 
-2 validation(s): 2 ok, 0 not ok (threshold 3 sigma).
+6 validation(s): 6 ok, 0 not ok (threshold 3 sigma).
 ```
 
 It exits nonzero if any result is in tension (> 3σ) or errors (e.g. an engine
@@ -85,7 +89,11 @@ parameter s = I/Isat (all in the ledger from the laser table), the scattering
 rate is R = (Γ/2) s/(1 + s + (2Δ/Γ)²) and the Doppler limit is
 T_D = ℏΓ/(2k_B). It **reproduces the ~1 mK Doppler limit** (1.0030 mK vs the
 theses' 1.0000 mK) and notes the optimal detuning −Γ/2 = −20.9 MHz *is* the BD
-cooling setting. The runner adds a cooling diagnostic (scatter rate per beam).
+cooling setting. It also predicts the **Doppler-cooled mean phonon number**
+n̄ = 1/(exp(2ω/Γ)−1) and reproduces Clos's **measured** n̄ = 10(1) at ω₁/2π =
+1.915 MHz (predicted 10.42, 0.42σ) — the independent, *measured* motional
+benchmark (vs the theory-consistency Doppler limit). The runner adds a cooling
+diagnostic (scatter rate per beam).
 
 ## Layout
 
@@ -129,7 +137,9 @@ nonzero.
 
 ## Not yet (follow-ups)
 
-- `beams` / `optics` engine (AC Stark shifts, scattering) — blocked on a measured
-  differential-AC-Stark benchmark, which is not yet in the ledger.
+- `sideband` engine: turn the `projection` direction cosines into *absolute* η per
+  mode (|Δk| from the beam angles × the mode frequency), then sideband Rabi rates.
+- `optics` engine for differential AC-Stark shifts — blocked on a measured
+  AC-Stark benchmark, which is not yet in the ledger.
 - Extend `modes` to the radial spectrum and the full N-ion mode table.
 - Graduate the spike to its own repo(s) once the schema/engines stabilise.
