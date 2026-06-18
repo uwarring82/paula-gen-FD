@@ -7,6 +7,47 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-18 (later 16) — Raman (TPSR) beam combinations + radial-mode tilt
+
+UW: add the Raman beam-combination properties (CC/OC/AC/ROC) and "note our radial
+mode tilt"; check the PhD thesis work to fill in the data. (UW first gave
+AC = B1+R3, then corrected: **AC = B3+R1** — matching Doerr.)
+
+**Extracted the Raman geometry** from Doerr 2024 (Sec. 2.1 + Fig. 2.4),
+confirmed by the Hasse 2025 glossary, with polarisations from Clos 2017 (Tab.
+3.2) and the Lamb-Dicke parameter from Wittemer 2019 / Clos 2017. The setup is a
+clean 2x2 of two blue (B1, B3) x two red (R1, R2) beams, all in the trap x-z
+plane; the effective k-vector Delta_k = k_B - k_R picks the mode:
+
+| comb | beams | geometry | Delta_k | addresses |
+|------|-------|----------|---------|-----------|
+| CC   | B1+R1 | parallel     | ~0          | carrier only (no motion) |
+| OC   | B1+R2 | orthogonal   | \|\| z       | axial lf mode (~1.3 MHz) |
+| AC   | B3+R1 | antiparallel | \|\| -(x+z)  | ALL three modes (45 deg to lf axis) |
+| ROC  | B3+R2 | orthogonal   | \|\| x       | radial mf/hf (~3.0 / ~4.5 MHz) |
+
+Polarisations (Clos Tab. 3.2): B1 pi, R1 sigma+ + sigma-, R2 sigma+ - sigma-.
+
+**Radial-mode tilt (flagged by UW).** Doerr Fig. 2.4: the two radial modes are
+NOT in the x-z plane but lie at ~30 deg to the x/y axis. Recorded as
+`radial_mode_tilt_25mg` = 30 deg. This is exactly why the AC combination (k in
+the x-z plane) needs a TWO-step projection to reach the radial modes — captured
+in the AC record's caveat.
+
+**Lamb-Dicke.** `raman_axial_lamb_dicke_25mg` = 0.32 for Delta_k along axial at
+omega_ax ~ 1.9 MHz (Wittemer eta=0.32 @ 1.920 MHz; Clos eta~0.32 @ ~2 MHz),
+scaling as omega_ax^(-1/2).
+
+**Records (6 new, 60 total).** Four categorical combination records (value =
+Delta_k DIRECTION string in the trap frame; the schema's value oneOf already
+allows strings + a category `units`), the axial Lamb-Dicke, and the radial tilt.
+All `input` (configuration/geometry the twin consumes); no engine validates them
+yet -> a future mode-projection engine could consume the Delta_k directions +
+the 30 deg tilt to predict each combination's per-mode Lamb-Dicke projection.
+Substrate green; 82 tests unchanged.
+
+---
+
 ## 2026-06-18 (later 15) — Cooling engine (Doppler scattering + limit)
 
 UW: "go for it" on the cooling/scattering engine.

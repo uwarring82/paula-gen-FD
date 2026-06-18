@@ -36,6 +36,95 @@
   caveats: "Round nominal value (20 GHz); recorded uncertainty is an estimated tolerance."
   status: provisional
 
+# --- Raman (TPSR) beam combinations -----------------------------------------
+# Two-photon stimulated-Raman drive (~279.6 nm, 20 GHz red of P3/2). Two blue
+# (B1, B3) and two red (R1, R2) beams, all propagating in the trap x-z plane,
+# combine pairwise; the effective k-vector Delta_k = k_B - k_R sets which
+# motional mode is addressed. Polarisations (Clos Tab. 3.2): B1 pi, R1 sigma+ +
+# sigma-, R2 sigma+ - sigma-. The 2x2 of {B1,B3} x {R1,R2} gives four named
+# carriers (Doerr 2024, Sec. 2.1; Hasse 2025 glossary):
+#   CC  = B1+R1 (parallel)     Delta_k ~ 0         carrier only (no motion)
+#   OC  = B1+R2 (orthogonal)   Delta_k || z        axial lf mode
+#   AC  = B3+R1 (antiparallel) Delta_k || -(x+z)   all three modes
+#   ROC = B3+R2 (orthogonal)   Delta_k || x        radial modes
+# The Delta_k DIRECTION is recorded (trap x,y,z frame); the axial Lamb-Dicke
+# coupling is raman_axial_lamb_dicke_25mg; the radial tilt that complicates AC's
+# radial projection is radial_mode_tilt_25mg (records/fields.yaml).
+
+- name: raman_cc_combination_25mg
+  value: "dk~0"
+  units: "k-vector direction (trap x,y,z)"
+  kind: input
+  uncertainty: {value: 0.0, type: exact}
+  source: {ref: doerr2024, loc: "Sec. 2.1, p. 12 (beam combinations)", extraction_note: "Colinear-Carrier CC = B1 (pi) + R1 (sigma+ + sigma-) superimposed PARALLEL -> Delta_k = k_B - k_R ~ 0. Confirmed by Hasse 2025 glossary (CC = co-linear carrier, B1 and R1).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  conditions: "TPSR Colinear-Carrier; B1 + R1 parallel; carrier only (|down,n> <-> |up,n>), motion-insensitive (Lamb-Dicke ~ 0)"
+  caveats: "Spin-only (carrier) operations; near-zero Lamb-Dicke -> no motional sideband coupling."
+  status: provisional
+
+- name: raman_oc_combination_25mg
+  value: "+z"
+  units: "k-vector direction (trap x,y,z)"
+  kind: input
+  uncertainty: {value: 0.0, type: exact}
+  source: {ref: doerr2024, loc: "Sec. 2.1, p. 12 (beam combinations)", extraction_note: "Orthogonal Carrier OC = B1 (pi) + R2 (sigma+ - sigma-) in an orthogonal configuration -> Delta_k parallel to the z-axis. Addresses the axial low-frequency (lf) mode (~1.3 MHz).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  conditions: "TPSR Orthogonal Carrier; B1 + R2 orthogonal; Delta_k || z; addresses the axial lf mode (~1.3 MHz); axial Lamb-Dicke eta ~ 0.32"
+  caveats: "Axial-mode (sideband) addressing along z."
+  status: provisional
+
+- name: raman_ac_combination_25mg
+  value: "-(ex+ez)/sqrt2"
+  units: "k-vector direction (trap x,y,z)"
+  kind: input
+  uncertainty: {value: 0.0, type: exact}
+  source: {ref: doerr2024, loc: "Sec. 2.1, p. 12 + Fig. 2.4, p. 13 (beam combinations)", extraction_note: "Antilinear Carrier AC = B3 + R1, superimposed but ANTIPARALLEL -> Delta_k || -(e_x + e_z), at 45 deg to the lf-mode axis in the x-z plane. Has non-zero projection onto ALL THREE modes (axial lf + radial mf ~3.0 + radial hf ~4.5 MHz).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  conditions: "TPSR Antilinear Carrier; B3 + R1 antiparallel; Delta_k || -(e_x+e_z), 45 deg to the lf-mode axis in the x-z plane; addresses all three modes"
+  caveats: >-
+    The only combination addressing all three modes. Radial coupling needs a
+    TWO-STEP projection because the radial modes are tilted ~30 deg out of the
+    x-z plane (see radial_mode_tilt_25mg): AC is projected onto x first, then
+    onto the tilted radial axes.
+  status: provisional
+
+- name: raman_roc_combination_25mg
+  value: "+x"
+  units: "k-vector direction (trap x,y,z)"
+  kind: input
+  uncertainty: {value: 0.0, type: exact}
+  source: {ref: doerr2024, loc: "Sec. 2.1, p. 12 (beam combinations)", extraction_note: "Radial Orthogonal Carrier ROC = B3 + R2 in another orthogonal configuration -> Delta_k parallel to the x-axis. Addresses the radial (mf/hf) modes.", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  conditions: "TPSR Radial Orthogonal Carrier; B3 + R2 orthogonal; Delta_k || x; addresses the radial mf (~3.0 MHz) / hf (~4.5 MHz) modes"
+  caveats: "Radial-mode addressing along x."
+  status: provisional
+
+- name: raman_axial_lamb_dicke_25mg
+  value: 0.32
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 0.01, type: systematic}
+  source: {ref: wittemer2019, loc: "Sec. 4.2 (eta = 0.32 at omega_E/2pi = 1.920(3) MHz)", extraction_note: "Axial spin-phonon Lamb-Dicke parameter eta = 0.32 for TPSR with Delta_k along the axial direction, at omega_axial/2pi ~ 1.92 MHz. Clos 2017 Sec. 3.4.3 independently gives eta ~ 0.32 at ~2 MHz (and ~0.54 at 0.7 MHz). eta = k_z * z_bar, scales as omega_axial^(-1/2).", extracted_by: claude-agent, extracted_on: 2026-06-18}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  conditions: "TPSR, Delta_k along axial; axial frequency ~1.9-2.0 MHz; single 25Mg+ ion"
+  caveats: "Frequency-dependent: eta = k_z*z_bar proportional to omega_axial^(-1/2). Quoted at ~1.9-2.0 MHz (Wittemer/Clos)."
+  status: provisional
+
 # --- shared constants -------------------------------------------------------
 
 - name: mg_p32_natural_linewidth
