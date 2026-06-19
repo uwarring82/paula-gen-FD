@@ -62,7 +62,7 @@ constant A (itano_wineland_1981), the laser table (clos2017), the Raman geometry
 | **kaufmann2022** | I. Kaufmann | 2022 | MSc | ⚠️ local | 5 |
 | **weber2025** | A. Weber | 2025 | MSc | ⚠️ local | 2 |
 | **thomm2021** | R. Thomm | 2021 | MSc | ⚠️ local | 8 |
-| **friedenauer2010** | A. Friedenauer | 2010 | PhD (LMU) | ✅ | 1 |
+| **friedenauer2010** | A. Friedenauer | 2010 | PhD (LMU) | ✅ | 3 |
 | **hasse2025** | F. Haße | 2025 | PhD | ✅ | 1 |
 | **codata2018** | Tiesinga et al. | 2021 | dataset | ⚠️ unverified | 1 |
 | **stone2005** | N. J. Stone | 2005 | review | ⚠️ unverified | 1 |
@@ -271,11 +271,18 @@ earlier epochs); recorded in that record's caveats.
 
 **Summary.** PhD behind Nature Physics 4, 757 (2008) (first quantum-magnet
 simulation), on the earlier **LMU/MPQ** ²⁵Mg⁺ apparatus — a *different, predecessor*
-setup. Only apparatus-independent atomic quantities transfer to Freiburg; here, the
-²⁵Mg⁺ **saturation intensity Isat ≈ 255 mW/cm²** (an atomic constant). Its 30 µm BD
-waist is LMU-specific and is *not* used as a Freiburg value.
+setup. The apparatus-independent ²⁵Mg⁺ **saturation intensity Isat ≈ 255 mW/cm²**
+(an atomic constant) transfers directly to Freiburg. Two **LMU-apparatus detection
+numbers** — the **photon detection efficiency 5.6‰** and the **fluorescence count
+rate ≈ 250 kHz** — are also recorded, but only as first-principles sanity checks:
+they are *superseded* for the actual apparatus by the Freiburg/PAULA
+[thomm2021](#thomm2021--state-detection-of-trapped-magnesium-ions) readout. Its 30 µm
+BD waist is likewise LMU-specific and is *not* used as a Freiburg value.
 
-**FOMs for the twin** (1 record): `mg_saturation_intensity` 2550 W/m² (= 255 mW/cm²).
+**FOMs for the twin** (3 records): `mg_saturation_intensity` 2550 W/m² (= 255 mW/cm²),
+the atomic constant; plus the LMU-specific detection pair `mg_detection_efficiency_25mg`
+5.6×10⁻³ and `mg_fluorescence_count_rate_25mg` ≈ 250 kHz (first-principles checks,
+superseded by thomm2021 for the actual apparatus).
 
 ### hasse2025 — *Observation of dynamic processes demonstrated in a trapped-ion quantum simulator*
 - **Florian Haße**, PhD, Albert-Ludwigs-Universität Freiburg, 2025 (supervisor T. Schätz)
