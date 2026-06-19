@@ -19,6 +19,16 @@ dark-channel effect (the dark/reference channel matches Poisson) and NOT capture
 by the Mandel Q = var/mean - 1 (which measures overall variance, here near-zero).
 The bright rate itself follows from the cooling engine's BDX scatter rate times the
 (apparatus) photon-collection efficiency and detection time.
+
+REALISTIC (non-Poissonian) counts. During detection the BD beam can pump a BRIGHT
+ion out of the cycling transition into a dark state (depumping -> a low-count tail
+of zero/few photons, observed in the PAULA bright histograms, cf. Thomm 2021), and
+conversely a DARK ion can leak INTO the cycling transition and start scattering (a
+high-count tail). `transition_count_pmf` models either as a Poisson core plus the
+tail from a stochastic switch time. `ml_estimate_p_down` is the OPTIONAL
+maximum-likelihood state-probability readout (Thomm 2021): it infers P_down from a
+set of counts under the realistic mixture. Both default to the pure-Poisson limit;
+the raw photon counts remain the primary observable (no readout assumed).
 """
 from __future__ import annotations
 
@@ -94,3 +104,60 @@ def expected_bright_counts(scatter_rate_hz: float, collection_eff: float, t_det_
     """Mean detected counts of the bright state: R_scatter * eta_collection * t_det.
     collection_eff folds solid angle, optics transmission and detector QE (apparatus)."""
     return scatter_rate_hz * collection_eff * t_det_s
+
+
+def transition_count_pmf(k: int, lam_start: float, lam_other: float, decay: float,
+                         n_quad: int = 64) -> float:
+    """P(count = k) for a state that scatters at rate lam_start but stochastically
+    SWITCHES to lam_other partway through the detection window (Poisson switch rate
+    `decay` = Gamma * t_det, dimensionless). If it switches at fraction u in (0,1) of
+    the window the counts are Poisson with mean lam_start*u + lam_other*(1-u).
+
+    - BRIGHT depumping: lam_start=lam_bright, lam_other=lam_dark -> Poisson core at
+      lam_bright + a LOW-count tail (the zero/few-photon events of Thomm 2021).
+    - DARK leaking into the cycle: lam_start=lam_dark, lam_other=lam_bright -> a
+      HIGH-count tail.
+    decay=0 recovers a pure Poisson(lam_start)."""
+    if decay <= 0.0:
+        return poisson_pmf(k, lam_start)
+    p = math.exp(-decay) * poisson_pmf(k, lam_start)            # survived the full window
+    for i in range(n_quad):                                     # switched at u in (0,1)
+        u = (i + 0.5) / n_quad
+        w = decay * math.exp(-decay * u) / n_quad
+        p += w * poisson_pmf(k, lam_start * u + lam_other * (1.0 - u))
+    return p
+
+
+def ml_estimate_p_down(counts, lam_bright: float, lam_dark: float,
+                       depump_bright: float = 0.0, leak_dark: float = 0.0,
+                       iters: int = 500, tol: float = 1e-10) -> float:
+    """OPTIONAL maximum-likelihood readout (Thomm 2021): infer the bright-state
+    probability P_down from a list of per-shot photon `counts`, via EM on the
+    two-component mixture P(k) = P_down*B(k) + (1-P_down)*D(k), where B is the bright
+    distribution (transition_count_pmf with depump_bright) and D the dark (leak_dark).
+    With depump_bright=leak_dark=0 this is the pure two-Poissonian model. Returns
+    P_down in [0,1] (nan for empty input). The twin's primary output stays the raw
+    counts; call this only when a state probability is needed."""
+    if not counts:
+        return float("nan")
+    kmax = max(counts)
+    bk = [transition_count_pmf(k, lam_bright, lam_dark, depump_bright) for k in range(kmax + 1)]
+    dk = [transition_count_pmf(k, lam_dark, lam_bright, leak_dark) for k in range(kmax + 1)]
+    b = [bk[k] for k in counts]
+    d = [dk[k] for k in counts]
+    p = 0.5
+    for _ in range(iters):                                  # EM; log-likelihood is concave in p
+        s = 0.0
+        n = 0
+        for bi, di in zip(b, d):
+            den = p * bi + (1.0 - p) * di
+            if den > 0.0:                                    # drop counts both models call impossible
+                s += p * bi / den
+                n += 1
+        if n == 0:
+            break
+        new = s / n                                          # normalise over the SAME terms (no low bias)
+        if abs(new - p) <= tol:
+            return new
+        p = new
+    return p

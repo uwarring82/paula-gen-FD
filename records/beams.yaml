@@ -33,7 +33,15 @@
   observation_type: direct
   derived_from: []
   generation: freddy
-  caveats: "Round nominal value (20 GHz); recorded uncertainty is an estimated tolerance."
+  caveats: >-
+    Round nominal value (20 GHz); recorded uncertainty is an estimated tolerance.
+    DETUNING HISTORY (resolved by UW 2026-06-19): the virtual-level detuning from
+    P3/2 |F=4,mF=4> evolved 50 GHz (pre-2021) -> 200 GHz (Thomm 2021, after a new
+    BBO cavity) -> 20 GHz (Doerr 2024 = CURRENT). The final reduction was
+    deliberate: a new laser system + BBO-doubling-stage trouble, traded a smaller
+    detuning for LARGER Rabi rates (Omega_Rabi proportional to 1/Delta_R). So 20 GHz
+    is the current operating value (the Thomm 50/200 GHz are earlier epochs); the
+    sideband/AC-Stark engines (proportional to 1/Delta_R, 1/Delta_R^2) use 20 GHz.
   status: provisional
 
 # --- Raman (TPSR) beam combinations -----------------------------------------
@@ -129,7 +137,12 @@
   derived_from: []
   generation: legacy
   conditions: "TPSR, Delta_k along axial; axial frequency ~1.9-2.0 MHz; single 25Mg+ ion"
-  caveats: "Frequency-dependent: eta = k_z*z_bar proportional to omega_axial^(-1/2). Quoted at ~1.9-2.0 MHz (Wittemer/Clos)."
+  caveats: >-
+    Frequency-dependent: eta = k_z*z_bar proportional to omega_axial^(-1/2). Quoted
+    at ~1.9-2.0 MHz (Wittemer/Clos). CROSS-CHECK (consistent): Thomm 2021 reports
+    eta = 0.39 at the axial lf mode ~1.3 MHz; scaling this 0.32 by sqrt(1.92/1.30)
+    gives 0.389 ~ 0.39 - a third, independent confirmation of the omega^(-1/2) law
+    (NOT a conflict, just a different trap frequency).
   status: provisional
 
 # --- shared constants -------------------------------------------------------
@@ -395,4 +408,123 @@
     Hasse 2025 itself quotes 42.7 MHz (-> 10.68 MHz); both are within the 2 MHz
     benchmark band, so the agreement is robust. measured_on is approximate (thesis
     era); the section label (3.1.3) should be spot-checked against the Hasse PDF.
+  status: provisional
+
+# --- detection efficiency (Friedenauer; feeds the detection engine) -----------
+
+- name: mg_detection_efficiency_25mg
+  value: 5.6e-3                   # fraction of emitted photons detected
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 1.0e-3, type: systematic}
+  source:
+    ref: friedenauer2010
+    loc: "Sec. 2 (p. 25)"
+    extraction_note: >-
+      Photon detection efficiency of 25Mg+ fluorescence = product of three
+      factors: 4.7% solid-angle collection x (1 - 14% Schott-filter/mirror loss)
+      x 14% PMT quantum efficiency at 280 nm = 0.047 * 0.86 * 0.14 = 5.66e-3 ~
+      5.6 per-mille of emitted photons detected; fluorescence count rate Rcount
+      ~ 250 kHz at saturation. Verbatim: "we detect 5.6 per-mille of the total
+      number of emitted photons".
+    extracted_by: claude-agent
+    extracted_on: 2026-06-19
+  scope: {isotope: 25Mg, subsystem: detection}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  caveats: >-
+    From the LMU/MPQ predecessor apparatus (Friedenauer); the Freiburg value DOES
+    differ - Thomm 2021 now gives the actual PAULA detection directly:
+    mg_bright_counts_25mg = 2.682/30us (~89 kHz, vs Friedenauer's 250 kHz) and
+    fidelities mg_readout_fidelity_bright/dark_25mg = 99.4/97.4% (vs Schmitz/LMU
+    >99.99%). Prefer the Thomm count levels for the twin's detection step; keep this
+    efficiency only as the first-principles eta = R_scatter -> mu_bright sanity check.
+  status: provisional
+
+- name: mg_fluorescence_count_rate_25mg
+  value: 2.5e5                    # Hz, detected count rate at saturation
+  units: Hz
+  kind: input
+  uncertainty: {value: 5.0e4, type: systematic}
+  source: {ref: friedenauer2010, loc: "Sec. 2 (p. 25): Rcount ~ 250 kHz", extraction_note: "Detected fluorescence count rate ~250 kHz (delta=0, I=Isat/2) = scatter rate Rfl~45 MHz x detection efficiency 5.6e-3. LMU/Friedenauer apparatus.", extracted_by: claude-agent, extracted_on: 2026-06-19}
+  scope: {isotope: 25Mg, subsystem: detection}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  caveats: "LMU apparatus; the bright counts per detection are this rate times the detection window t_det."
+  status: provisional
+
+# --- electronic-state readout (Thomm 2021; the actual Freiburg/PAULA detection) --
+
+- name: mg_detection_time_25mg
+  value: 3.0e-5                   # s (30 us)
+  units: s
+  kind: input
+  uncertainty: {value: 0.0, type: exact}
+  source: {ref: thomm2021, loc: "Sec. 3.2-3.3 (Fig. 3.3, tdet optimization)", extraction_note: "Optimised fluorescence detection window t_det = 30 us, chosen as the point where the lesser (bright/dark) state fidelity reaches its maximum (Fig. 3.3 top). Used for single- and two-ion spin readout.", extracted_by: claude-agent, extracted_on: 2026-06-19}
+  scope: {isotope: 25Mg, subsystem: detection}
+  observation_type: direct
+  derived_from: []
+  generation: legacy
+  caveats: "Freiburg/PAULA operating value; the t_det the twin's detection step uses (supersedes any LMU/Friedenauer assumption)."
+  status: provisional
+
+- name: mg_bright_counts_25mg
+  value: 2.682                    # mean photon counts in the 30 us window
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 0.009, type: statistical}
+  source: {ref: thomm2021, loc: "Sec. 3.1.1 (single ion, Fig. 3.1)", extraction_note: "Bright |down> Poissonian mean photon count lambda_down = 2.682(9) over t_det = 30 us, from a 2500-shot prefit of the two-Poissonian model (single 25Mg+ ion). Implies a detected bright count rate ~89 kHz (cf. Friedenauer/LMU 250 kHz).", extracted_by: claude-agent, extracted_on: 2026-06-19}
+  scope: {isotope: 25Mg, subsystem: detection}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  caveats: "The Poisson mean mu_bright the detection engine consumes (with mg_dark_counts_25mg) to predict readout fidelity / count clouds. Single-ion, 30 us window."
+  status: provisional
+
+- name: mg_dark_counts_25mg
+  value: 0.036                    # mean photon counts in the 30 us window
+  units: dimensionless
+  kind: input
+  uncertainty: {value: 0.003, type: statistical}
+  source: {ref: thomm2021, loc: "Sec. 3.1.1 (single ion, Fig. 3.1)", extraction_note: "Dark |up> Poissonian mean photon count lambda_up = 0.036(3) over t_det = 30 us (single 25Mg+ ion, 2500-shot prefit). The detection background/dark level.", extracted_by: claude-agent, extracted_on: 2026-06-19}
+  scope: {isotope: 25Mg, subsystem: detection}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  caveats: "mu_dark for the detection engine; near-zero background (dark state scatters little)."
+  status: provisional
+
+- name: mg_readout_fidelity_bright_25mg
+  value: 0.994
+  units: dimensionless
+  kind: benchmark
+  uncertainty: {value: 0.006, type: statistical}
+  source: {ref: thomm2021, loc: "Sec. 3.2 (Spin State Fidelities)", extraction_note: "Single-ion bright-state |down> detection fidelity 99.4(6)% (two-ion |down,down> 99(1)%), as the maximum-likelihood estimate of P_down for a prepared bright state over many shots.", extracted_by: claude-agent, extracted_on: 2026-06-19}
+  scope: {isotope: 25Mg, subsystem: detection}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  measured_on: 2021-06-01         # APPROXIMATE: Thomm 2021 thesis (June 2021); exact date not in source
+  caveats: >-
+    Maximum-likelihood state-probability fidelity (ensemble, 2/3-Poissonian model),
+    NOT single-shot Poisson-threshold discrimination: a hard threshold on
+    mu_bright=2.682 / mu_dark=0.036 predicts a lower single-shot bright fidelity
+    (~93%, since P(Poisson(2.682)=0)~0.07). Validate an ML readout against this, not
+    a threshold. Includes state-preparation error.
+  status: provisional
+
+- name: mg_readout_fidelity_dark_25mg
+  value: 0.974
+  units: dimensionless
+  kind: benchmark
+  uncertainty: {value: 0.006, type: statistical}
+  source: {ref: thomm2021, loc: "Sec. 3.2 (Spin State Fidelities)", extraction_note: "Single-ion dark-state |up> detection fidelity 97.4(6)% (two-ion |up,up> 96(1)%), maximum-likelihood estimate of P_up for a prepared dark state.", extracted_by: claude-agent, extracted_on: 2026-06-19}
+  scope: {isotope: 25Mg, subsystem: detection}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  measured_on: 2021-06-01         # APPROXIMATE: Thomm 2021 thesis (June 2021); exact date not in source
+  caveats: "ML state-probability fidelity (see mg_readout_fidelity_bright_25mg). Limited by dark-state off-resonant scatter / depumping during t_det."
   status: provisional

@@ -88,5 +88,16 @@ def test_uncovered_benchmarks_flags_missing_engine():
     assert "omega_z_axial_stretch_2ion_25mg" in unc
     # derived benchmarks (derived_from != []) are bookkeeping, not direct targets
     assert "clock_transition_residual_25mg" not in unc
-    # the full registry leaves nothing uncovered
-    assert uncovered_benchmarks(ledger) == []
+    # These Thomm-2021 benchmarks are prep/protocol-limited, so they are not
+    # sigma-validatable; the readout / sideband-cooling DIAGNOSTICS address them
+    # (single-shot fidelity + prep-vs-detection decomposition; RSB-floor kappa
+    # inversion) without a sigma test. Assert EXACTLY this set so the test still
+    # catches any accidentally-uncovered benchmark.
+    pending = {
+        "mg_readout_fidelity_bright_25mg",
+        "mg_readout_fidelity_dark_25mg",
+        "mg_rsb_cooled_nbar_axial_lf_25mg",
+        "mg_rsb_cooled_nbar_radial_mf_25mg",
+        "mg_rsb_cooled_nbar_radial_hf_25mg",
+    }
+    assert set(uncovered_benchmarks(ledger)) == pending

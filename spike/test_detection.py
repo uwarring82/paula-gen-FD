@@ -8,16 +8,54 @@ import pytest
 from spike.datfile import DatFile
 import math
 
+import random
+
 from spike.engines.detection import (
     detection_fidelity,
     empirical_fidelity,
     expected_bright_counts,
     mandel_q,
+    ml_estimate_p_down,
     optimal_threshold,
     poisson_cdf,
     poisson_pmf,
     qpn,
+    transition_count_pmf,
 )
+from spike.twin import _detect_count
+
+
+def test_transition_pmf_normalizes_and_recovers_poisson():
+    for k in range(8):                                   # decay=0 -> pure Poisson
+        assert transition_count_pmf(k, 6.0, 0.1, 0.0) == pytest.approx(poisson_pmf(k, 6.0))
+    assert sum(transition_count_pmf(k, 6.0, 0.1, 0.3) for k in range(80)) == pytest.approx(1.0, abs=1e-6)
+
+
+def test_depumping_enhances_low_count_tail():
+    tail_dp = sum(transition_count_pmf(k, 6.0, 0.1, 0.3) for k in range(2))
+    tail_po = sum(poisson_pmf(k, 6.0) for k in range(2))
+    assert tail_dp > tail_po + 0.03                      # bright->dark depumping -> more zero/few photons
+
+
+def test_dark_leak_enhances_high_count_tail():
+    hi_leak = sum(transition_count_pmf(k, 0.1, 6.0, 0.3) for k in range(3, 40))
+    hi_po = sum(poisson_pmf(k, 0.1) for k in range(3, 40))
+    assert hi_leak > hi_po + 0.05                        # dark->bright leak into the cycle -> high-count tail
+
+
+def test_ml_readout_recovers_p_down_and_beats_naive():
+    rng = random.Random(3)
+    lam_b, lam_d, dp, p_true = 6.0, 0.1, 0.3, 0.65
+    counts = []
+    for _ in range(3000):
+        if rng.random() < p_true:
+            counts.append(_detect_count(lam_b, lam_d, dp, rng))      # bright (may depump)
+        else:
+            counts.append(_detect_count(lam_d, lam_b, 0.0, rng))     # dark
+    p_ml = ml_estimate_p_down(counts, lam_b, lam_d, depump_bright=dp)
+    p_naive = ml_estimate_p_down(counts, lam_b, lam_d, depump_bright=0.0)   # ignores depump
+    assert p_ml == pytest.approx(p_true, abs=0.05)
+    assert p_naive < p_ml                                # ignoring the tail underestimates P_down
 
 _DUR = "sources/data/microwave/13_28_39_15_06_2026.dat"
 

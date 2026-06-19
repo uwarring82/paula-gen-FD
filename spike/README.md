@@ -121,7 +121,12 @@ rather than ledger records — so they live behind [`analyze_data.py`](analyze_d
   means, the Mandel Q (super-Poissonian broadening), and the empirical fidelity
   from the per-shot histograms. kalis2017: F_Poisson = 0.992 vs F_empirical ≈ 0.97,
   the (one-sided) gap being the bright histogram's low-count tail — bright-state
-  loss/depumping during detection (the reference channel matches Poisson).
+  loss/depumping during detection (the reference channel matches Poisson). It also
+  models that tail directly: **`transition_count_pmf`** gives a Poisson core plus the
+  tail from a stochastic switch (bright→dark **depumping** → low counts, à la Thomm
+  2021; dark→bright **leaking** → high counts), and **`ml_estimate_p_down`** is the
+  OPTIONAL maximum-likelihood state readout (infer P↓ from a set of counts under the
+  realistic mixture; default = pure Poisson). The raw counts stay primary.
 
 The frequency scan's resonance (1775.49 MHz) also cross-checks the `levels` engine's
 field-sensitive (3,+3)↔(2,+2) prediction (1775.60 MHz at the Weber field).
@@ -140,6 +145,102 @@ n̄ = 1/(exp(2ω/Γ)−1) and reproduces Clos's **measured** n̄ = 10(1) at ω�
 benchmark (vs the theory-consistency Doppler limit). The runner adds a cooling
 diagnostic (scatter rate per beam).
 
+## Engines: `readout` + `sideband_cooling` (Thomm 2021 diagnostics)
+
+Two engines connect the Thomm-2021 readout/motional benchmarks to physics. They are
+**diagnostics, not σ-validations** — the measured values are preparation/protocol-
+limited, not zero-parameter predictions, and forcing a σ-test would be circular or
+show a false tension.
+
+- [`engines/readout.py`](engines/readout.py) turns the detection count model into
+  readout figures of merit: the **single-shot discrimination fidelity** (94.8 % at
+  Thomm's λ↓=2.682/λ↑=0.036) and the **Fisher-information / Cramér-Rao precision** of a
+  maximum-likelihood P↓ estimate over N shots (overhead ×1.1 at p=0.5, ×3 near the
+  bright end vs ideal QPN). The runner's `readout` diagnostic decomposes the measured
+  **99.4 %/97.4 %** ensemble fidelities *by channel*: the bright 0.6 % deficit is
+  **preparation-dominated** (ML of a perfect bright state averages above the 95 %
+  single-shot cap), while the dark 2.6 % deficit is **detection** (dark-state
+  off-resonant scatter / depumping during t_det — a systematic ML averaging does *not*
+  remove), so the readout limits the **dark** channel.
+- [`engines/sideband_cooling.py`](engines/sideband_cooling.py) estimates the
+  resolved-sideband cooling floor n̄_min ∼ α(κ/2ω)² (off-resonant carrier limit,
+  LBMW03; α an O(1) factor) and **inverts** each achieved n̄ for the implied effective
+  cooling rate κ. The `sideband_cooling` diagnostic confirms all κ/ω < 1 (resolved
+  regime) but κ varies across modes → the achieved n̄ (0.07/0.11/0.07) are
+  protocol/per-mode-limited, not a single common floor; it also cross-checks Thomm's
+  P(n=0)↔n̄ (Bose-Einstein).
+
+## Engine: `tickle` (Kalis 2016 secular-frequency spectroscopy)
+
+[`engines/tickle.py`](engines/tickle.py) measures motional-mode frequencies from a
+**tickle** (secular-excitation) scan, following the group's own method (Kalis et al.,
+PRA **94**, 023401 (2016); thesis kalis2017). A finite resonant excitation pulse drives
+a mode as a classical oscillator → amplitude A ∝ sin([ω_exc−ω_i]t_exc/2)/(ω_exc²−ω_i²)
+— a **sinc** of FWHM ≈ 1/t_exc, *not* a Lorentzian — and the Doppler modulation
+(index β=⟨u,k_BD⟩A) moves carrier population to motional sidebands with Bessel weights
+J_v(β)² (pure-Python `besselj`, |v|≤15), so the fluorescence F = Σ_v J_v(β)²·g(Δ_BD+vω)
+(Eq. 2) dips at resonance. `fit_tickle` fits the robust leading-order sinc² dip for the
+secular frequency f₀ (the depth is left free — its absolute value depends on the
+detection sensitivity Δ_BD/Γ_w/beam-waist, not pinned here), with an **F-test + edge
+guard** that rejects narrow calibration scans that miss the mode. On the PAULA
+`Tickle/PDQ_*_FScan` data (`python -m spike.plot_tickle`,
+[figure](../docs/figures/tickle_modes.png), all files): axial **1.299 MHz** (ledger
+1.30, 10/10 files), radial **3.224/4.712 MHz** (ledger 3.0/4.5 → **+7.5%/+4.7%**, 3/4
+and 4/4 — the radial nominals need refining).
+
+## Integrated twin: `spin` + `twin` (prepare → drive → detect)
+
+The engines above are isolated calculators. The **integrated twin** weaves them
+into one experiment cycle that transforms a single quantum **state** through
+state-preparation → manipulation → detection, simulated **per shot** so the count
+cloud emerges, *and* as the ensemble average.
+
+- [`engines/spin.py`](engines/spin.py) is the qubit **state** — a Bloch vector
+  (z=+1 → |↓⟩, P_up=(1−z)/2) — with coherent operations: `prepare(eps)` (residual
+  |↑⟩ population), `pulse(Ω, δ, t, φ)` (Rodrigues rotation by Ω_eff·t about the
+  generalised-Rabi axis), `free(δ, t)` (z-precession). A resonant π-pulse takes
+  |↓⟩→|↑⟩, π/2 → equator; a detuned pulse caps the flip at Ω²/Ω_eff².
+- [`twin.py`](twin.py) composes them. The **microwave drive carries an AC-Zeeman
+  shift and (quasi-static) dephasing**. Key physics: the AC-Zeeman shift exists
+  only while the MW is *on* (the pulses) — during a Ramsey free gap (MW off) the
+  spin precesses at the bare detuning. So the Rabi (MW-on) resonance *includes*
+  the shift while the Ramsey fringe (free precession) *reveals* it, and the
+  fringe's Gaussian contrast decay e^(−(τ/T₂\*)²) gives the dephasing
+  (σ_δ = √2/2πT₂\*). Per shot a quasi-static δ_noise ∼ 𝒩(0, σ_δ) is drawn, the
+  state is evolved, **projectively measured** (QPN), and a **detection count**
+  drawn from Poisson(μ_bright) for |↓⟩ / Poisson(μ_dark) for |↑⟩.
+  `detection_levels` sets μ_bright = R_scatter·η·t_det from the **Friedenauer**
+  collection efficiency η = 5.6×10⁻³ (`mg_detection_efficiency_25mg`).
+- [`twin_demo.py`](twin_demo.py) (`python -m spike.twin_demo`) is the **test case**:
+  inject (Ω=50 kHz, AC-Zeeman=3 kHz, T₂\*=800 µs), simulate a Rabi flop and a
+  Ramsey fringe per shot, then **infer them back** over *N*=16 Monte-Carlo replicas
+  (so the inference carries an uncertainty, not a single noisy draw) — the Rabi flop
+  pins Ω = 50.15 ± 0.74 kHz (and is blind to the small shift / slow dephasing), the
+  Ramsey fit (`fit_ramsey`, cosine × Gaussian) recovers AC-Zeeman = 3.00 ± 0.04 kHz
+  and T₂\* = 791 ± 58 µs (all consistent with injected within the scatter). The
+  detection levels (μ_b≈6.3) are themselves derived from the Friedenauer efficiency,
+  not hand-set. Writes
+  [`../docs/figures/twin_rabi_ramsey_inference.png`](../docs/figures/twin_rabi_ramsey_inference.png).
+- [`twin_freqscan.py`](twin_freqscan.py) (`python -m spike.twin_freqscan`) is the
+  **frequency-domain** version (`make_seq_ramsey_freq`): a Rabi spectroscopy scan
+  (broad line, ±25 kHz) whose dip is **pulled to** f₀+δ_ACZ, vs Ramsey scans at
+  τ=100/300/600 µs whose **fringe combs sit on the bare f₀** (free precession is
+  MW-off, light-shift-free) with spacing 1/τ_eff (τ_eff = τ + 1/πΩ, the finite-pulse
+  correction). The detuning window is **resolution-matched** (±2.5 fringe spacings),
+  so longer τ zooms in — an RPE-style ladder. The Rabi dip vs Ramsey comb offset
+  gives AC-Zeeman = 3.02 ± 0.41 kHz (injected 3.00; envelope-pull systematic removed,
+  robust stats over N=100), the Ramsey comb centre being ~13× sharper than the broad
+  Rabi dip. Writes
+  [`../docs/figures/twin_freqscan_rabi_ramsey.png`](../docs/figures/twin_freqscan_rabi_ramsey.png).
+- [`twin_detection.py`](twin_detection.py) (`python -m spike.twin_detection`) — the
+  **realistic readout**: the detection step in `simulate_counts` now lets a bright ion
+  **depump** (`MWModel.depump_bright`) and a dark ion **leak** (`leak_dark`), so the
+  bright count histogram grows the Thomm low-count tail. The demo (Thomm levels
+  λ↓=2.682/λ↑=0.036, depump Γt=0.3) shows the histogram tail and a Rabi flop read out
+  by the optional **ML readout** (RMSE 0.028 vs truth) vs a fixed **threshold** (RMSE
+  0.090, biased low by the tail). Writes
+  [`../docs/figures/twin_detection_depumping.png`](../docs/figures/twin_detection_depumping.png).
+
 ## Layout
 
 ```
@@ -156,9 +257,17 @@ spike/
     sideband.py     absolute Lamb-Dicke + sideband Rabi + Raman differential AC-Stark
     acstark.py      far-detuned single-beam light shift (BDD vs Hasse)
     rabi.py         damped Rabi-flop fit -> Omega (raw .dat duration scans)
-    detection.py    Poissonian bright/dark discrimination: threshold + fidelity
+    detection.py    bright/dark discrimination: threshold + fidelity + depumping/leak PMF + ML readout
+    readout.py      single-shot fidelity + Fisher/Cramer-Rao P_down precision (diagnostic)
+    tickle.py       Kalis-2016 secular-freq spectroscopy: Bessel sinc lineshape + fit_tickle
+    sideband_cooling.py  RSB cooling floor n_min ~ (kappa/2omega)^2 + per-mode kappa inversion (diagnostic)
+    spin.py         qubit STATE: Bloch vector + prepare/pulse/free operations
   datfile.py        reader for the PAULA DAQ .dat files (kalis2017 format)
   runner.py         composition root: registry, ValidationResult, table, diagnostics
+  twin.py           integrated cycle: MWModel, Rabi/Ramsey time+freq sequences, ensemble + per-shot MC, fit_ramsey
+  twin_demo.py      test case: infer AC-Zeeman + dephasing from Rabi vs Ramsey TIME scans (-> figure)
+  twin_freqscan.py  Rabi vs Ramsey FREQUENCY scans (tau=100/300/600us), resolution-matched windows (-> figure)
+  twin_detection.py realistic detection: depumping count tail + optional ML readout (-> figure)
   analyze_data.py   raw-data analysis (rabi + detection on the .dat examples)
   validate_twin.py  CLI shim -> runner.main
   test_levels.py    levels physics + Weber/Doerr benchmarks + hyperfine spectrum
@@ -170,8 +279,14 @@ spike/
   test_acstark.py   light-shift formula + BDD vs Hasse + far-detuned predicate
   test_datfile.py   .dat parsing: scan def, signal vs reference, histograms
   test_rabi.py      damped-cosine fit recovery + kalis duration scan
-  test_detection.py Poisson stats + threshold/fidelity + kalis histograms
+  test_detection.py Poisson stats + threshold/fidelity + depump/leak/ML + kalis histograms
+  test_readout.py   single-shot fidelity + Fisher info limits + CRB>=QPN + from_ledger
+  test_sideband_cooling.py  RSB floor scaling/inversion + offres carrier + resolved regime
+  test_tickle.py    Bessel values + sinc shape + fluorescence dip + f0 recovery + real LF data
+  plot_tickle.py    tickle spectroscopy of the 3 modes (Kalis fit -> figure)
   test_runner.py    runner: result math, tension detection, wall refusal, coverage
+  test_spin.py      Bloch operations: pi/pi2/2pi pulses, detuned cap, free precession
+  test_twin.py      sequences, dephasing decay, fit_ramsey recovery, count cloud, detection levels
 ```
 
 ## Run
@@ -179,6 +294,10 @@ spike/
 ```bash
 pytest spike/                  # all engine + runner tests
 python -m spike.validate_twin  # the twin validation table
+python -m spike.twin_demo      # integrated twin: Rabi-vs-Ramsey TIME-scan inference -> figure
+python -m spike.twin_freqscan  # Rabi vs Ramsey FREQUENCY scans (tau=100/300/600us) -> figure
+python -m spike.twin_detection # realistic detection: depumping tail + optional ML readout -> figure
+python -m spike.plot_tickle    # tickle secular-frequency spectroscopy of the 3 modes -> figure
 ```
 
 ## Wall discipline

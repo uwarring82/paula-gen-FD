@@ -370,3 +370,53 @@
   generation: freddy
   caveats: "Approximate (~4.5 MHz). Used by the sideband engine for the absolute Lamb-Dicke parameter."
   status: provisional
+
+# --- resolved-sideband (ground-state) cooling result (Thomm 2021) -------------
+# Mean phonon number after RSB cooling, per mode, from carrier/blue-sideband flop
+# fits (Sec. 3.4). Benchmark for a future sideband-cooling engine. Contrast with
+# doppler_cooled_occupation_25mg (n_bar ~ 10, Doppler limit). 3D ground state 79(4)%.
+
+- name: mg_rsb_cooled_nbar_axial_lf_25mg
+  value: 0.07                     # mean phonon number after RSB cooling, axial lf mode
+  units: dimensionless
+  kind: benchmark
+  uncertainty: {value: 0.02, type: statistical}
+  source: {ref: thomm2021, loc: "Sec. 3.4 (Fock-state analysis of cooled modes)", extraction_note: "Resolved-sideband-cooled mean phonon number, axial low-frequency (lf, ~1.3 MHz) mode: n_bar = 0.07(2), ground-state probability P(n=0) = 94(3)%. From carrier + blue-sideband TPSR flop fits, single 25Mg+ ion.", extracted_by: claude-agent, extracted_on: 2026-06-19}
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  measured_on: 2021-06-01         # APPROXIMATE: Thomm 2021 thesis (June 2021); exact date not in source
+  conditions: "Single 25Mg+, resolved-sideband cooled; axial lf mode ~1.3 MHz; P(n=0)=94(3)%"
+  caveats: "Benchmark for a future sideband-cooling engine (cf. doppler_cooled_occupation_25mg ~10, Doppler). Overall RSB cooling: ground-state fidelity ~90%, T ~ 26 uK."
+  status: provisional
+
+- name: mg_rsb_cooled_nbar_radial_mf_25mg
+  value: 0.11                     # radial mid-frequency (mf, ~2.7 MHz) mode
+  units: dimensionless
+  kind: benchmark
+  uncertainty: {value: 0.03, type: statistical}
+  source: {ref: thomm2021, loc: "Sec. 3.4", extraction_note: "Resolved-sideband-cooled n_bar = 0.11(3), radial mid-frequency (mf, ~2.7 MHz) mode; P(n=0) = 90(2)%. From sideband flop fits.", extracted_by: claude-agent, extracted_on: 2026-06-19}
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  measured_on: 2021-06-01         # APPROXIMATE: Thomm 2021 thesis (June 2021); exact date not in source
+  conditions: "Single 25Mg+, RSB cooled; radial mf mode ~2.7 MHz; P(n=0)=90(2)%"
+  caveats: "See mg_rsb_cooled_nbar_axial_lf_25mg."
+  status: provisional
+
+- name: mg_rsb_cooled_nbar_radial_hf_25mg
+  value: 0.07                     # radial high-frequency (hf, ~4.4 MHz) mode
+  units: dimensionless
+  kind: benchmark
+  uncertainty: {value: 0.04, type: statistical}
+  source: {ref: thomm2021, loc: "Sec. 3.4", extraction_note: "Resolved-sideband-cooled n_bar = 0.07(4), radial high-frequency (hf, ~4.4 MHz) mode; P(n=0) = 94(4)%. Combined 3D ground-state probability 79(4)%.", extracted_by: claude-agent, extracted_on: 2026-06-19}
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: fitted
+  derived_from: []
+  generation: legacy
+  measured_on: 2021-06-01         # APPROXIMATE: Thomm 2021 thesis (June 2021); exact date not in source
+  conditions: "Single 25Mg+, RSB cooled; radial hf mode ~4.4 MHz; P(n=0)=94(4)%; 3D ground state 79(4)%"
+  caveats: "See mg_rsb_cooled_nbar_axial_lf_25mg."
+  status: provisional

@@ -61,12 +61,14 @@ constant A (itano_wineland_1981), the laser table (clos2017), the Raman geometry
 | **wittemer2019** | M. Wittemer | 2019 | PhD | ✅ | 5 |
 | **kaufmann2022** | I. Kaufmann | 2022 | MSc | ⚠️ local | 5 |
 | **weber2025** | A. Weber | 2025 | MSc | ⚠️ local | 2 |
+| **thomm2021** | R. Thomm | 2021 | MSc | ⚠️ local | 8 |
 | **friedenauer2010** | A. Friedenauer | 2010 | PhD (LMU) | ✅ | 1 |
 | **hasse2025** | F. Haße | 2025 | PhD | ✅ | 1 |
 | **codata2018** | Tiesinga et al. | 2021 | dataset | ⚠️ unverified | 1 |
 | **stone2005** | N. J. Stone | 2005 | review | ⚠️ unverified | 1 |
 | enderlein2013 | M. Enderlein | 2013 | PhD | ✅ | 0 |
 | kalis2017 | H. Kalis | 2017 | PhD | ⚠️ local | 0 |
+| **kalis2016** | Kalis et al. | 2016 | article | ✅ | 0 |
 | clos2016 | Clos et al. | 2016 | article | ✅ | 0 |
 | palani2023 | Palani et al. | 2023 | article | ✅ | 0 |
 | friedenauer2006 | Friedenauer et al. | 2006 | article | ✅ | 0 |
@@ -189,6 +191,79 @@ twin its second, *independent measured* clock benchmark and a precise operating 
 **FOMs for the twin** (2 records): `b_field_zeeman_weber_25mg` 5.6454 G (input) →
 **`clock_transition_weber_25mg`** 1788.8328 MHz (benchmark, the levels engine's
 independent measured test).
+
+### kalis2016 — *Motional-mode analysis of trapped ions*
+- **H. Kalis, F. Hakelberg, M. Wittemer, M. Mielenz, U. Warring, T. Schätz**, Phys. Rev. A **94**, 023401 (2016)
+- DOI [10.1103/PhysRevA.94.023401](https://doi.org/10.1103/PhysRevA.94.023401) · ✅ verified · the group's own published method
+
+**Summary.** The group's own published **tickle / secular-excitation** method for
+measuring motional-mode frequencies (and orientations). A finite resonant excitation
+pulse (duration t_exc) drives a mode as a classical oscillator → amplitude
+A ∝ sin([ω_exc−ω_i]t_exc/2)/(ω_exc²−ω_i²) (Eq. 3, a **sinc** of FWHM ≈ 1/t_exc, *not*
+a Lorentzian); the Doppler modulation (index β = ⟨u,k_BD⟩A) shifts carrier population
+to motional sidebands ±vω_i with Bessel weights J_v(β)², giving the normalized
+fluorescence F = ∏_i Σ_v J_v(β_i)²·g(Δ_BD+vω_i) (Eq. 2, |v|≤15). It is the canonical
+reference behind [`spike/engines/tickle.py`](../spike/engines/tickle.py); the
+[kalis2017](#kalis2017--initialization-of-quantum-states-in-a-two-dimensional-ion-trap-array)
+thesis adds Gaussian mode-frequency noise (~1 kHz) for long t_exc.
+
+**FOMs for the twin** (0 records). Applied to the PAULA `Tickle/PDQ_*_FScan` data
+(`python -m spike.plot_tickle`, significance-gated over all scan files): axial
+**1.299 MHz** (ledger nominal 1.30, 10/10 files), radial **3.224 MHz** (+7.5%, 3/4)
+and **4.712 MHz** (+4.7%, 4/4) — the radials sit well above the nominal inputs
+(an unresolved refinement; not yet recorded). Per-mode narrow "calibration" scans
+that miss the mode are correctly rejected by the engine's F-test + edge guard.
+
+### thomm2021 — *State Detection of Trapped Magnesium Ions*
+- **Robin Thomm**, MSc, Albert-Ludwigs-Universität Freiburg, June 2021 (supervisor T. Schätz)
+- ⚠️ not publicly archived; local PDF only · legacy generation
+
+**Summary.** The Freiburg/PAULA **state-detection reference** for ²⁵Mg⁺ — exactly the
+source for building out *electronic-state readout* and *motional effects*. It (a)
+establishes the **electronic readout**: photon counts follow weighted Poissonians,
+P↓ is estimated by **maximum likelihood** (2-Poissonian single ion, 3-Poissonian two
+ions), with an optimised **t_det = 30 µs** and measured bright/dark fidelities; and
+(b) demonstrates **motional-state engineering** on a single ion — resolved-sideband
+ground-state cooling of all three modes, plus Fock, coherent-displaced and squeezed
+states read out from carrier/blue-sideband flops and reconstructed as **Wigner
+functions**. These are the *actual apparatus* numbers; they supersede the LMU
+friedenauer2010 detection placeholders.
+
+**FOMs for the twin** (8 records this pass; more catalogued below):
+- *Electronic readout* (`detection`): **`mg_detection_time_25mg`** 30 µs (input);
+  **`mg_bright_counts_25mg`** λ↓=2.682(9) / **`mg_dark_counts_25mg`** λ↑=0.036(3)
+  counts per 30 µs (inputs, single ion → ~89 kHz bright rate);
+  **`mg_readout_fidelity_bright_25mg`** 99.4(6)% / **`mg_readout_fidelity_dark_25mg`**
+  97.4(6)% (benchmarks; two-ion 99(1)%/96(1)%). The fidelities are **ML
+  state-probabilities**, not single-shot thresholds (a hard threshold on these means
+  gives ~93% bright — recorded in the caveats).
+- *Motional ground state* (`motion`): **`mg_rsb_cooled_nbar_axial_lf_25mg`** 0.07(2),
+  **`mg_rsb_cooled_nbar_radial_mf_25mg`** 0.11(3), **`mg_rsb_cooled_nbar_radial_hf_25mg`**
+  0.07(4) (benchmarks; P(n=0)=94/90/94%, 3D ground state 79(4)%, T≈26 µK) — the RSB
+  counterpart to the Doppler `doppler_cooled_occupation_25mg` (n̄≈10).
+
+**Further FOMs catalogued (not yet records)** — ready for the next build:
+- Mode frequencies axial 1.3 / radial 2.7 / 4.4 MHz; RF drive 56 MHz; B≈5.5 G;
+  hyperfine ω₀≈1774 MHz; BD cooling 20 MHz (=Γ/2), T_Doppler≈1 mK — corroborate
+  existing `omega_*`, `clock_*`, `bd_*` records.
+- **Lamb-Dicke η=0.39 at 1.3 MHz** — *consistent* with `raman_axial_lamb_dicke_25mg`
+  0.32 at 1.92 MHz via η∝ω^(−1/2) (0.32·√(1.92/1.30)=0.389); noted as a cross-check,
+  not a conflict.
+- *Motional-state engineering* (for a future Wigner/tomography engine): Fock |1⟩
+  89(3)% / |2⟩ 76(2)%; coherent displacement calib. 0.209(4)/µs (Raman),
+  0.193(5)/µs (E-field), |α|=0.67–0.84; squeezing |ξ|=r=0.74(3) (~1.3 dB); Fock
+  population fit Ωₙ,ₙ₊ₛ ∝ e^(−η²/2) Lₙ^|s|(η²), Hilbert truncation n_max=18; Fock
+  |1⟩ Wigner negativity confirmed.
+- *Raman/apparatus*: UV power 120–140 mW (post-BBO), 5–10 mW/beam; fine-structure
+  splitting 2.7 THz; active MW↔Raman phase stabilisation (1 kHz servo, <1 ms
+  settling, <5 ms coherence per shot).
+
+**✅ Detuning history (resolved, UW 2026-06-19).** The Raman virtual-level detuning
+from P3/2 |F=4,m_F=4⟩ evolved **50 → 200 GHz** (Thomm 2021, new BBO cavity) **→ 20 GHz**
+(doerr2024 = current). The final reduction was deliberate — a new laser system + BBO
+doubling-stage trouble, traded a smaller detuning for **larger Rabi rates** (Ω∝1/Δ_R).
+So `raman_detuning_from_p32` = 20 GHz stands as the current value (Thomm's 50/200 are
+earlier epochs); recorded in that record's caveats.
 
 ### friedenauer2010 — *Simulation of the Quantum Ising Model in an Ion Trap*
 - **Axel Friedenauer**, PhD, **LMU München / MPQ Garching** (NOT Freiburg), 2010

@@ -368,6 +368,43 @@ weber2025:
     |3,mF>↔|2,m'F> qubit transition frequencies and Zeeman-spectroscopy field
     B = 5.6454(9) G (Eq. 4.2); confirms A = 596.254376(54) MHz.
 
+kalis2016:
+  title: "Motional-mode analysis of trapped ions"
+  author: "Henning Kalis, Frederick Hakelberg, Matthias Wittemer, Manuel Mielenz, Ulrich Warring, Tobias Schaetz"
+  year: 2016
+  degree: article
+  doi: "10.1103/PhysRevA.94.023401"
+  verified: true
+  note: >-
+    PRA 94, 023401 (2016), the group's own published method (Warring co-author) for
+    tickle / secular-excitation motional-mode analysis. A finite resonant excitation
+    pulse (duration texc) drives a mode as a classical damped oscillator -> amplitude
+    Ai(texc) ~ sin([w_exc-wi]texc/2)/(w_exc^2-wi^2) (Eq. 3, a SINC of FWHM ~ 1/texc,
+    NOT a Lorentzian); the resulting Doppler modulation (index beta_i =
+    |<ui,kBD>|Ai) transfers carrier population to motional sidebands +-v*wi with
+    Bessel weights Jv(beta)^2, giving the normalized fluorescence F = prod_i sum_v
+    Jv(beta_i)^2 (Gw/2)^2/((D_BD+v wi)^2+(Gw/2)^2) (Eq. 2, |v|<=15). Fitting F(w_exc)
+    yields the secular frequencies. Detailed in the kalis2017 thesis (Eq. 2.62-2.68,
+    4.10 add Gaussian mode-frequency noise ~1 kHz).
+
+thomm2021:
+  title: "State Detection of Trapped Magnesium Ions"
+  author: "Robin Thomm"
+  year: 2021
+  degree: msc
+  institution: "Albert-Ludwigs-Universität Freiburg"
+  archived: false
+  verified: false
+  note: >-
+    MSc thesis (supervisor T. Schaetz, June 2021); local PDF thomm2021.pdf, not in
+    a public archive. The Freiburg/PAULA state-detection reference for 25Mg+:
+    Poissonian + maximum-likelihood spin readout (detection time t_det = 30 us,
+    single AND two ions, three-Poissonian discrimination, bright/dark fidelities),
+    plus motional-state engineering on a single ion - resolved-sideband ground-state
+    cooling, Fock, coherent-displaced and squeezed states, with Fock-population
+    readout from carrier/blue-sideband flops and Wigner-function reconstruction.
+    Supersedes the LMU friedenauer2010 detection numbers for the actual apparatus.
+
 # --- internal PAULA analysis notebooks (own primary sources; local-only) -----
 # Mathematica notebooks kept local (sources/Mathematica/, untracked); citable as
 # the origin of simulated/derived quantities. No public identifier -> the
