@@ -42,12 +42,13 @@ def _bright_dark(dat: DatFile):
 
 def main(argv=None) -> int:
     if not _DURATION.exists():
-        print("no kalis2017 example data found under sources/data/microwave/")
+        print("no example data found under sources/data/microwave/")
         return 0
-    out = ["RAW-DATA ANALYSIS — microwave |3,+3> <-> |2,+2> (kalis2017 .dat format)", ""]
+    dur = DatFile(_DURATION)
+    out = ["RAW-DATA ANALYSIS — 25Mg+ |3,+3> <-> |2,+2> microwave, PAULA %s "
+           "(.dat format: kalis2017)" % (dur.timestamp or ""), ""]
 
     # --- Rabi: duration scan ------------------------------------------------
-    dur = DatFile(_DURATION)
     t, y, s = dur.signal()
     fit = fit_rabi(t, y, s)
     out.append("RABI (duration scan, %s):" % _DURATION.name)

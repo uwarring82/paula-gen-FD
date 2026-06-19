@@ -75,6 +75,20 @@ class DatFile:
         self._data = data_rows
         self._hist_rows = hist_rows
 
+    @property
+    def timestamp(self):
+        """Measurement date/time 'YYYY-MM-DD HH:MM:SS' parsed from the filename
+        (HH_MM_SS_DD_MM_YYYY), corroborated by the <metadata label> in the header.
+        The data are the group's OWN primary measurement (the file is self-describing);
+        kalis2017 only documents the .dat FORMAT, it is not the data's origin."""
+        import os
+        stem = os.path.basename(str(self.path)).rsplit(".", 1)[0]
+        m = re.match(r"(\d{2})_(\d{2})_(\d{2})_(\d{2})_(\d{2})_(\d{4})$", stem)
+        if not m:
+            return None
+        hh, mm, ss, dd, mo, yy = m.groups()
+        return f"{yy}-{mo}-{dd} {hh}:{mm}:{ss}"
+
     # --- scan signal --------------------------------------------------------
     def signal(self):
         """(x, y, sigma) of the ion-fluorescence counter, sorted by x.

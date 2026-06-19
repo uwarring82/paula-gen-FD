@@ -1,6 +1,7 @@
 """
-Plot the kalis2017 frequency + duration scans against the digital-twin
-(generalized-Rabi) prediction, with the quantum-projection-noise (QPN) band.
+Plot the PAULA |3,+3> <-> |2,+2> microwave frequency + duration scans (the group's
+own data) against the digital-twin (generalized-Rabi) prediction, with the
+quantum-projection-noise (QPN) band. The .dat FORMAT is documented in kalis2017.
 
 EVERY twin parameter is read from the .dat ion properties: the sample size
 (exp_point), the pi-time t_mw_3p3_2p2 -> Rabi frequency Omega/2pi = 1/(2 t_pi), the
@@ -8,7 +9,7 @@ operating resonance fr_mw_3p3_2p2, and the freq-scan pulse duration. Counts are
 mapped to the spin-flip probability P(|up>) via the bright/dark levels from the
 duration-scan fit; QPN = sqrt(P(1-P)/N).
 
-    python -m spike.plot_scans   ->  docs/figures/kalis_twin_vs_data.png
+    python -m spike.plot_scans   ->  docs/figures/mw_3p3_2p2_twin_vs_data.png
 """
 from __future__ import annotations
 
@@ -28,7 +29,7 @@ from .ledger import Ledger  # noqa: E402
 _DD = Path(__file__).resolve().parent.parent / "sources" / "data" / "microwave"
 _FREQ = _DD / "13_28_34_15_06_2026.dat"
 _DUR = _DD / "13_28_39_15_06_2026.dat"
-_OUT = Path(__file__).resolve().parent.parent / "docs" / "figures" / "kalis_twin_vs_data.png"
+_OUT = Path(__file__).resolve().parent.parent / "docs" / "figures" / "mw_3p3_2p2_twin_vs_data.png"
 
 _BLUE, _RED = "#1f77b4", "#d62728"
 
@@ -39,7 +40,7 @@ def _grid(lo, hi, n=401):
 
 def main(argv=None) -> int:
     if not _DUR.exists():
-        print("no kalis2017 example data found")
+        print("no example data found under sources/data/microwave/")
         return 0
     freq, dur = DatFile(_FREQ), DatFile(_DUR)
 
@@ -83,7 +84,8 @@ def main(argv=None) -> int:
         ax_f.axvline(f_levels, color="green", ls="--", lw=1, label=f"levels f0 = {f_levels:.3f} (Weber B)")
     ax_f.set_xlabel("MW frequency (MHz)")
     ax_f.set_ylabel(r"spin-flip probability $P(|{\uparrow}\rangle)$")
-    ax_f.set_title(f"Frequency scan  (pulse {t_pulse_s * 1e6:.1f} $\\mu$s)")
+    _ft = (freq.timestamp or "").split()
+    ax_f.set_title(f"Frequency scan  {_ft[1] if len(_ft) > 1 else ''}  (pulse {t_pulse_s * 1e6:.1f} $\\mu$s)")
     ax_f.set_ylim(-0.12, 1.12)
     ax_f.legend(fontsize=7.5, loc="upper right")
 
@@ -99,13 +101,18 @@ def main(argv=None) -> int:
                       color=_RED, alpha=0.15, lw=0, label="twin QPN band", zorder=1)
     ax_d.set_xlabel(r"MW pulse duration ($\mu$s)")
     ax_d.set_ylabel(r"spin-flip probability $P(|{\uparrow}\rangle)$")
-    ax_d.set_title(rf"Duration scan  ($\Omega/2\pi$={rabi_hz / 1e3:.1f} kHz from $t_\pi$={t_pi_us:.1f} $\mu$s)")
+    _dt = (dur.timestamp or "").split()
+    ax_d.set_title(rf"Duration scan  {_dt[1] if len(_dt) > 1 else ''}  "
+                   rf"($\Omega/2\pi$={rabi_hz / 1e3:.1f} kHz, $t_\pi$={t_pi_us:.1f} $\mu$s)")
     ax_d.set_ylim(-0.12, 1.12)
     ax_d.legend(fontsize=7.5, loc="upper right")
 
-    fig.suptitle(r"kalis2017  $|3,+3\rangle \leftrightarrow |2,+2\rangle$  microwave: experiment vs digital twin",
-                 fontsize=12)
-    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _date = _dt[0] if _dt else ""
+    fig.suptitle(rf"$^{{25}}$Mg$^+$  $|3,+3\rangle \leftrightarrow |2,+2\rangle$  microwave — PAULA, "
+                 rf"{_date}   (experiment vs digital twin)", fontsize=12)
+    fig.text(0.5, 0.005, ".dat DAQ format: kalis2017 (data are the group's own measurement)",
+             ha="center", fontsize=7, color="gray")
+    fig.tight_layout(rect=(0, 0.02, 1, 0.96))
     _OUT.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(_OUT, dpi=130)
     print("wrote", _OUT)

@@ -37,6 +37,11 @@ def test_histograms_mean_matches_signal():
     assert means[-1] == pytest.approx(5.8, abs=0.1)             # bright
 
 
+def test_timestamp_from_filename():
+    assert DatFile(_DUR).timestamp == "2026-06-15 13:28:39"
+    assert DatFile(_FREQ).timestamp == "2026-06-15 13:28:34"
+
+
 def test_freq_scan_resonance_dip():
     d = DatFile(_FREQ)
     x, y, _ = d.signal()

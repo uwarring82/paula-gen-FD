@@ -7,12 +7,31 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
-## 2026-06-19 (later 22) — Twin-vs-experiment plot with QPN (kalis2017)
+## 2026-06-19 (later 23) — Provenance correction: data origin vs .dat format
+
+UW: label the data with the date/time from the .dat filenames; Kalis only described
+the DAQ details, he did NOT take the data.
+
+Correction applied across the repo: **kalis2017 is the .dat FORMAT / DAQ-method
+reference ONLY.** The example data under `sources/data/microwave/` are the PAULA
+group's OWN primary measurements, taken **2026-06-15** (13:28:34 frequency scan,
+13:28:39 duration scan — parsed from the filenames `HH_MM_SS_DD_MM_YYYY`, added as
+`DatFile.timestamp`). Fixed: the figure title/subtitles now read "PAULA, 2026-06-15"
+with each scan's time and a "format: kalis2017" footnote (was mis-titled
+"kalis2017"); `registries/sources.yaml` and `docs/SOURCES.md` clarify kalis2017 is
+format-only and the data are the group's; the analyze_data header carries the
+measurement date. Going forward, any record from this data cites the **.dat file
+(date/time)** for the measurement and **kalis2017** for the format/method — not
+kalis2017 for the data.
+
+---
+
+## 2026-06-19 (later 22) — Twin-vs-experiment plot with QPN (PAULA, 2026-06-15)
 
 UW: plot the freq + duration scans with the digital-twin result, including QPN, all
 relevant parameters read from the data-file ion properties.
 
-`spike/plot_scans.py` (-> docs/figures/kalis_twin_vs_data.png) overlays the
+`spike/plot_scans.py` (-> docs/figures/mw_3p3_2p2_twin_vs_data.png) overlays the
 generalized-Rabi twin P = Omega^2/Omega_eff^2 sin^2(Omega_eff t/2) (new
 `rabi.generalized_rabi`) on both scans, with the quantum-projection-noise band
 (new `detection.qpn` = sqrt(P(1-P)/N)). EVERY twin parameter is read from the
@@ -31,8 +50,9 @@ A small duration-scan phase drift by ~30 us reflects configured 53.76 vs fitted
 
 ## 2026-06-19 (later 21) — Raw-data engines: rabi + detection (kalis2017 .dat)
 
-UW: "build more engines: Rabi rate, and detection" — consuming the kalis2017 raw
-microwave-Rabi data (|3,+3> <-> |2,+2>).
+UW: "build more engines: Rabi rate, and detection" — consuming the group's own raw
+microwave-Rabi data (|3,+3> <-> |2,+2>, taken 2026-06-15; .dat FORMAT per kalis2017
+— see the later-23 provenance correction).
 
 **`spike/datfile.py`** reads the PAULA DAQ `.dat` files (settings + scan signal +
 per-shot count histograms). **`spike/engines/rabi.py`** fits a damped Rabi flop

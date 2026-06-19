@@ -248,7 +248,7 @@ no public copy.
 | key | citation | role |
 |-----|----------|------|
 | **enderlein2013** | PhD, Freiburg, FreiDok 8886 (URN) | Optical ion trapping; lineage apparatus thesis |
-| **kalis2017** | PhD, Freiburg, 2017 — ⚠️ local PDF | **DAQ system + `.dat` data-file format** (see [DATA_FORMAT.md](DATA_FORMAT.md)); will source raw-data benchmarks |
+| **kalis2017** | PhD, Freiburg, 2017 — ⚠️ local PDF | **DAQ system + `.dat` data-file FORMAT** only (see [DATA_FORMAT.md](DATA_FORMAT.md)); the example data are the group's own measurements (2026-06-15), *not* from this thesis |
 | **clos2016** | PRL **117**, 170401 (2016) | Thermalization in an isolated quantum system (clos2017 paper) |
 | **clos2016_suppmat** | Suppl. to PRL 117, 170401 | Supplemental methods/parameters |
 | **clos2014** | PRL **112**, 113003 (2014) | Decoherence-assisted spectroscopy of a single Mg⁺ ion |
