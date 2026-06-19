@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "pre-commit>=3.0"]
+dev = ["pytest>=7.0", "pre-commit>=3.0", "matplotlib>=3.5"]
 
 [project.scripts]
 iontrap-validate = "validator.validate:main_cli"
