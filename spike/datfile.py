@@ -130,6 +130,35 @@ class DatFile:
             groups.append(cur)
         return groups
 
+    def point_shots(self):
+        """[(x, [shot_count, ...])] for the ion-fluorescence counter: the individual
+        per-shot photon counts at each scan point, reconstructed from the per-point
+        histograms. histogram[i] pairs with the i-th data row (file order); the signal
+        counter is the higher-variance of the two npts-row blocks (the reference is the
+        near-constant ~0.013 floor)."""
+        sc = self.scan
+        if not sc:
+            return []
+        npts = sc["points"]
+        hists = self.histograms()
+        rows = self._data
+
+        def _var(block):
+            m = [r[1] for r in block]
+            mu = sum(m) / len(m) if m else 0.0
+            return sum((v - mu) ** 2 for v in m) / len(m) if m else 0.0
+
+        if len(rows) >= 2 * npts and len(hists) >= 2 * npts and _var(rows[npts:2 * npts]) > _var(rows[:npts]):
+            block_rows, block_h = rows[npts:2 * npts], hists[npts:2 * npts]
+        else:
+            n = min(npts, len(rows), len(hists))
+            block_rows, block_h = rows[:n], hists[:n]
+        out = []
+        for r, hist in zip(block_rows, block_h):
+            shots = [c for c, occ in sorted(hist.items()) for _ in range(occ)]
+            out.append((r[0], shots))
+        return out
+
     @staticmethod
     def hist_mean(hist: dict) -> float:
         n = sum(hist.values())

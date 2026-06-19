@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import glob
 import os
+import random
 import re
 from pathlib import Path
 
@@ -106,21 +107,29 @@ def plot_pair(base, freq_path, dur_path, out_path, ledger=None):
         rabi_hz = fit_rabi(*dur.signal())["freq_hz"]       # fall back to the duration-scan fit
         t_pi_us = 1e6 / (2.0 * rabi_hz)
 
-    def _panel(ax, x, counts, gx, gp, twin_label):
-        """Plot raw photon counts (no normalisation) + the twin curve and QPN band
-        mapped into count space via the per-scan bright/dark levels (used only to
-        PLACE the twin, not to rescale the data). QPN = sqrt(P(1-P)/N) in counts =
-        span * sqrt(P(1-P)/N)."""
-        s_br, s_dk = max(counts), min(counts)
+    def _panel(ax, pts, gx, gp, twin_label):
+        """Raw photon counts, EVERY experimental run as a point (the count variation),
+        plus the per-point mean, the twin curve and the QPN band — the last mapped into
+        count space via the per-point bright/dark means (only to PLACE the twin; the
+        data are untouched). QPN in counts = span * sqrt(P(1-P)/N)."""
+        xs = [x for x, _ in pts]
+        means = [sum(s) / len(s) for _, s in pts]
+        s_br, s_dk = max(means), min(means)
         span = (s_br - s_dk) or 1.0
-        p_data = [min(1.0, max(0.0, (s_br - c) / span)) for c in counts]
-        ax.errorbar(x, counts, yerr=[span * qpn(p, n_shots) for p in p_data], fmt="o", ms=5,
-                    capsize=3, color=_BLUE, label=f"experiment (QPN, N={n_shots})", zorder=3)
+        xr = (max(xs) - min(xs)) or 1.0
+        width = 0.55 * xr / max(1, len(xs) - 1)
+        rng = random.Random(0)
+        for x, shots in pts:                                  # each run = a point (jittered in x)
+            ax.scatter([x + width * (rng.random() - 0.5) for _ in shots], shots,
+                       s=8, color=_BLUE, alpha=0.22, lw=0, zorder=2)
+        ax.scatter(xs, means, s=30, color=_BLUE, edgecolor="white", lw=0.8, zorder=4,
+                   label=f"per-point mean (N={n_shots})")
         tw = [s_br - p * span for p in gp]
         band = [span * qpn(p, n_shots) for p in gp]
-        ax.plot(gx, tw, "-", color=_RED, lw=1.8, label=twin_label, zorder=2)
+        ax.plot(gx, tw, "-", color=_RED, lw=1.8, label=twin_label, zorder=3)
         ax.fill_between(gx, [t - b for t, b in zip(tw, band)], [t + b for t, b in zip(tw, band)],
-                        color=_RED, alpha=0.15, lw=0, label="twin QPN band", zorder=1)
+                        color=_RED, alpha=0.12, lw=0, label="twin QPN band", zorder=1)
+        ax.scatter([], [], s=10, color=_BLUE, alpha=0.5, label=f"individual runs ({n_shots}/pt)")
 
     f_levels = None
     if ledger is not None:
@@ -132,11 +141,12 @@ def plot_pair(base, freq_path, dur_path, out_path, ledger=None):
 
     fig, (ax_f, ax_d) = plt.subplots(1, 2, figsize=(12, 4.8))
 
-    # frequency scan (raw counts)
-    fx, fy, _ = freq.signal()
+    # frequency scan (raw counts, individual runs)
+    pts_f = freq.point_shots()
+    fx = [x for x, _ in pts_f]
     gx = _grid(min(fx), max(fx))
     gp = [generalized_rabi(t_pulse_s, (f - f0) * 1e6, rabi_hz) for f in gx]
-    _panel(ax_f, fx, fy, gx, gp, "digital twin (gen. Rabi)")
+    _panel(ax_f, pts_f, gx, gp, "digital twin (gen. Rabi)")
     ax_f.axvline(f0, color="gray", ls=":", lw=1, label=f"twin f0 = {f0:.3f} (ion props)")
     if f_levels:
         ax_f.axvline(f_levels, color="green", ls="--", lw=1, label=f"levels f0 = {f_levels:.3f} (Weber B)")
@@ -146,11 +156,12 @@ def plot_pair(base, freq_path, dur_path, out_path, ledger=None):
     ax_f.set_title(f"Frequency scan  {_ft[1] if len(_ft) > 1 else ''}  (pulse {t_pulse_s * 1e6:.1f} $\\mu$s)")
     ax_f.legend(fontsize=7.5, loc="upper right")
 
-    # duration scan (raw counts)
-    dx, dy, _ = dur.signal()
+    # duration scan (raw counts, individual runs)
+    pts_d = dur.point_shots()
+    dx = [x for x, _ in pts_d]
     gt = _grid(0.0, max(dx))
     gpd = [generalized_rabi(t * 1e-6, 0.0, rabi_hz) for t in gt]
-    _panel(ax_d, dx, dy, gt, gpd, r"digital twin $\sin^2(\Omega t/2)$")
+    _panel(ax_d, pts_d, gt, gpd, r"digital twin $\sin^2(\Omega t/2)$")
     _dt = (dur.timestamp or "").split()
     ax_d.set_xlabel(r"MW pulse duration ($\mu$s)")
     ax_d.set_ylabel("photon counts")

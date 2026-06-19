@@ -55,9 +55,11 @@ The duration scan's Ω/2π is consistent with the tabulated `mw_rabi_3p3_2p2_doe
 ground-state transition the `levels` (Breit-Rabi) engine can predict.
 
 **Experiment vs digital twin.** `python -m spike.plot_scans` overlays the
-generalized-Rabi twin prediction on both scans with the quantum-projection-noise
-band — every twin parameter (sample size N, the π-time → Ω, the resonance, the
-pulse duration) read from the ion properties. It auto-discovers each transition
+generalized-Rabi twin prediction on both scans, showing **each experimental run as
+a point** (the per-shot count variation, reconstructed from the per-point
+histograms), the per-point mean, and the quantum-projection-noise band — every twin
+parameter (sample size N, the π-time → Ω, the resonance, the pulse duration) read
+from the ion properties. It auto-discovers each transition
 (parsed from the scan parameter `fr_mw_<tr>` / `t_mw_<tr>`) and writes
 `docs/figures/mw_<tr>_<date>_twin_vs_data.png`. E.g. the well-calibrated stretched
 transition |3,+3⟩↔|2,+2⟩:

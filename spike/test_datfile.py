@@ -37,6 +37,19 @@ def test_histograms_mean_matches_signal():
     assert means[-1] == pytest.approx(5.8, abs=0.1)             # bright
 
 
+def test_point_shots_reconstructs_per_run_counts():
+    d = DatFile(_DUR)
+    pts = d.point_shots()
+    assert len(pts) == 17
+    assert all(len(shots) == 75 for _, shots in pts)            # exp_point shots/point
+    # per-shot means reproduce the signal means; the dark reference is NOT selected
+    by_x = {round(x, 3): sum(s) / len(s) for x, s in pts}
+    xs, ys, _ = d.signal()
+    for x, y in zip(xs, ys):
+        assert by_x[round(x, 3)] == pytest.approx(y, abs=1e-6)
+    assert max(sum(s) / len(s) for _, s in pts) > 4.0           # bright (not the 0.013 reference)
+
+
 def test_timestamp_from_filename():
     assert DatFile(_DUR).timestamp == "2026-06-15 13:28:39"
     assert DatFile(_FREQ).timestamp == "2026-06-15 13:28:34"
