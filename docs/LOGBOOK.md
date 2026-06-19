@@ -7,6 +7,39 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-19 (later 21) — Raw-data engines: rabi + detection (kalis2017 .dat)
+
+UW: "build more engines: Rabi rate, and detection" — consuming the kalis2017 raw
+microwave-Rabi data (|3,+3> <-> |2,+2>).
+
+**`spike/datfile.py`** reads the PAULA DAQ `.dat` files (settings + scan signal +
+per-shot count histograms). **`spike/engines/rabi.py`** fits a damped Rabi flop
+(pure-Python weighted linear LS for c,a,b at each (f,gamma) grid point via
+linalg.solve) — the duration scan gives **Omega/2pi = 53.3 kHz** (t_pi 9.38 us),
+-10% vs mw_rabi_3p3_2p2_doerr (59.45 kHz): the expected MW-power/day dependence of
+the apparatus-limited rate (a MEASUREMENT, not a prediction). **`spike/engines/
+detection.py`** does Poissonian bright/dark discrimination (optimal threshold,
+readout fidelity, Mandel Q). Run via **`spike/analyze_data.py`** (kept OUT of the
+ledger-based runner — these read raw data, not ledger records, and produce
+measurements, not engine-vs-benchmark validations). The freq scan's resonance
+(1775.49 MHz) cross-checks the levels engine's field-sensitive (3,+3)<->(2,+2)
+prediction (1775.60 MHz at the Weber field; ~0.05 G residual).
+
+**Verified by a 4-lens workflow (fit math + Poisson stats CONFIRMED correct):**
+independent period 18.85 us -> 53.05 kHz matches the fit; linalg.solve agrees with
+numpy; threshold/fidelity verified by hand. Fixes applied -- two important: (1) the
+detection fidelity gap (0.992 Poisson vs 0.973 empirical) was mis-attributed to
+"dark-tail events"; it is ONE-SIDED, the BRIGHT histogram's low-count tail =
+bright-state loss/depumping during detection (the dark/reference channel matches
+Poisson); (2) the ~0.013 counter is the REFERENCE/normalisation channel (|up>-ion
+proxy), NOT a measured dark-ion state, and the two counters are written as separate
+BLOCKS, not interleaved -- corrected datfile.py, DATA_FORMAT.md, the report.
+Plus: dof off-by-one (5 params -> chi2_red 2.53, >1 = residual scatter exceeds shot
+noise); structural (variance-based) signal-counter selection; grid-edge flag;
+empty-histogram + NaN/Inf guards. Tests 114 -> 129; substrate green.
+
+---
+
 ## 2026-06-18 (later 20) — Source catalog (docs/SOURCES.md)
 
 UW: carefully catalog all sources in a dedicated md file with metadata, own-words

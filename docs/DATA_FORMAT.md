@@ -23,8 +23,8 @@ not; see ADR-0002).
 #<profiles> … <profile> …                             ← waveform/sequence profiles
 #<shims> … <shim> … <no> …                            ← electrode / BEM shim fields
 #<sourcecode><scrname>…</scrname> … </sourcecode>     ← the control SCRIPT
-<scanned_var>  <signal>  <error>  <timestamp_ms>      ← the scan DATA (tab-separated, not commented)
-… count histograms (state 0 / state 1) …             ← trailing per-shot count tallies
+<scanned_var>  <value>  <error>  <timestamp_ms>       ← scan DATA: signal block, then reference block
+… per-shot count histograms (count  #shots) …         ← one group per (scan point, counter)
 ```
 
 ### Header (all lines start with `#`)
@@ -33,11 +33,13 @@ not; see ADR-0002).
 - **`<profiles>` / `<shims>` / `<sourcecode>`** — the waveform profiles, shim-field (electrode/BEM) settings, and the full control script — i.e. the complete sequence that produced the data.
 
 ### Data block (tab-separated, **not** `#`-commented)
-Columns: `scanned_variable`, `signal`, `error`, `timestamp_ms`. The two counters
-(`<counter>0,1</counter>`) are interleaved as two rows per scan point: one carries
-the ion-fluorescence **signal**, the other a near-zero reference (~0.013). Read
-the signal counter; `error` is its per-point standard error (≈ shot noise over
-`exp_point` shots).
+Columns: `scanned_variable`, `value`, `error`, `timestamp_ms`. The two counters
+(`<counter>0,1</counter>`) are written as **two consecutive blocks** (the scanned
+variable restarts at the boundary), *not* interleaved per point: the ion-fluorescence
+**signal**, and a near-constant **~0.013 reference/normalisation** counter (this is
+*not* the dark-ion state). The reader picks the higher-variance block as the signal;
+`error` is its per-point standard error (≈ shot noise over `exp_point` shots). The
+trailing histogram groups likewise cover both counters (signal *and* reference).
 
 ## Worked examples — microwave Rabi on |F=3,m=+3⟩ ↔ |F=2,m=+2⟩
 

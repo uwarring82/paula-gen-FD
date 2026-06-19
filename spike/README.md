@@ -103,6 +103,29 @@ while the near-resonant BD/BDX/RD/RP *scatter* (cooling engine), which Hasse
 confirms ("RD/RP induce no significant ac Stark shift"). The same validated
 formula feeds the Raman differential shift in `sideband`.
 
+## Engines: `rabi` + `detection` (raw-data ingestion)
+
+These consume **raw `.dat` measurement files** (kalis2017 DAQ format, see
+[`../docs/DATA_FORMAT.md`](../docs/DATA_FORMAT.md)) via [`datfile.py`](datfile.py),
+rather than ledger records — so they live behind [`analyze_data.py`](analyze_data.py)
+(`python -m spike.analyze_data`), not the ledger-based composition root.
+
+- [`engines/rabi.py`](engines/rabi.py) fits a damped Rabi flop
+  y(t)=c+e^(−γt)(a·cos2πft+b·sin2πft) by a grid scan with an exact weighted
+  linear least-squares solve for (c,a,b) at each (f,γ) — pure Python, via
+  `linalg.solve`. On the kalis2017 |3,+3⟩↔|2,+2⟩ duration scan → Ω/2π = **53.3 kHz**
+  (t_π = 9.4 µs), ~10% below `mw_rabi_3p3_2p2_doerr` (59.45 kHz) — the expected
+  MW-power/day dependence of the apparatus-limited rate.
+- [`engines/detection.py`](engines/detection.py) does Poissonian bright/dark
+  discrimination: optimal count threshold + readout **fidelity** from the two
+  means, the Mandel Q (super-Poissonian broadening), and the empirical fidelity
+  from the per-shot histograms. kalis2017: F_Poisson = 0.992 vs F_empirical ≈ 0.97,
+  the (one-sided) gap being the bright histogram's low-count tail — bright-state
+  loss/depumping during detection (the reference channel matches Poisson).
+
+The frequency scan's resonance (1775.49 MHz) also cross-checks the `levels` engine's
+field-sensitive (3,+3)↔(2,+2) prediction (1775.60 MHz at the Weber field).
+
 ## Engine: `cooling` (Doppler scattering)
 
 [`engines/cooling.py`](engines/cooling.py) is clean textbook two-level physics
@@ -132,7 +155,11 @@ spike/
     projection.py   Raman combination -> motional mode (Delta_k . mode axis)
     sideband.py     absolute Lamb-Dicke + sideband Rabi + Raman differential AC-Stark
     acstark.py      far-detuned single-beam light shift (BDD vs Hasse)
+    rabi.py         damped Rabi-flop fit -> Omega (raw .dat duration scans)
+    detection.py    Poissonian bright/dark discrimination: threshold + fidelity
+  datfile.py        reader for the PAULA DAQ .dat files (kalis2017 format)
   runner.py         composition root: registry, ValidationResult, table, diagnostics
+  analyze_data.py   raw-data analysis (rabi + detection on the .dat examples)
   validate_twin.py  CLI shim -> runner.main
   test_levels.py    levels physics + Weber/Doerr benchmarks + hyperfine spectrum
   test_modes.py     axial+radial eigenvalues + benchmarks + linalg robustness
@@ -141,6 +168,9 @@ spike/
   test_projection.py  mode-axis geometry + addressed-modes vs Doerr + from_ledger
   test_sideband.py  absolute eta scaling + anchor + sideband Rabi + Raman stark
   test_acstark.py   light-shift formula + BDD vs Hasse + far-detuned predicate
+  test_datfile.py   .dat parsing: scan def, signal vs reference, histograms
+  test_rabi.py      damped-cosine fit recovery + kalis duration scan
+  test_detection.py Poisson stats + threshold/fidelity + kalis histograms
   test_runner.py    runner: result math, tension detection, wall refusal, coverage
 ```
 
