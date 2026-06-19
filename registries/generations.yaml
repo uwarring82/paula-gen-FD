@@ -37,9 +37,9 @@ hasse:
 
 freddy:
   description: >-
-    Current in-lab generation ("Freddy"; named for Frederike Dörr, whose MSc
-    thesis doerr2024 documents it). The live apparatus against which present-day
-    benchmarks are measured.
+    Current in-lab generation ("Freddy"; Frederike Dörr's ongoing PhD on the live
+    apparatus, first documented in her MSc thesis doerr2024). The live apparatus
+    against which present-day benchmarks are measured.
   supersedes: hasse
   period: "2025-"
   changes: []   # to be filled as the current generation evolves
