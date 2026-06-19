@@ -6,6 +6,8 @@ Run:  pytest spike/
 import pytest
 
 from spike.datfile import DatFile
+import math
+
 from spike.engines.detection import (
     detection_fidelity,
     empirical_fidelity,
@@ -14,6 +16,7 @@ from spike.engines.detection import (
     optimal_threshold,
     poisson_cdf,
     poisson_pmf,
+    qpn,
 )
 
 _DUR = "sources/data/microwave/13_28_39_15_06_2026.dat"
@@ -53,6 +56,13 @@ def test_empirical_fidelity_from_histograms():
 
 def test_expected_bright_counts():
     assert expected_bright_counts(2.0e7, 1.0e-3, 3.0e-4) == pytest.approx(6.0)
+
+
+def test_qpn_binomial_standard_error():
+    assert qpn(0.5, 100) == pytest.approx((0.25 / 100) ** 0.5)   # 0.05, the worst case
+    assert qpn(0.5, 75) == pytest.approx((0.25 / 75) ** 0.5)
+    assert qpn(0.0, 75) == 0.0 and qpn(1.0, 75) == 0.0           # no projection noise at the poles
+    assert math.isnan(qpn(0.5, 0))                                # no shots -> undefined
 
 
 def test_kalis_detection_fidelity_high_and_super_poissonian():

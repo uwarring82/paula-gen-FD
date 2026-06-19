@@ -7,6 +7,28 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-19 (later 22) — Twin-vs-experiment plot with QPN (kalis2017)
+
+UW: plot the freq + duration scans with the digital-twin result, including QPN, all
+relevant parameters read from the data-file ion properties.
+
+`spike/plot_scans.py` (-> docs/figures/kalis_twin_vs_data.png) overlays the
+generalized-Rabi twin P = Omega^2/Omega_eff^2 sin^2(Omega_eff t/2) (new
+`rabi.generalized_rabi`) on both scans, with the quantum-projection-noise band
+(new `detection.qpn` = sqrt(P(1-P)/N)). EVERY twin parameter is read from the
+`<ionproperties>`: N = exp_point = 75; t_pi = t_mw_3p3_2p2 = 9.30 us ->
+Omega/2pi = 53.76 kHz; resonance fr_mw_3p3_2p2 = 1775.470 MHz; freq-scan pulse =
+9.30 us. Counts -> P(|up>) via the bright/dark asymptotes from the duration fit.
+
+Result: the twin tracks the experiment within QPN on BOTH scans -- the freq-scan
+sinc lineshape (central lobe + null + sidelobe) and the duration sin^2 flop. The
+data resonance sits ~17 kHz above the operating setting, and the levels-engine
+prediction (1775.599 MHz, Weber B) is +129 kHz (the field cross-check, annotated).
+A small duration-scan phase drift by ~30 us reflects configured 53.76 vs fitted
+53.3 kHz. Tests 129 -> 132; substrate green.
+
+---
+
 ## 2026-06-19 (later 21) — Raw-data engines: rabi + detection (kalis2017 .dat)
 
 UW: "build more engines: Rabi rate, and detection" — consuming the kalis2017 raw

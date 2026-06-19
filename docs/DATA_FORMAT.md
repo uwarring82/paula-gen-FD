@@ -54,6 +54,12 @@ The duration scan's Ω/2π is consistent with the tabulated `mw_rabi_3p3_2p2_doe
 = 59.45 kHz (drive diagnostic); the frequency-scan resonance is a *field-sensitive*
 ground-state transition the `levels` (Breit-Rabi) engine can predict.
 
+**Experiment vs digital twin.** `python -m spike.plot_scans` overlays the
+generalized-Rabi twin prediction on both scans with the quantum-projection-noise
+band — every twin parameter (sample size N, the π-time → Ω, the resonance, the
+pulse duration) read from the ion properties:
+![twin vs data](figures/kalis_twin_vs_data.png)
+
 > The numbers above are quick min/period reads, **not** fits — a Lorentzian (for
 > the resonance) and a damped cosine (for the Rabi flop) are needed before any
 > value is recorded as a benchmark with an uncertainty.

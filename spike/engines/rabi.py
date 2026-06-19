@@ -84,6 +84,20 @@ def fit_rabi(t, y, sigma=None, f_lo_khz=20.0, f_hi_khz=100.0):
     }
 
 
+def generalized_rabi(t_s: float, detuning_hz: float, rabi_hz: float) -> float:
+    """Spin-flip probability after a square pulse of duration t_s for a drive of
+    Rabi frequency rabi_hz detuned by detuning_hz (the twin's forward prediction):
+
+        P = (Omega^2 / Omega_eff^2) sin^2(Omega_eff t / 2),  Omega_eff = sqrt(Omega^2 + delta^2).
+
+    Inputs in ordinary Hz: the 2pi cancels in the prefactor and the sin argument is
+    pi * Omega_eff_hz * t (= (2pi Omega_eff) t / 2)."""
+    eff = math.hypot(rabi_hz, detuning_hz)
+    if eff == 0.0:
+        return 0.0
+    return (rabi_hz * rabi_hz) / (eff * eff) * math.sin(math.pi * eff * t_s) ** 2
+
+
 def rabi_from_pi_time(t_pi_s: float) -> float:
     """Rabi frequency Omega/(2pi) [Hz] from a pi-time [s]: 1/(2 t_pi)."""
     return 1.0 / (2.0 * t_pi_s)

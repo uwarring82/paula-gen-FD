@@ -81,6 +81,15 @@ def empirical_fidelity(bright_hist: dict, dark_hist: dict, threshold: int) -> fl
     return 1.0 - 0.5 * (e_bright + e_dark)
 
 
+def qpn(p: float, n: int) -> float:
+    """Quantum projection noise: the binomial standard error sqrt(p(1-p)/n) on a
+    spin-flip probability p estimated from n projective shots — the fundamental
+    measurement uncertainty for sample size n."""
+    if n <= 0 or p < 0.0 or p > 1.0:
+        return float("nan")
+    return (p * (1.0 - p) / n) ** 0.5
+
+
 def expected_bright_counts(scatter_rate_hz: float, collection_eff: float, t_det_s: float) -> float:
     """Mean detected counts of the bright state: R_scatter * eta_collection * t_det.
     collection_eff folds solid angle, optics transmission and detector QE (apparatus)."""
