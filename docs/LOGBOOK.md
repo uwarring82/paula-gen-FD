@@ -7,6 +7,36 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-19 (later 24) — MW workflow generalized to any transition (MW_Control)
+
+UW: apply the MW twin-vs-data workflow to sources/data/MW_Control; a "next
+transition" is now calibrated. Also: keep PHOTON COUNTS on the y-axis (no
+normalisation).
+
+Generalised `spike/plot_scans.py` to ANY |F,mF> <-> |F',mF'> transition: it parses
+the transition from the scan parameter (fr_mw_<tr> / t_mw_<tr>, dropping variant
+tags like _s), maps it to the levels-engine key + the t_mw_<tr>/fr_mw_<tr> ion
+properties, auto-discovers + pairs freq/duration scans per transition (same
+session), and writes docs/figures/mw_<tr>_<date>_twin_vs_data.png. Made `fit_rabi`
+auto-derive its frequency grid from the time span (so a 7 kHz flop and a 54 kHz
+flop both fit). Switched the y-axis to RAW photon counts (per UW): the twin curve
+and QPN band are mapped into count space via the per-scan bright/dark levels
+(used only to place the twin, not to rescale the data).
+
+MW_Control (2026-06-12) has two transitions: the stretched |3,+3>-|2,+2> (t_pi 9 us,
+~54 kHz) and the **newly-calibrated |3,+1>-|2,+2>** (~7x weaker, t_pi 70 us,
+7.1 kHz). The well-calibrated 3p3 matches the twin tightly within QPN; the 3p1 twin
+EXPOSES two real calibration issues: the actual t_pi (~66 us from the dip spacing)
+is ~6% below the configured 70 us, and the t=0 prep sits ~1 count below the full-
+bright 2pi revival (an early-time contrast transient). The levels-engine f0 offsets
+(3p3 ~ -100/-120 kHz, 3p1 -61 kHz at the Weber field) differ per transition by their
+field-sensitivity -> a 2-transition joint field determination is now possible.
+
+Committed the MW_Control .dat data (group's own; format per kalis2017). Tests
+133 -> 139; substrate green.
+
+---
+
 ## 2026-06-19 (later 23) — Provenance correction: data origin vs .dat format
 
 UW: label the data with the date/time from the .dat filenames; Kalis only described

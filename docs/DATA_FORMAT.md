@@ -57,8 +57,14 @@ ground-state transition the `levels` (Breit-Rabi) engine can predict.
 **Experiment vs digital twin.** `python -m spike.plot_scans` overlays the
 generalized-Rabi twin prediction on both scans with the quantum-projection-noise
 band — every twin parameter (sample size N, the π-time → Ω, the resonance, the
-pulse duration) read from the ion properties:
-![twin vs data](figures/mw_3p3_2p2_twin_vs_data.png)
+pulse duration) read from the ion properties. It auto-discovers each transition
+(parsed from the scan parameter `fr_mw_<tr>` / `t_mw_<tr>`) and writes
+`docs/figures/mw_<tr>_<date>_twin_vs_data.png`. E.g. the well-calibrated stretched
+transition |3,+3⟩↔|2,+2⟩:
+![twin vs data](figures/mw_3p3_2p2_2026-06-15_twin_vs_data.png)
+and the newly-calibrated, ~7× weaker |3,+1⟩↔|2,+2⟩ (π-time ~70 µs), where the twin
+exposes a ~6 % π-time miscalibration and an early-time contrast transient:
+![3p1 twin vs data](figures/mw_3p1_2p2_2026-06-12_twin_vs_data.png)
 
 > The numbers above are quick min/period reads, **not** fits — a Lorentzian (for
 > the resonance) and a damped cosine (for the Rabi flop) are needed before any

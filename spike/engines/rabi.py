@@ -47,30 +47,46 @@ def _ls_solve(t, y, sigma, f, gamma):
     return c, a, b, chi2
 
 
-def fit_rabi(t, y, sigma=None, f_lo_khz=20.0, f_hi_khz=100.0):
-    """Fit a damped Rabi flop. t in microseconds. Returns a dict with the Rabi
-    frequency (Hz), angular Omega (rad/s), decay rate (1/s), pi-time (us),
-    amplitude/offset, and the reduced chi-square."""
+def fit_rabi(t, y, sigma=None, f_lo_khz=None, f_hi_khz=None):
+    """Fit a damped Rabi flop. t in microseconds. When the frequency bounds are not
+    given they are auto-derived from the time span (so a slow 7 kHz flop and a fast
+    60 kHz flop both work): f_lo ~ 0.4/T_max, f_hi ~ 0.95*Nyquist (capped). Returns a
+    dict with the Rabi frequency (Hz), Omega (rad/s), decay rate (1/s), pi-time (us),
+    amplitude/offset, the reduced chi-square, and a grid-edge flag."""
     if sigma is None:
         sigma = [1.0] * len(t)
+    tmax = max(t) if t else 1.0
+    dt = tmax / (len(t) - 1) if len(t) > 1 and tmax > 0 else (tmax or 1.0)
+    if f_lo_khz is None:
+        f_lo_khz = max(0.5, 0.4 * 1000.0 / tmax)               # >= a few-tenths of a period over T_max
+    if f_hi_khz is None:
+        f_hi_khz = min(0.95 * 1000.0 / (2.0 * dt), 150.0)      # <= ~Nyquist, capped for MW rates
+        if f_hi_khz <= f_lo_khz * 1.5:
+            f_hi_khz = f_lo_khz * 6.0
+    f_lo, f_hi = f_lo_khz * 1e-3, f_hi_khz * 1e-3              # MHz
+    nf = 240
+    df = (f_hi - f_lo) / nf
+    g_grid = [0.005 * k for k in range(21)]                    # 0 .. 0.1 /us
     best = None
-    f_grid = [(f_lo_khz + k * 0.5) * 1e-3 for k in range(int((f_hi_khz - f_lo_khz) / 0.5) + 1)]
-    g_grid = [0.005 * k for k in range(21)]          # 0 .. 0.1 /us
-    for f in f_grid:
+    for k in range(nf + 1):
+        f = f_lo + df * k
         for g in g_grid:
             c, a, b, chi2 = _ls_solve(t, y, sigma, f, g)
             if best is None or chi2 < best[0]:
                 best = (chi2, f, g, c, a, b)
-    # local refinement
+    # local refinement (1/5 of a grid cell in f; 0.001/us in gamma)
     _, f0, g0, *_ = best
-    for f in [f0 + 0.0001 * k for k in range(-6, 7)]:
-        for g in [max(0.0, g0 + 0.001 * k) for k in range(-6, 7)]:
+    for kf in range(-6, 7):
+        f = f0 + df * kf / 5.0
+        if f <= 0:
+            continue
+        for g in [max(0.0, g0 + 0.001 * kg) for kg in range(-6, 7)]:
             c, a, b, chi2 = _ls_solve(t, y, sigma, f, g)
             if chi2 < best[0]:
                 best = (chi2, f, g, c, a, b)
     chi2, f, g, c, a, b = best
     dof = max(1, len(t) - 5)            # 5 free params: c, a, b, f, gamma
-    edge = f <= (f_lo_khz + 0.25) * 1e-3 or f >= (f_hi_khz - 0.25) * 1e-3
+    edge = f <= f_lo + df or f >= f_hi - df
     return {
         "freq_hz": f * 1e6,
         "omega": 2.0 * math.pi * f * 1e6,
