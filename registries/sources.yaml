@@ -101,6 +101,26 @@ enderlein2013:
   verified: true
   note: "Year is 2013 (not 2012); FreiDok record 8886. No DOI minted -> URN is the persistent id. (Record 9632 is a DIFFERENT thesis — do not confuse.)"
 
+kalis2017:
+  title: "Initialization of quantum states in a two-dimensional ion-trap array"
+  author: "Henning Kalis"
+  year: 2017
+  degree: phd
+  institution: "Albert-Ludwigs-Universität Freiburg"
+  archived: false
+  verified: false
+  note: >-
+    PhD (Dissertation, submitted 03.02.2017; 1. Gutachter T. Schätz; born in
+    Dortmund). Title/author/year/degree CONFIRMED from the local PDF title page
+    (kalis2017.pdf). Documents the apparatus DATA-ACQUISITION (DAQ) system and the
+    `.dat` data-file structure (XML metadata header carrying parameter settings,
+    waveform profiles, shim fields, and the control script, followed by the scan
+    data) — see docs/DATA_FORMAT.md. A public FreiDok copy was NOT resolved this
+    session (the thesis is likely archived there as a Freiburg PhD — confirm and
+    add the permalink/DOI). Related: the Freiburg 2D-array work, e.g. "Arrays of
+    individually controlled ions suitable for two-dimensional quantum simulations"
+    (Nat. Commun., 2016).
+
 hasse2025:
   title: "Observation of dynamic processes demonstrated in a trapped-ion quantum simulator"
   author: "Florian Haße"

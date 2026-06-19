@@ -66,6 +66,7 @@ constant A (itano_wineland_1981), the laser table (clos2017), the Raman geometry
 | **codata2018** | Tiesinga et al. | 2021 | dataset | ⚠️ unverified | 1 |
 | **stone2005** | N. J. Stone | 2005 | review | ⚠️ unverified | 1 |
 | enderlein2013 | M. Enderlein | 2013 | PhD | ✅ | 0 |
+| kalis2017 | H. Kalis | 2017 | PhD | ⚠️ local | 0 |
 | clos2016 | Clos et al. | 2016 | article | ✅ | 0 |
 | palani2023 | Palani et al. | 2023 | article | ✅ | 0 |
 | friedenauer2006 | Friedenauer et al. | 2006 | article | ✅ | 0 |
@@ -247,6 +248,7 @@ no public copy.
 | key | citation | role |
 |-----|----------|------|
 | **enderlein2013** | PhD, Freiburg, FreiDok 8886 (URN) | Optical ion trapping; lineage apparatus thesis |
+| **kalis2017** | PhD, Freiburg, 2017 — ⚠️ local PDF | **DAQ system + `.dat` data-file format** (see [DATA_FORMAT.md](DATA_FORMAT.md)); will source raw-data benchmarks |
 | **clos2016** | PRL **117**, 170401 (2016) | Thermalization in an isolated quantum system (clos2017 paper) |
 | **clos2016_suppmat** | Suppl. to PRL 117, 170401 | Supplemental methods/parameters |
 | **clos2014** | PRL **112**, 113003 (2014) | Decoherence-assisted spectroscopy of a single Mg⁺ ion |
