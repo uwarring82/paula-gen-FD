@@ -79,6 +79,10 @@ rate. Those engines are capability/diagnostic by necessity, not choice.
    (COLD)** from the RSB/BSB ratio — far below the carrier's apparent 1.06. So the ion
    is cold and the carrier loss is **~64% Raman-beam dephasing** (Δν ≈ 21 kHz, T_φ ≈
    15 µs) + ~36% motional. The apparent "hot ion" was Raman dephasing posing as motion.
+   That dephasing ⇔ a **differential beam-path instability of ~λ/2π ≈ 45 nm** (path
+   stable to ≪ λ on the µs timescale, ~6 mm/s jitter; `raman_dephasing.path_*`) — a
+   STATIC imbalance is excluded, so it points to dynamic (acoustic/vibration) path
+   jitter and/or RF-phase / pointing noise.
    Remaining: n̄ = 0.27 still exceeds the RSB-cooled benchmark 0.07 (this run/sequence
    adds motion); and the Raman mutual linewidth has no direct measurement yet.
 3. **Radial mode nominals need refining.** Tickle measures 3.22/4.71 MHz vs ledger

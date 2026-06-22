@@ -75,3 +75,19 @@ def test_residual_readout_scale():
     g_resid = 8.8e4
     assert mutual_linewidth_from_rate(g_resid) == pytest.approx(2.8e4, rel=0.1)
     assert coherence_time_from_rate(g_resid) * 1e6 == pytest.approx(11.4, rel=0.1)
+
+
+def test_path_variation_for_phase():
+    from spike.engines.raman_dephasing import path_variation_for_phase
+    lam = 279.6e-9
+    assert path_variation_for_phase(2 * math.pi, lam) == pytest.approx(lam)        # full 2pi = lambda
+    assert path_variation_for_phase(1.0, lam) * 1e9 == pytest.approx(44.5, rel=1e-2)  # 1 rad ~ 45 nm
+    assert path_variation_for_phase(0.0, lam) == 0.0
+
+
+def test_path_jitter_velocity():
+    from spike.engines.raman_dephasing import path_jitter_velocity
+    lam = 279.6e-9
+    # v = lambda * df ; a 21 kHz mutual linewidth -> ~5.9 mm/s
+    assert path_jitter_velocity(21e3, lam) * 1e3 == pytest.approx(5.87, rel=1e-2)
+    assert path_jitter_velocity(2 * 21e3, lam) == pytest.approx(2 * path_jitter_velocity(21e3, lam))

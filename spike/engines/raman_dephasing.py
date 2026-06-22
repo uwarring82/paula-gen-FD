@@ -105,3 +105,28 @@ def static_contrast(phase_variance: float) -> float:
     """Constant contrast factor exp(-<dphi^2>/2) from a static (per-shot) relative-
     phase jitter of variance `phase_variance`."""
     return math.exp(-0.5 * phase_variance)
+
+
+# --- map the dephasing to a beam-path-length variation ---------------------
+# The two-photon (carrier) phase = phi_B - phi_R tracks the relative OPTICAL phase of
+# the two beams, so a DIFFERENTIAL path-length change dL between the two arms shifts it
+# by dphi = (2 pi / lambda) dL  (the FULL optical k, lambda ~ 280 nm; a COMMON-mode
+# path change before the beam split cancels in phi_B - phi_R and would couple only
+# through the much smaller Delta_k). NOTE: a STATIC dL does NOT dephase a Rabi flop
+# (the drive phase only sets the rotation axis; P_flip is phase-independent). What
+# decoheres the flop is dL CHANGING during the pulse -> a relative-frequency (two-
+# photon detuning) offset df. So these convert the dephasing's frequency/phase budget
+# into the length/velocity scale of the DYNAMIC path jitter that would cause it.
+
+def path_variation_for_phase(phase_rad: float, wavelength_m: float) -> float:
+    """Differential beam-path-length change dL = (lambda/2pi) * phase imprinting a
+    relative-phase slip `phase_rad`. lambda/2pi (~45 nm at 280 nm) is one radian."""
+    return wavelength_m * phase_rad / (2.0 * math.pi)
+
+
+def path_jitter_velocity(freq_hz: float, wavelength_m: float) -> float:
+    """Relative path-length drift speed v = lambda * df that produces a two-photon
+    frequency offset df (a moving path Doppler-shifts the beat note) [m/s]. The mutual
+    linewidth / relative-frequency noise df maps to this path-jitter speed; the path
+    must be stable to << lambda over the coherence time 1/df."""
+    return wavelength_m * abs(freq_hz)

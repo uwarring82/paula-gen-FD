@@ -103,14 +103,22 @@ def analyze(path=_DATAFILE, n_boot=400, seed=0):
     g_motional = max(0.0, g_floor - tw.gamma_sc_contrast)
     g_raman = max(0.0, g_obs - g_floor)
 
+    # what relative beam-path variation does that Raman dephasing correspond to?
+    dnu = raman_dephasing.mutual_linewidth_from_rate(g_raman)
+    tphi = raman_dephasing.coherence_time_from_rate(g_raman)
+    lam = Ledger.load().value("bd_laser_wavelength")        # ~279.6 nm (Raman optical)
+    dL_1rad_nm = raman_dephasing.path_variation_for_phase(1.0, lam) * 1e9      # lambda/2pi
+    v_jitter_mms = raman_dephasing.path_jitter_velocity(dnu, lam) * 1e3        # mm/s
+    dL_tphi_nm = raman_dephasing.path_jitter_velocity(dnu, lam) * tphi * 1e9   # path drift over T_phi
+
     return {
         "dat": dat, "xb": xb, "yb": yb, "sb": sb, "xr": xr, "yr": yr, "sr": sr,
         "mu_b": mu_b, "mu_d": mu_d, "a_bsb": a_bsb, "a_rsb": a_rsb, "ratio": ratio,
         "nbar": nbar, "nbar_err": nbar_err, "n_boot": n_boot,
         "g_obs": g_obs, "g_sc": tw.gamma_sc_contrast, "g_motional": g_motional,
-        "g_floor": g_floor, "g_raman": g_raman,
-        "dnu": raman_dephasing.mutual_linewidth_from_rate(g_raman),
-        "tphi_us": raman_dephasing.coherence_time_from_rate(g_raman) * 1e6,
+        "g_floor": g_floor, "g_raman": g_raman, "dnu": dnu, "tphi_us": tphi * 1e6,
+        "lam_nm": lam * 1e9, "dL_1rad_nm": dL_1rad_nm, "v_jitter_mms": v_jitter_mms,
+        "dL_tphi_nm": dL_tphi_nm,
         "nbar_eff_carrier": ci["nbar_eff"], "tspan_us": xb[-1] if xb else 0.0,
     }
 
@@ -144,6 +152,15 @@ def report(info) -> str:
         "  => motion and Raman dephasing contribute comparably.",
         "     The apparent 'nbar ~ 1' from the carrier alone was Raman dephasing posing as",
         "     a hot ion; the sidebands show the motion is cold (nbar ~ %.2f)." % info["nbar"],
+        "",
+        "BEAM-PATH EQUIVALENT (dphi = 2pi dL/lambda, lambda = %.0f nm): that Raman dephasing" % info["lam_nm"],
+        "  corresponds to a DIFFERENTIAL path-length instability of ~lambda/2pi = %.0f nm" % info["dL_1rad_nm"],
+        "  (~%.0f nm drift over T_phi = %.0f us), i.e. a path-jitter speed ~%.1f mm/s." % (
+            info["dL_tphi_nm"], info["tphi_us"], info["v_jitter_mms"]),
+        "  The two Raman arms must be path-stable to << lambda (tens of nm) on the ~us-10us",
+        "  flop timescale. A STATIC imbalance is excluded (it would need ~tens-hundreds of",
+        "  metres to dephase via any plausible laser linewidth) -> DYNAMIC jitter (acoustic/",
+        "  vibration ~tens of kHz) and/or RF-phase / beam-pointing noise.",
     ]
     return "\n".join(L)
 
