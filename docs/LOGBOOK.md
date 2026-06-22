@@ -13,6 +13,36 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-22 (later 3) — Fit uncertainties (bootstrap) → a real error bar on n̄_eff
+
+UW: work on fit uncertainties (the top deferred item from the code review).
+
+The grid-search fitters returned point estimates + chi2_red only, so the twin's
+headline n̄_eff ≈ 1 was order-of-magnitude. Added `spike/bootstrap.py` (pure Python,
+seeded): robust summary (median + 16-84 percentile half-width, heavy-tail-aware) and
+two resamplers re-running the SAME fit — `gaussian_bootstrap` (perturb each y by its
+sigma; for (x,y,sigma) data) and `shot_bootstrap` (resample the per-shot counts at
+each point, recompute mean+SEM; for the raw .dat histograms, capturing the true
+low-count Poisson sampling). No analytic covariance, so it propagates cleanly through
+the non-linear grid fits AND the downstream n̄_eff inversion.
+
+- `fit_rabi` / `fit_tickle` gained opt-in `n_boot` -> add `<key>_err` (freq/decay/
+  t_pi/amplitude; f0 for tickle). DEFAULT off, so the fast path (and the n̄ inversion
+  grid, which calls fit_rabi many times) is unchanged.
+- `twin_oc_flop.build(n_boot=300)` shot-bootstraps the whole pipeline: resample ->
+  re-fit (Omega, decay) -> re-invert n̄_eff per replica. Report now shows
+  **Omega/2pi = 207.9 ± 4.7 kHz**, observed decay = 1.01e5 ± 2.0e4 /s, and
+  **n̄_eff = 1.06 ± 0.27**. The cooled benchmark n̄=0.07 is ~3.7σ below n̄_eff -> "not
+  0.07" is now QUANTITATIVE, not just order-of-magnitude.
+
+Validated: the bootstrap brackets injected values and the error bar GROWS with the
+noise (a property test). Machinery tests use a cheap weighted-mean fit (the two
+integration tests cover the real fit_rabi/fit_tickle grids), keeping the suite ~25 s.
+State of the Twin updated (fit-uncertainty moved out of open follow-ups). Tests
+226 -> 235; validator green.
+
+---
+
 ## 2026-06-22 (later 2) — Polarization+power-resolved Raman optics (fine-structure basis)
 
 UW: carefully distinguish the polarization and power of the individual Raman beams —

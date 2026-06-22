@@ -71,16 +71,14 @@ rate. Those engines are capability/diagnostic by necessity, not choice.
    move δ_AC a lot. **Needs UW: the actual Stokes vectors along B.**
 2. **OC flop decay is unexplained at the cooled n̄.** Scattering (~4%) + carrier
    Debye-Waller at n̄=0.07 (~9%) explain only ~13% of the observed ~60% contrast loss;
-   the n̄_eff inversion gives n̄_eff ≈ 1 (≈15× the cooled benchmark) → cooling
-   underperformance/heating this run and/or technical (intensity/B-field) dephasing.
-   Not closed; flagged, not fabricated.
+   the n̄_eff inversion gives **n̄_eff = 1.06 ± 0.27** (300-replica shot bootstrap),
+   ≈15× the cooled benchmark and ~3.7σ above it → cooling underperformance/heating
+   this run and/or technical (intensity/B-field) dephasing. Not closed; flagged, not
+   fabricated. The error bar now makes "not 0.07" quantitative.
 3. **Radial mode nominals need refining.** Tickle measures 3.22/4.71 MHz vs ledger
    3.0/4.5 (+7.5%/+4.7%); also differs from Thomm 2.7/4.4 (three epochs). Not recorded.
 4. **Excited-state hyperfine treated as degenerate** in `raman_optical` (~1–2%
    detuning spread at 20 GHz; configurable hook off by default).
-5. **Fits report no uncertainties.** `rabi.fit_rabi` / `tickle.fit_tickle` are
-   grid searches returning point estimates (χ²_red only); the n̄_eff ≈ 1 result is
-   therefore order-of-magnitude. A covariance/bootstrap wrapper is a follow-up.
 
 ## 4. Source-traceability warnings (validator, non-fatal)
 
@@ -92,10 +90,15 @@ confirmed.
 
 ## 5. Known code-entropy follow-ups (from the 2026-06-22 review)
 
-Tracked, not yet done (deferred as spike-stage gold-plating until graduation):
-shared square-pulse propagator (duplicated damped-flop math across rabi/scatter/
-sideband/spin); a shared `angular` module (CG in drive, +6j in raman_optical);
-fit-parameter uncertainties; centralizing fit-heuristic constants. The angular and
-linalg numerics are hand-rolled but **validated** (CG/6j vs known values + basis
-independence to 1e-12; eigensolver vs numpy to 1e-14) and operate only on small
-quantum numbers / N — not a near-term risk.
+DONE since the review: **fit-parameter uncertainties** — `spike/bootstrap.py`
+(parametric + shot resamplers); `fit_rabi`/`fit_tickle` take `n_boot` and emit
+`<key>_err`; the twin propagates a 300-replica shot bootstrap to **n̄_eff = 1.06 ±
+0.27**. Also: explicit wall in the diagnostics; sympy cross-checks for the
+angular-momentum code (which caught a latent 6j integer-perimeter bug).
+
+Still tracked, deferred as spike-stage gold-plating until graduation: a shared
+square-pulse propagator (duplicated damped-flop math across rabi/scatter/sideband/
+spin); a shared `angular` module (CG in drive, +6j in raman_optical); centralizing
+fit-heuristic constants. The angular and linalg numerics are hand-rolled but
+**validated** (CG/6j vs sympy + basis independence to 1e-12; eigensolver vs numpy to
+1e-14) and operate only on small quantum numbers / N — not a near-term risk.

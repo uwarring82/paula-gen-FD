@@ -176,10 +176,15 @@ def _poisson(mu: float, rng: random.Random) -> int:
 
 
 # --- build from data + ledger ----------------------------------------------
-def build(path=_DATAFILE):
+def build(path=_DATAFILE, n_boot=0, seed=0):
     """Fit the measured flop, read the four loss channels from the ledger, and
     decompose the observed decay: the ledger floor (scattering + thermal at the
-    RSB-cooled nbar) vs the effective-nbar inversion. Returns (twin, fit, info)."""
+    RSB-cooled nbar) vs the effective-nbar inversion. Returns (twin, fit, info).
+
+    With n_boot > 0, a non-parametric shot bootstrap (resample the per-shot counts at
+    each scan point, re-fit, re-invert nbar_eff) adds robust 1-sigma uncertainties
+    `rabi_hz_err`, `g_obs_err`, `nbar_eff_err` to info -- a real error bar on nbar_eff,
+    not just a chi-square."""
     dat = DatFile(path)
     t, y, s = dat.signal()
     fit = fit_rabi(t, y, s, f_lo_khz=_F_LO_KHZ, f_hi_khz=_F_HI_KHZ)
@@ -203,17 +208,23 @@ def build(path=_DATAFILE):
     powers = {"b1": dat.settings.get("pwr_b1", 1.0), "r2": dat.settings.get("pwr_r2", 1.0)}
     bB, bR = beams_from_ledger(ledger, "OC", powers=powers)
     beams = [bB, bR]
-    delta_ac = optics.differential_stark_per_rabi(beams, bB, bR) * rabi
-    gamma_sc = optics.scatter_per_rabi(beams, bB, bR, state=(3.0, 3.0)) * 2.0 * math.pi * rabi
+    stark_ratio = optics.differential_stark_per_rabi(beams, bB, bR)        # delta_AC = ratio*rabi
+    scatter_ratio = optics.scatter_per_rabi(beams, bB, bR, state=(3.0, 3.0))  # Gamma_sc = ratio*2pi*rabi
+    delta_ac = stark_ratio * rabi
+    gamma_sc = scatter_ratio * 2.0 * math.pi * rabi
     # leading-order (scalar) values, for the old-vs-new comparison in the report
     delta_ac_scalar = scatter.stark_detuning(rabi)
     gamma_sc_scalar = scatter.scatter_rate(rabi)
 
-    twin = OCFlopTwin(rabi_hz=rabi, scatter=scatter, sideband=sideband,
-                      omega_lf_hz=omega_lf, nbar=nbar_rsb,
-                      mu_bright=mu_bright, mu_dark=mu_dark, n_shots=dat.scan["shots"],
-                      gamma_sc_hz=gamma_sc, delta_ac_hz=delta_ac)
+    def _make_twin(rabi_hz):
+        """A twin at a given Rabi, with the (rabi-scaled) resolved loss channels."""
+        return OCFlopTwin(rabi_hz=rabi_hz, scatter=scatter, sideband=sideband,
+                          omega_lf_hz=omega_lf, nbar=nbar_rsb, mu_bright=mu_bright,
+                          mu_dark=mu_dark, n_shots=dat.scan["shots"],
+                          gamma_sc_hz=scatter_ratio * 2.0 * math.pi * rabi_hz,
+                          delta_ac_hz=stark_ratio * rabi_hz)
 
+    twin = _make_twin(rabi)
     g_floor = twin.effective_decay(nbar_rsb)                      # scatter + thermal@nbar_rsb
     g_thermal = max(0.0, g_floor - twin.gamma_sc_contrast)        # thermal-only contribution
     nbar_eff, saturated = twin.invert_nbar(g_obs)
@@ -232,6 +243,23 @@ def build(path=_DATAFILE):
         "pwr_b1": powers["b1"], "pwr_r2": powers["r2"],
         "circ_b1": optics.circular_fraction(bB), "circ_r2": optics.circular_fraction(bR),
     }
+
+    if n_boot > 0:
+        from .bootstrap import shot_bootstrap, summarize
+
+        def _replica(xs, yb, sb):
+            f = fit_rabi(xs, yb, sb, f_lo_khz=_F_LO_KHZ, f_hi_khz=_F_HI_KHZ)
+            tw = _make_twin(f["freq_hz"])
+            nb, _sat = tw.invert_nbar(f["decay_per_s"])
+            return {"rabi_hz": f["freq_hz"], "g_obs": f["decay_per_s"], "nbar_eff": nb}
+
+        runs = shot_bootstrap(_replica, dat.point_shots(), n_boot=n_boot, seed=seed)
+        summ = summarize(runs, ("rabi_hz", "g_obs", "nbar_eff"))
+        info["rabi_hz_err"] = summ["rabi_hz"]["sigma"]
+        info["g_obs_err"] = summ["g_obs"]["sigma"]
+        info["nbar_eff_err"] = summ["nbar_eff"]["sigma"]
+        info["n_boot"] = summ["nbar_eff"]["n"]
+
     return twin, fit, info
 
 
@@ -243,15 +271,23 @@ def _loss(rate, tspan_us):
 def report(info) -> str:
     tspan = info["tspan_us"]
     frac = lambda g: 100.0 * g / info["g_obs"] if info["g_obs"] else 0.0
-    nbar_eff = (">= %.1f" % info["nbar_eff"]) if info["nbar_saturated"] else ("%.2f" % info["nbar_eff"])
+
+    def pm(key, scale=1.0, fmt="%.1f"):
+        """' ± <err>' for a bootstrapped quantity, '' if no bootstrap was run."""
+        e = info.get(key)
+        return "" if e is None else " ± " + (fmt % (e / scale))
+
+    boot = (" (%d-replica shot bootstrap)" % info["n_boot"]) if info.get("n_boot") else ""
+    nbar_eff = ((">= %.1f" % info["nbar_eff"]) if info["nbar_saturated"]
+                else ("%.2f%s" % (info["nbar_eff"], pm("nbar_eff_err", 1.0, "%.2f"))))
     L = [
         "OC AXIAL CARRIER FLOP — digital twin (TPSR, Delta_k || z; %s)" % (info["dat"].timestamp or ""),
-        "  data: %s  (t_oc 0..%.2f us, %d pts x %d shots)" % (
-            _DATAFILE.name, tspan, info["dat"].scan["points"], info["dat"].scan["shots"]),
+        "  data: %s  (t_oc 0..%.2f us, %d pts x %d shots)%s" % (
+            _DATAFILE.name, tspan, info["dat"].scan["points"], info["dat"].scan["shots"], boot),
         "",
         "COHERENT (from the measured flop):",
-        "  Omega/2pi = %.1f kHz   t_pi = %.2f us   (fit chi2_red = %.1f)" % (
-            info["rabi_hz"] / 1e3, info["t_pi_us"], info["chi2r"]),
+        "  Omega/2pi = %.1f%s kHz   t_pi = %.2f us   (fit chi2_red = %.1f)" % (
+            info["rabi_hz"] / 1e3, pm("rabi_hz_err", 1e3, "%.1f"), info["t_pi_us"], info["chi2r"]),
         "",
         "AC-STARK — polarization+power resolved (raman_optical, full |J',mJ'> sum):",
         "  OC = B1(pi, pwr %.3f, C=%+.2f) + R2(linear, pwr %.3f, C=%+.2f)" % (
@@ -270,8 +306,8 @@ def report(info) -> str:
             info["g_floor"], frac(info["g_floor"])),
         "",
         "OBSERVED vs FLOOR:",
-        "  observed decay = %.2e /s  (tau = %.1f us, %.0f%% loss over the scan)" % (
-            info["g_obs"], 1e6 / info["g_obs"], _loss(info["g_obs"], tspan)),
+        "  observed decay = %.2e%s /s  (tau = %.1f us, %.0f%% loss over the scan)" % (
+            info["g_obs"], pm("g_obs_err", 1.0, "%.1e"), 1e6 / info["g_obs"], _loss(info["g_obs"], tspan)),
         "  the ledger floor explains only ~%.0f%% of it at the RSB-cooled nbar=%.2f." % (
             frac(info["g_floor"]), info["nbar_rsb"]),
         "",
@@ -325,8 +361,9 @@ def make_figure(twin, info, out=_OUT, seed: int = 7):
         r"scatter %.0f%% + motional@%.2f %.0f%% of decay" % (
             100 * info["g_sc"] / info["g_obs"], info["nbar_rsb"],
             100 * info["g_thermal"] / info["g_obs"]),
-        r"observed $\tau$ = %.1f µs  $\Rightarrow$  n̄$_{eff}$ = %.2f" % (
-            1e6 / info["g_obs"], nbar_eff),
+        r"observed $\tau$ = %.1f µs  $\Rightarrow$  n̄$_{eff}$ = %.2f%s" % (
+            1e6 / info["g_obs"], nbar_eff,
+            (r" $\pm$ %.2f" % info["nbar_eff_err"]) if info.get("nbar_eff_err") else ""),
         r"(RSB-cooled n̄ = %.2f $\rightarrow$ ~%.0f× hotter)" % (
             info["nbar_rsb"], nbar_eff / info["nbar_rsb"] if info["nbar_rsb"] else 0),
     ])
@@ -345,7 +382,7 @@ def main(argv=None) -> int:
     if not _DATAFILE.exists():
         print("OC carrier-flop data not found at", _DATAFILE)
         return 0
-    twin, fit, info = build()
+    twin, fit, info = build(n_boot=300)        # error bars on Omega, tau_obs, nbar_eff
     print(report(info))
     out = make_figure(twin, info)
     print("\nwrote", out.relative_to(Path(__file__).resolve().parent.parent))

@@ -167,7 +167,8 @@ motional dephasing** (`sideband`, η = 0.389 OC→lf × the RSB-cooled n̄ = 0.0
 honest decomposition: at the cooled n̄ the ledger floor (scattering ~2 % + motional
 ~9 %) explains only ~**11 %** of the observed ~60 % contrast loss. The **effective-n̄
 inversion** attributes the whole decay to motion through the same model and recovers
-**n̄_eff ≈ 1.1** — ~16× the cooled benchmark — i.e. the flop is consistent with a
+**n̄_eff = 1.06 ± 0.27** (300-replica shot bootstrap, ~3.7σ above the cooled
+benchmark) — ~15× the cooled benchmark — i.e. the flop is consistent with a
 near-unity-n̄ state (sideband-cooling underperformance / heating this run and/or
 technical Raman intensity-phase / B-field dephasing), **not** the cooled 0.07. The
 figure overlays the per-shot cloud, the bare ledger floor (n̄ = 0.07, which barely
@@ -320,6 +321,7 @@ spike/
   constants.py      CODATA constants + 25Mg atomic g-factors (sourced)
   ledger.py         loads records/*.yaml into a queryable Ledger (pyyaml only)
   linalg.py         tiny pure-Python solve() + eigvalsh() (Jacobi)
+  bootstrap.py      fit uncertainties: robust summary + gaussian (perturb-by-sigma) + shot (resample-counts) resamplers
   engines/
     levels.py       2S_1/2 hyperfine+Zeeman engine (closed-form Breit-Rabi)
     modes.py        axial + radial normal modes (equilibrium + Hessian)

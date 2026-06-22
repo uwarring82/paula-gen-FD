@@ -97,7 +97,7 @@ def tickle_lineshape(f_exc_hz: float, f0_hz: float, texc_s: float, beta_res: flo
     return baseline * fluorescence(beta, detuning_bd_hz, f0_hz, gamma_w_hz, v_max)
 
 
-def fit_tickle(freqs_hz, counts, texc_s, sigma=None, n_f: int = 400):
+def fit_tickle(freqs_hz, counts, texc_s, sigma=None, n_f: int = 400, n_boot=0, seed=0):
     """Fit a tickle frequency scan for the mode frequency f0, with the Kalis-2016
     finite-pulse lineshape: counts = baseline - depth * |A(f; f0, texc)|^2, where
     A is the SINC excitation amplitude (Eq. 3; FWHM ~ 1/texc, NOT a Lorentzian). The
@@ -106,7 +106,10 @@ def fit_tickle(freqs_hz, counts, texc_s, sigma=None, n_f: int = 400):
     which depends on the detection sensitivity (Delta_BD, Gw, beam waist) and is left
     free as `depth`. Grid over f0 with an EXACT linear solve for (baseline, depth),
     then refine. Returns {f0_hz, depth, baseline, fwhm_hz, chi2}. f0 (the secular
-    frequency) is the robust deliverable (< 1 kHz scatter)."""
+    frequency) is the robust deliverable (< 1 kHz scatter).
+
+    With n_boot > 0, a parametric Gaussian bootstrap (perturb counts by sigma, re-fit)
+    adds `f0_hz_err`, the robust 1-sigma uncertainty on the secular frequency."""
     n = len(freqs_hz)
     if sigma is None:
         sigma = [1.0] * n
@@ -154,6 +157,13 @@ def fit_tickle(freqs_hz, counts, texc_s, sigma=None, n_f: int = 400):
     f_stat = ((chi2_flat - chi2) / 2.0) / (chi2 / dof) if chi2 > 0 else 0.0
     step = span / (n - 1) if n > 1 else span
     edge_pinned = (f0 - fmin) < 1.5 * step or (fmax - f0) < 1.5 * step   # resonance not bracketed
-    return {"f0_hz": f0, "depth": depth, "baseline": base, "fwhm_hz": 1.0 / texc_s,
-            "chi2": chi2, "f_stat": f_stat, "edge_pinned": edge_pinned,
-            "resolved": f_stat > 4.0 and depth > 0.0 and not edge_pinned}
+    out = {"f0_hz": f0, "depth": depth, "baseline": base, "fwhm_hz": 1.0 / texc_s,
+           "chi2": chi2, "f_stat": f_stat, "edge_pinned": edge_pinned,
+           "resolved": f_stat > 4.0 and depth > 0.0 and not edge_pinned}
+    if n_boot > 0:
+        from ..bootstrap import gaussian_bootstrap, summarize
+        runs = gaussian_bootstrap(
+            lambda x, c, s: fit_tickle(x, c, texc_s, sigma=s, n_f=n_f),
+            freqs_hz, counts, sigma, n_boot=n_boot, seed=seed)
+        out["f0_hz_err"] = summarize(runs, ("f0_hz",))["f0_hz"]["sigma"]
+    return out

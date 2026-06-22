@@ -47,12 +47,17 @@ def _ls_solve(t, y, sigma, f, gamma):
     return c, a, b, chi2
 
 
-def fit_rabi(t, y, sigma=None, f_lo_khz=None, f_hi_khz=None):
+def fit_rabi(t, y, sigma=None, f_lo_khz=None, f_hi_khz=None, n_boot=0, seed=0):
     """Fit a damped Rabi flop. t in microseconds. When the frequency bounds are not
     given they are auto-derived from the time span (so a slow 7 kHz flop and a fast
     60 kHz flop both work): f_lo ~ 0.4/T_max, f_hi ~ 0.95*Nyquist (capped). Returns a
     dict with the Rabi frequency (Hz), Omega (rad/s), decay rate (1/s), pi-time (us),
-    amplitude/offset, the reduced chi-square, and a grid-edge flag."""
+    amplitude/offset, the reduced chi-square, and a grid-edge flag.
+
+    With n_boot > 0, a parametric Gaussian bootstrap (perturb each y by its sigma,
+    re-fit) adds `<key>_err` for freq_hz, decay_per_s, t_pi_us, amplitude, offset:
+    the robust (16-84 percentile half-width) 1-sigma uncertainty. Needs per-point
+    sigma to be meaningful."""
     if sigma is None:
         sigma = [1.0] * len(t)
     tmax = max(t) if t else 1.0
@@ -87,7 +92,7 @@ def fit_rabi(t, y, sigma=None, f_lo_khz=None, f_hi_khz=None):
     chi2, f, g, c, a, b = best
     dof = max(1, len(t) - 5)            # 5 free params: c, a, b, f, gamma
     edge = f <= f_lo + df or f >= f_hi - df
-    return {
+    out = {
         "freq_hz": f * 1e6,
         "omega": 2.0 * math.pi * f * 1e6,
         "decay_per_s": g * 1e6,
@@ -98,6 +103,15 @@ def fit_rabi(t, y, sigma=None, f_lo_khz=None, f_hi_khz=None):
         "ndata": len(t),
         "grid_edge": edge,               # True -> optimum hit the [f_lo, f_hi] edge (widen the range)
     }
+    if n_boot > 0:
+        from ..bootstrap import gaussian_bootstrap, summarize
+        keys = ("freq_hz", "decay_per_s", "t_pi_us", "amplitude", "offset")
+        runs = gaussian_bootstrap(
+            lambda tt, yy, ss: fit_rabi(tt, yy, ss, f_lo_khz=f_lo_khz, f_hi_khz=f_hi_khz),
+            t, y, sigma, n_boot=n_boot, seed=seed)
+        for k, s in summarize(runs, keys).items():
+            out[k + "_err"] = s["sigma"]
+    return out
 
 
 def generalized_rabi(t_s: float, detuning_hz: float, rabi_hz: float) -> float:
