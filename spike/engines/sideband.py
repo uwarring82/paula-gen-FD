@@ -91,6 +91,124 @@ class Sideband:
         factor = math.sqrt(n + 1) if order == "blue" else math.sqrt(n)
         return eta * factor * carrier_rabi
 
+    def carrier_thermal_flip(self, comb: str, mode: str, omega_mode_hz: float,
+                             carrier_rabi_hz: float, nbar: float, t_s: float,
+                             detuning_hz: float = 0.0) -> float:
+        """Thermal carrier-flop P(flipped) at duration t_s, using this combination's
+        Lamb-Dicke parameter on `mode` (eta = lamb_dicke(comb, mode, omega_mode_hz)).
+        See thermal_carrier_flip for the physics."""
+        eta = self.lamb_dicke(comb, mode, omega_mode_hz)
+        return thermal_carrier_flip(t_s, carrier_rabi_hz, eta, nbar, detuning_hz)
+
+
+# --- carrier Debye-Waller thermal dephasing --------------------------------
+# A CARRIER (Delta n = 0) Raman flop is NOT motion-free at finite Lamb-Dicke eta:
+# the carrier Rabi rate depends on the phonon number n through the Debye-Waller
+# factor, Omega_{n,n} = Omega_0 <n|e^{i eta (a+a^dag)}|n> = Omega_0 e^{-eta^2/2}
+# L_n(eta^2), with L_n the Laguerre polynomial. A THERMAL motional state (mean
+# nbar, P_n = nbar^n/(nbar+1)^{n+1}) is then a spread of Rabi frequencies, so the
+# flop DEPHASES: F(t) = sum_n P_n cos(2 pi Omega_n t) decays even with no
+# scattering and no technical noise. This is the standard thermal-Rabi-flop decay
+# (Meekhof 1996, Wineland 1998); it is the LEADING motional contribution to a
+# carrier-flop envelope and is ledger-anchorable from eta (sideband) + nbar
+# (cooling benchmark). NOTE: for nbar < 1 the distribution is ~all in n=0, so the
+# dephasing is SMALL (a few-% beat from the n=1 tail), NOT a clean decay -- the
+# Gaussian-spread rate thermal_dephasing_rate OVERSTATES it; use the exact sum
+# thermal_carrier_flip for the curve.
+
+
+def _laguerre(n: int, x: float) -> float:
+    """Laguerre polynomial L_n(x), pure-Python three-term recurrence
+    (k+1)L_{k+1} = (2k+1-x)L_k - k L_{k-1}, L_0=1, L_1=1-x."""
+    if n <= 0:
+        return 1.0
+    lkm1, lk = 1.0, 1.0 - x
+    for k in range(1, n):
+        lkm1, lk = lk, ((2 * k + 1 - x) * lk - k * lkm1) / (k + 1)
+    return lk
+
+
+def thermal_pn(nbar: float, n: int) -> float:
+    """Thermal (Bose-Einstein) occupation probability P_n = nbar^n/(nbar+1)^{n+1}."""
+    if nbar < 0.0:
+        raise ValueError("nbar must be non-negative")
+    if nbar == 0.0:
+        return 1.0 if n == 0 else 0.0
+    return nbar ** n / (nbar + 1.0) ** (n + 1)
+
+
+def carrier_rabi_factor(eta: float, n: int) -> float:
+    """Carrier (Delta n = 0) Rabi reduction for phonon number n:
+    Omega_{n,n}/Omega_0 = e^{-eta^2/2} L_n(eta^2) (Debye-Waller x Laguerre). At
+    n=0 this is the Debye-Waller factor e^{-eta^2/2}; eta->0 gives 1."""
+    return math.exp(-eta * eta / 2.0) * _laguerre(n, eta * eta)
+
+
+def _thermal_nmax(nbar: float, tol: float = 1e-5, cap: int = 5000) -> int:
+    """Smallest n such that the thermal tail P(>n) = (nbar/(nbar+1))^{n+1} < tol."""
+    if nbar <= 0.0:
+        return 0
+    r = nbar / (nbar + 1.0)
+    n = int(math.ceil(math.log(tol) / math.log(r))) if r > 0 else 0
+    return max(1, min(cap, n))
+
+
+def thermal_carrier_flip(t_s: float, rabi0_hz: float, eta: float, nbar: float,
+                         detuning_hz: float = 0.0, n_max: int | None = None) -> float:
+    """Thermal carrier-flop P(flipped) after a square pulse of duration t_s:
+
+        P_flip(t) = (1/2) sum_n P_n [1 - (Omega_n^2/Omega_{n,eff}^2)
+                                         cos(2 pi Omega_{n,eff} t)],
+
+    P_n thermal, Omega_n = Omega_0 e^{-eta^2/2} L_n(eta^2) the n-dependent carrier
+    Rabi rate, Omega_{n,eff} = hypot(Omega_n, detuning) the generalised Rabi (the
+    detuning carries the differential AC-Stark shift; each component is capped at
+    Omega_n^2/Omega_{n,eff}^2). The sum is renormalised by the included weight.
+    nbar=0 reduces to a single (Debye-Waller-reduced) coherent flop."""
+    nmax = _thermal_nmax(nbar) if n_max is None else n_max
+    num = wsum = 0.0
+    for n in range(nmax + 1):
+        pn = thermal_pn(nbar, n)
+        if pn <= 0.0:
+            continue
+        om = rabi0_hz * carrier_rabi_factor(eta, n)
+        eff = math.hypot(om, detuning_hz)
+        amp = (om * om) / (eff * eff) if eff > 0.0 else 0.0
+        # generalised-Rabi flip of this component: amp*sin^2(pi*eff*t) (=0 at t=0)
+        num += pn * 0.5 * amp * (1.0 - math.cos(2.0 * math.pi * eff * t_s))
+        wsum += pn
+    return num / wsum if wsum > 0.0 else 0.0
+
+
+def thermal_coherence(t_s: float, rabi0_hz: float, eta: float, nbar: float,
+                      n_max: int | None = None) -> float:
+    """Magnitude of the carrier dephasing envelope, |sum_n P_n e^{i 2pi Omega_n t}|
+    (= 1 at t=0, decaying as the n-components dephase). This is the factor that
+    multiplies the coherent oscillation; -ln(|.|)/t is the effective dephasing rate
+    over the window [0, t]. O(n_max), so cheap enough for an inversion sweep (unlike
+    fitting the full flop curve)."""
+    nmax = _thermal_nmax(nbar) if n_max is None else n_max
+    re = im = wsum = 0.0
+    for n in range(nmax + 1):
+        pn = thermal_pn(nbar, n)
+        if pn <= 0.0:
+            continue
+        ph = 2.0 * math.pi * rabi0_hz * carrier_rabi_factor(eta, n) * t_s
+        re += pn * math.cos(ph)
+        im += pn * math.sin(ph)
+        wsum += pn
+    return math.hypot(re, im) / wsum if wsum > 0.0 else 0.0
+
+
+def thermal_dephasing_rate(rabi0_hz: float, eta: float, nbar: float) -> float:
+    """LEADING-ORDER Gaussian spread of the carrier Rabi frequency from the thermal
+    phonon distribution [1/s]: sigma_Omega = Omega_0 eta^2 sqrt(nbar(nbar+1))
+    (small-eta: Omega_n ~ Omega_0(1 - eta^2(n+1/2)), Var(n) = nbar(nbar+1)). This is
+    the characteristic dephasing rate; it OVERSTATES the loss for nbar < 1 (the
+    geometric distribution is far from Gaussian there) -- thermal_carrier_flip is the
+    faithful curve. Omega_0 = 2 pi rabi0_hz, so the result is a true rate."""
+    return 2.0 * math.pi * rabi0_hz * eta * eta * math.sqrt(nbar * (nbar + 1.0))
+
 
 def raman_differential_stark_factor(omega_hf_hz: float, raman_detuning_hz: float) -> float:
     """Leading-order Raman differential AC-Stark shift in units of the carrier Rabi

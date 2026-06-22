@@ -91,7 +91,14 @@ It gives the first-order sideband Rabi rates Ω_{n,n±1} = η√(n+1|n)·Ω₀ a
 **Raman differential AC-Stark shift** that moves the sideband resonance,
 δ_AC,diff ≈ (ω_HF/Δ_R)·Ω₀ ≈ 0.09·Ω₀ (the |↓⟩,|↑⟩ light shifts differ by the
 hyperfine splitting / Raman detuning). Capability + diagnostic (no independent
-benchmark beyond the η anchor; the differential shift has no measured value).
+benchmark beyond the η anchor; the differential shift has no measured value). It
+also carries the **carrier Debye-Waller thermal dephasing**: even a Δn=0 carrier is
+motion-sensitive at finite η, with Ω_{n,n} = Ω₀·e^(−η²/2)·L_n(η²) (`carrier_rabi_
+factor`, Laguerre L_n), so a thermal state (mean n̄, `thermal_pn`) is a spread of
+Rabi frequencies and the flop **dephases** — `thermal_carrier_flip` is the exact
+flip-probability sum and `thermal_coherence` its envelope |Σ P_n e^{iΩ_n t}| (the
+cheap inversion handle). This is the leading *motional* contribution to a Raman
+carrier-flop envelope, ledger-anchored from η + n̄.
 
 ## Engine: `acstark` (far-detuned light shift)
 
@@ -102,6 +109,44 @@ shift is only meaningful **far** from resonance: BDD (−10Γ) shifts coherently
 while the near-resonant BD/BDX/RD/RP *scatter* (cooling engine), which Hasse
 confirms ("RD/RP induce no significant ac Stark shift"). The same validated
 formula feeds the Raman differential shift in `sideband`.
+
+## Engine: `scatter` (Raman off-resonant scattering + differential AC-Stark)
+
+[`engines/scatter.py`](engines/scatter.py) is the loss budget of a two-photon
+stimulated-Raman (TPSR) carrier drive, where both beams sit Δ_R = 20 GHz red of
+`3P_3/2` (`raman_detuning_from_p32`). From that single detuning + the linewidth Γ
+it gives the coherent rate `Ω = Ω_BΩ_R/(2Δ_R)`, the **off-resonant scattering
+rate** `Γ_sc = Γ(Ω_B²+Ω_R²)/(4Δ_R²)` — which for balanced beams collapses to the
+clean `Γ_sc = (Γ/Δ_R)·Ω`, so the **spontaneous-emission floor is detuning-only**:
+`P_SE(π) = π·Γ/Δ_R ≈ 0.66 %` here — and the **differential AC-Stark shift**
+`δ_AC ≈ (ω_HF/Δ_R)·Ω` (delegated to `sideband.raman_differential_stark_factor`).
+`flip_probability(t, Ω, Γ_sc, δ_AC)` is the forward flop: AC-Stark speeds Ω_eff and
+caps the amplitude at `Ω²/Ω_eff²`, scattering decoheres with the envelope
+`e^{-(3/4)Γ_sc t}` (full-depolarisation leading order; `CONTRAST_DECAY_FACTOR`).
+`RamanScatter.from_ledger` consumes Δ_R, Γ, ω_HF (all `input`). Capability +
+diagnostic — there is **no measured Raman-scattering decoherence rate** to
+σ-validate against (cf. the unanchored differential shift in `sideband`); the
+tests pin the formula identities, the balanced collapse, and the `1/Δ_R` scaling.
+
+## Integrated twin: OC axial carrier flop (`twin_oc_flop`)
+
+[`twin_oc_flop.py`](twin_oc_flop.py) (`python -m spike.twin_oc_flop`) is the twin of
+the **OC orthogonal-carrier axial Raman flop**
+([`sources/data/OC_Axial/0_Car_Flop`](../sources/data/OC_Axial/0_Car_Flop/)). It
+fits the measured flop (`rabi.fit_rabi` → Ω/2π ≈ 208 kHz, t_π ≈ 2.4 µs) and composes
+**four ledger-anchored channels**: coherent Rabi, the differential AC-Stark shift
+(`scatter`), off-resonant scattering (`scatter`), and the **carrier Debye-Waller
+motional dephasing** (`sideband`, η = 0.389 OC→lf × the RSB-cooled n̄ = 0.07). The
+honest decomposition: at the cooled n̄ the ledger floor (scattering ~2 % + motional
+~9 %) explains only ~**11 %** of the observed ~60 % contrast loss. The **effective-n̄
+inversion** attributes the whole decay to motion through the same model and recovers
+**n̄_eff ≈ 1.1** — ~16× the cooled benchmark — i.e. the flop is consistent with a
+near-unity-n̄ state (sideband-cooling underperformance / heating this run and/or
+technical Raman intensity-phase / B-field dephasing), **not** the cooled 0.07. The
+figure overlays the per-shot cloud, the bare ledger floor (n̄ = 0.07, which barely
+decays), and the n̄_eff curve that tracks the data
+([`../docs/figures/twin_oc_axial_carrier_flop.png`](../docs/figures/twin_oc_axial_carrier_flop.png)).
+See [ADR-0007](../docs/decisions/0007-raman-scatter-vs-dephasing-in-flop-twin.md).
 
 ## Engines: `rabi` + `detection` (raw-data ingestion)
 
@@ -254,8 +299,9 @@ spike/
     drive.py        relative microwave Rabi couplings (Clebsch-Gordan)
     cooling.py      two-level scattering rate + Doppler limit + occupation
     projection.py   Raman combination -> motional mode (Delta_k . mode axis)
-    sideband.py     absolute Lamb-Dicke + sideband Rabi + Raman differential AC-Stark
+    sideband.py     absolute Lamb-Dicke + sideband Rabi + Raman differential AC-Stark + carrier Debye-Waller thermal dephasing
     acstark.py      far-detuned single-beam light shift (BDD vs Hasse)
+    scatter.py      Raman off-resonant scattering (Gamma_sc, P_SE/pi) + differential AC-Stark + flip_probability
     rabi.py         damped Rabi-flop fit -> Omega (raw .dat duration scans)
     detection.py    bright/dark discrimination: threshold + fidelity + depumping/leak PMF + ML readout
     readout.py      single-shot fidelity + Fisher/Cramer-Rao P_down precision (diagnostic)
@@ -268,6 +314,7 @@ spike/
   twin_demo.py      test case: infer AC-Zeeman + dephasing from Rabi vs Ramsey TIME scans (-> figure)
   twin_freqscan.py  Rabi vs Ramsey FREQUENCY scans (tau=100/300/600us), resolution-matched windows (-> figure)
   twin_detection.py realistic detection: depumping count tail + optional ML readout (-> figure)
+  twin_oc_flop.py   OC axial Raman carrier-flop twin: coherent x AC-Stark x scatter x motional (n_bar) vs .dat + n_bar_eff inversion (-> figure)
   analyze_data.py   raw-data analysis (rabi + detection on the .dat examples)
   validate_twin.py  CLI shim -> runner.main
   test_levels.py    levels physics + Weber/Doerr benchmarks + hyperfine spectrum
@@ -297,6 +344,7 @@ python -m spike.validate_twin  # the twin validation table
 python -m spike.twin_demo      # integrated twin: Rabi-vs-Ramsey TIME-scan inference -> figure
 python -m spike.twin_freqscan  # Rabi vs Ramsey FREQUENCY scans (tau=100/300/600us) -> figure
 python -m spike.twin_detection # realistic detection: depumping tail + optional ML readout -> figure
+python -m spike.twin_oc_flop   # OC axial Raman carrier-flop twin: AC-Stark + off-resonant scattering vs data -> figure
 python -m spike.plot_tickle    # tickle secular-frequency spectroscopy of the 3 modes -> figure
 ```
 

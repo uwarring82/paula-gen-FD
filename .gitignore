@@ -11,6 +11,14 @@ sources/pdf/*
 sources/Mathematica/*
 !sources/Mathematica/README.md
 
+# Raw measurement data (DAQ .dat blobs): kept LOCAL for now. The twins/engines
+# read these when present and their tests skip when absent (e.g. twin_oc_flop).
+# Re-include a dataset selectively once it ships with the analysis that cites it.
+# (microwave/, MW_Control/, Tickle/ are already tracked and stay tracked.)
+sources/data/Ion_Monitoring/
+sources/data/OC_Axial/
+sources/data/Strobo2.0/
+
 # --- macOS --------------------------------------------------------------------
 .DS_Store
 **/.DS_Store

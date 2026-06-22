@@ -7,6 +7,109 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-22 (later) — Motional channel for the OC flop twin: carrier Debye-Waller + n̄_eff inversion
+
+UW: continue with the suggested follow-up — turn the (fitted) motional/thermal
+dephasing residual of the OC carrier-flop twin into a third **predicted**,
+ledger-anchored channel.
+
+Done, and the result is more informative than just "explaining" the decay. Added the
+**carrier Debye-Waller thermal dephasing** to `spike/engines/sideband.py`: a Δn=0
+carrier is NOT motion-free at finite η — Ω_{n,n} = Ω₀·e^(−η²/2)·L_n(η²)
+(`carrier_rabi_factor`, pure-Python Laguerre `_laguerre`), so a thermal state (mean
+n̄, `thermal_pn`) is a spread of Rabi frequencies and the flop dephases. New:
+`thermal_carrier_flip` (exact flip-probability sum, with the AC-Stark detuning folded
+in per component), `thermal_coherence` (the envelope |Σ P_n e^{iΩ_n t}| — the cheap
+inversion handle), and `thermal_dephasing_rate` (leading-order σ_Ω = Ω₀ η²√(n̄(n̄+1)),
+documented as OVERSTATING for n̄<1).
+
+`spike/twin_oc_flop.py` now composes **four ledger-anchored channels** (coherent,
+AC-Stark, scattering, motional) and **drops the empirical exponential residual**. The
+motional channel is η = 0.389 (sideband, OC→lf at `omega_z_axial_com_25mg` = 1.30
+MHz) × the RSB-cooled n̄ = 0.07 (`mg_rsb_cooled_nbar_axial_lf_25mg`, a measured
+benchmark — consumed via `benchmark_quantity`, honestly "anchored to a measured n̄").
+
+**KEY FINDING (the honest payoff).** At the cooled n̄ = 0.07 the ledger floor
+(scattering ~2 % + carrier Debye-Waller ~9 %) explains only ~**11 %** of the observed
+~60 % contrast loss. So the follow-up does NOT make the residual disappear — it shows
+the cooled motional state is *also* too cold to cause the decay. The twin then adds an
+**effective-n̄ inversion** (solve the same thermal model for the n̄ reproducing the
+observed decay): **n̄_eff ≈ 1.1**, ~16× the cooled benchmark. So this OC flop is
+consistent with a near-unity-n̄ state — sideband-cooling underperformance / heating in
+this run and/or technical Raman intensity-phase / B-field dephasing — **not** the
+cooled 0.07. Flagged for the experimentalist, not fabricated away. Figure updated
+(`docs/figures/twin_oc_axial_carrier_flop.png`): the bare ledger floor (n̄ = 0.07)
+barely decays and sits above the data; the n̄_eff curve tracks it.
+
+**Bug caught by the tests (good).** The first `thermal_carrier_flip` used ½(1−amp·cos)
+instead of the generalised-Rabi ½·amp·(1−cos), so a detuned component gave P(0) =
+½(1−amp) ≠ 0 — fixed (now exactly 0 at t = 0). Also replaced the inversion's
+per-n̄ `fit_rabi` (42 s/`build()`) with the analytic `thermal_coherence` envelope
+(γ_floor = (3/4)Γ_sc + (−ln|C(t_span)|/t_span), additive) → `build()` ~3 s, same
+n̄_eff. ADR-0007 updated (2026-06-22 section). Tests 193 → 204 (+9 sideband carrier
+thermal, twin rewritten to the 4-channel API); validator green (6 pre-existing
+warnings).
+
+---
+
+## 2026-06-22 — OC axial Raman carrier-flop twin (AC-Stark + off-resonant scattering)
+
+UW: take a look at the `OC_Axial/0_Car_Flop` data file and set up a twin simulation
+including AC-Stark shifts and the spontaneous-emission effects of off-resonant
+scattering.
+
+The file is an **OC orthogonal-carrier axial Raman carrier flop** (TPSR, B1+R2,
+Δk‖z; PAULA 2026-06-12 09:46:23): the pulse duration `t_oc` is scanned 0→9.75 µs
+(21 pts × 40 shots) and the addressed |3,3⟩↔|2,2⟩ population Rabi-oscillates, its
+contrast decaying over ~3 periods. Both effects UW asked for follow from the single
+Raman detuning Δ_R = 20 GHz (`raman_detuning_from_p32`) + the linewidth Γ.
+
+**`spike/engines/scatter.py`** — the Raman loss budget, all ledger-derived:
+- coherent rate Ω = Ω_BΩ_R/(2Δ_R);
+- **off-resonant scattering** Γ_sc = Γ(Ω_B²+Ω_R²)/(4Δ_R²), which for balanced beams
+  collapses to the clean **Γ_sc = (Γ/Δ_R)·Ω**, so the SE floor is detuning-only:
+  **P_SE(π) = π·Γ/Δ_R ≈ 0.66 %**;
+- **differential AC-Stark** δ_AC ≈ (ω_HF/Δ_R)·Ω (reuses `sideband.raman_differential_
+  stark_factor`), speeding Ω_eff and capping the amplitude at Ω²/Ω_eff²;
+- `flip_probability(t,Ω,Γ_sc,δ_AC)` forward flop with the scattering envelope
+  e^{−(3/4)Γ_sc t} (full-depolarisation leading order, `CONTRAST_DECAY_FACTOR`);
+- `RamanScatter.from_ledger` consumes Δ_R, Γ, ω_HF (all `input`, wall-safe).
+
+**`spike/twin_oc_flop.py`** (`python -m spike.twin_oc_flop` → `docs/figures/twin_oc_
+axial_carrier_flop.png`) fits the flop (`rabi.fit_rabi` → Ω/2π ≈ 208 kHz, t_π ≈ 2.4
+µs) and **separates the ledger-anchored floor from an empirical residual**.
+
+**KEY, HONEST FINDING.** At Δ_R = 20 GHz the scattering floor removes only ~2 % of
+contrast over the scan (Γ_sc-contrast ≈ 2.0×10³ /s, τ ≈ 0.5 ms), while the data lose
+~60 % (observed ≈ 1.0×10⁵ /s, τ ≈ 10 µs). **Spontaneous scattering explains only
+~2 % of the observed decay** — the *designed* payoff of a large Raman detuning
+(Γ_sc/Ω ∝ Γ/Δ_R; Ozeri 2007). The residual (≈ 9.9×10⁴ /s) is **motional/thermal
+dephasing** (carrier Debye-Waller spread over the thermal phonon distribution),
+carried as a *labelled, fitted* term — NOT dressed up as a prediction. The AC-Stark
+differential is δ_AC ≈ 18.6 kHz (0.8 % amplitude cap). The figure overlays the
+per-shot count cloud, the full twin, and the bare scattering-only "floor" (which
+visibly barely decays) so the separation is legible. Per the FAIR/integrity memo,
+the two physical channels stay zero-parameter and wall-enforced; only the residual
+is fitted, and it is named.
+
+This is **capability + diagnostic, not a σ-validation**: there is no measured
+Raman-scattering decoherence rate in the theses to anchor against (mirrors how
+`sideband` treats the also-unanchored differential AC-Stark ratio). Decision +
+caveats in **[ADR-0007](decisions/0007-raman-scatter-vs-dephasing-in-flop-twin.md)**.
+
+A 2π unit slip in `scatter_rate` (linewidth → decay rate) was caught by the
+balanced-collapse test (Γ_sc=(Γ/Δ_R)Ω must equal the two-beam form) and fixed.
+Caveat: the flop fit is bound-sensitive on the noisy 40-shot data (χ²_red ≈ 2.9), so
+Ω lands at ~208 kHz with an 80–260 kHz window; the decomposition conclusion
+(scattering ≪ observed) is robust to that. Follow-up: predict the dephasing residual
+from n̄ (sideband-cooling) × the carrier η² spread (sideband), turning it into a
+third ledger-anchored channel.
+
+Tests 172 → 193 (+21: `test_scatter` 14, `test_twin_oc_flop` 7); validator green
+(6 pre-existing source-identifier warnings).
+
+---
+
 ## 2026-06-19 (later 30) — Tickle engine (Kalis 2016 secular-frequency spectroscopy)
 
 UW: implement a tickle engine — and corrected an initial Lorentzian-dip attempt: the

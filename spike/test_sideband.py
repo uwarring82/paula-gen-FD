@@ -8,7 +8,15 @@ import math
 
 import pytest
 
-from spike.engines.sideband import Sideband, raman_differential_stark_factor
+from spike.engines.sideband import (
+    Sideband,
+    _laguerre,
+    carrier_rabi_factor,
+    raman_differential_stark_factor,
+    thermal_carrier_flip,
+    thermal_dephasing_rate,
+    thermal_pn,
+)
 from spike.ledger import Ledger
 
 # magnitude-bearing Delta_k/k vectors (trap x,y,z)
@@ -88,3 +96,78 @@ def test_ledger_oc_vector_magnitude_is_sqrt2():
 def test_lamb_dicke_rejects_zero_frequency():
     with pytest.raises(ValueError):
         _sb().lamb_dicke("OC", "lf", 0.0)
+
+
+# --- carrier Debye-Waller thermal dephasing --------------------------------
+def test_laguerre_low_orders():
+    x = 0.151
+    assert _laguerre(0, x) == pytest.approx(1.0)
+    assert _laguerre(1, x) == pytest.approx(1.0 - x)
+    assert _laguerre(2, x) == pytest.approx(1.0 - 2.0 * x + x * x / 2.0)
+    assert _laguerre(3, x) == pytest.approx(1.0 - 3 * x + 1.5 * x * x - x ** 3 / 6.0)
+
+
+def test_thermal_pn_is_a_distribution():
+    nbar = 0.7
+    ps = [thermal_pn(nbar, n) for n in range(200)]
+    assert sum(ps) == pytest.approx(1.0, abs=1e-6)
+    assert thermal_pn(nbar, 0) == pytest.approx(1.0 / (nbar + 1.0))
+    assert thermal_pn(0.0, 0) == 1.0 and thermal_pn(0.0, 1) == 0.0
+    # geometric ratio P_{n+1}/P_n = nbar/(nbar+1)
+    assert ps[5] / ps[4] == pytest.approx(nbar / (nbar + 1.0))
+
+
+def test_carrier_rabi_factor_limits():
+    eta = 0.389
+    assert carrier_rabi_factor(eta, 0) == pytest.approx(math.exp(-eta * eta / 2.0))
+    assert carrier_rabi_factor(0.0, 5) == pytest.approx(1.0)            # no coupling spread
+    # n=1 is slower than n=0 in the Lamb-Dicke regime (L_1 = 1-eta^2 < 1)
+    assert carrier_rabi_factor(eta, 1) < carrier_rabi_factor(eta, 0)
+
+
+def test_thermal_flip_nbar0_is_coherent_debye_waller_flop():
+    eta, rabi = 0.389, 2.0e5
+    om0 = rabi * math.exp(-eta * eta / 2.0)        # Debye-Waller-reduced carrier rate
+    t_pi = 1.0 / (2.0 * om0)
+    assert thermal_carrier_flip(0.0, rabi, eta, 0.0) == pytest.approx(0.0)
+    assert thermal_carrier_flip(t_pi, rabi, eta, 0.0) == pytest.approx(1.0, abs=1e-6)
+
+
+def test_thermal_flip_decays_with_nbar():
+    eta, rabi = 0.389, 2.0e5
+    om0 = rabi * math.exp(-eta * eta / 2.0)
+    t2pi = 1.0 / om0                                # one full period: coherent returns to ~0
+    cold = thermal_carrier_flip(t2pi, rabi, eta, 0.0)
+    warm = thermal_carrier_flip(t2pi, rabi, eta, 1.0)
+    hot = thermal_carrier_flip(t2pi, rabi, eta, 5.0)
+    assert cold < warm < hot                        # dephasing fills in the trough toward 1/2
+    assert hot == pytest.approx(0.5, abs=0.1)        # large nbar -> mixed within a period
+
+
+def test_thermal_flip_detuning_caps_amplitude():
+    eta, rabi = 0.389, 2.0e5
+    om0 = rabi * math.exp(-eta * eta / 2.0)
+    # with nbar=0 and a detuning, the peak is capped below 1
+    peak_on = thermal_carrier_flip(1.0 / (2 * om0), rabi, eta, 0.0, detuning_hz=0.0)
+    eff = math.hypot(om0, 0.5 * rabi)
+    peak_off = thermal_carrier_flip(1.0 / (2 * eff), rabi, eta, 0.0, detuning_hz=0.5 * rabi)
+    assert peak_on == pytest.approx(1.0, abs=1e-6)
+    assert peak_off < 0.95
+
+
+def test_thermal_dephasing_rate_scaling():
+    eta, rabi = 0.389, 2.0e5
+    assert thermal_dephasing_rate(rabi, eta, 0.0) == 0.0
+    base = thermal_dephasing_rate(rabi, eta, 0.5)
+    assert thermal_dephasing_rate(2 * rabi, eta, 0.5) == pytest.approx(2 * base)      # ~ Omega_0
+    assert thermal_dephasing_rate(rabi, 2 * eta, 0.5) == pytest.approx(4 * base)      # ~ eta^2
+    # ~ sqrt(nbar(nbar+1))
+    r = thermal_dephasing_rate(rabi, eta, 2.0) / base
+    assert r == pytest.approx(math.sqrt(2 * 3) / math.sqrt(0.5 * 1.5))
+
+
+def test_carrier_thermal_flip_method_matches_function():
+    sb = _sb()
+    eta = sb.lamb_dicke("OC", "lf", 1.30e6)
+    assert sb.carrier_thermal_flip("OC", "lf", 1.30e6, 2.0e5, 0.3, 3e-6) == pytest.approx(
+        thermal_carrier_flip(3e-6, 2.0e5, eta, 0.3))
