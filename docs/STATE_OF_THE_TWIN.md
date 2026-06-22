@@ -46,6 +46,7 @@ validations; everything below is a diagnostic or a raw-data tool.
 | sideband | diagnostic | no (input_quantity) | η + sideband Rabi + carrier Debye-Waller |
 | scatter | capability | no | scalar Raman scatter + differential AC-Stark |
 | raman_optical | capability | no (input_quantity) | polarization+power-resolved shifts/scatter |
+| raman_dephasing | capability | no | relative-phase noise of the 2 beams → Δν/T_φ readout of the residual |
 | readout | diagnostic | **no** (count levels are `input`) | single-shot fidelity + Fisher info |
 | sideband_cooling | diagnostic | **YES, by design** | inverts the *measured* n̄ (benchmark) for κ — uses `benchmark_quantity`, documented |
 | tickle | raw-data | n/a | secular-freq spectroscopy on `.dat` |
@@ -69,12 +70,15 @@ rate. Those engines are capability/diagnostic by necessity, not choice.
    and **B3's polarization is not stated anywhere** (placeholder, large σ). Because
    Δ_R ≪ Δ_FS the vector shift is unsuppressed, so real circular contamination would
    move δ_AC a lot. **Needs UW: the actual Stokes vectors along B.**
-2. **OC flop decay is unexplained at the cooled n̄.** Scattering (~4%) + carrier
-   Debye-Waller at n̄=0.07 (~9%) explain only ~13% of the observed ~60% contrast loss;
-   the n̄_eff inversion gives **n̄_eff = 1.06 ± 0.27** (300-replica shot bootstrap),
-   ≈15× the cooled benchmark and ~3.7σ above it → cooling underperformance/heating
-   this run and/or technical (intensity/B-field) dephasing. Not closed; flagged, not
-   fabricated. The error bar now makes "not 0.07" quantitative.
+2. **OC flop decay has two degenerate candidate causes** (not closed; needs an
+   independent probe). Scattering (~4%) + carrier Debye-Waller at n̄=0.07 (~9%) explain
+   only ~13% of the observed ~60% contrast loss. The residual (~87%) is either
+   **(A) motional** — n̄_eff = 1.06 ± 0.27 (300-replica shot bootstrap, ~3.7σ above the
+   cooled 0.07) → cooling underperformance/heating — or **(B) Raman-beam dephasing**
+   (`raman_dephasing`) — a mutual two-photon linewidth Δν = 28 ± 6 kHz (T_φ ≈ 11 µs).
+   A and B reproduce the same envelope in one flop; vary the path imbalance / spin
+   echo / measure the beat-note linewidth to break the degeneracy. Flagged, not
+   fabricated.
 3. **Radial mode nominals need refining.** Tickle measures 3.22/4.71 MHz vs ledger
    3.0/4.5 (+7.5%/+4.7%); also differs from Thomm 2.7/4.4 (three epochs). Not recorded.
 4. **Excited-state hyperfine treated as degenerate** in `raman_optical` (~1–2%

@@ -155,6 +155,22 @@ contamination of R2 changes the differential shift ~47%**. For the OC run it giv
 `raman_{b1,b3,r1,r2}_polarization_25mg` (Clos Tab. 3.2; geometry/B3 **flagged**). See
 [ADR-0008](../docs/decisions/0008-polarization-power-resolved-raman-optics.md).
 
+## Engine: `raman_dephasing` (relative-phase noise of the two beams)
+
+[`engines/raman_dephasing.py`](engines/raman_dephasing.py) is the decoherence of a
+two-photon flop from **relative optical phase/frequency noise** between the two Raman
+beams — a channel *independent* of the carrier Debye-Waller motional dephasing, the
+off-resonant scattering, and the AC-Stark shift. The spin tracks the beat-note phase
+φ_B − φ_R; for beams from one laser the common-mode phase cancels (the two-photon
+frequency is RF-set), leaving path-imbalance (delay τ = ΔL/c high-passes the laser
+noise), AOM/DDS, fibre, and pointing noise. The contrast envelope has two limits:
+Lorentzian/white → `exp(−π·Δν·t)` (exponential, rate π·Δν), or quasi-static Gaussian
+→ `exp(−(t/T₂)²)`. It's **capability + diagnostic** (no measured Raman mutual
+linewidth to anchor): its job is to convert an observed residual decay rate into the
+mutual linewidth Δν / coherence time T_φ it implies (`mutual_linewidth_from_rate`),
+as the **alternative to a hot motional state** — the two are degenerate in one flop.
+See [ADR-0007](../docs/decisions/0007-raman-scatter-vs-dephasing-in-flop-twin.md).
+
 ## Integrated twin: OC axial carrier flop (`twin_oc_flop`)
 
 [`twin_oc_flop.py`](twin_oc_flop.py) (`python -m spike.twin_oc_flop`) is the twin of
@@ -332,6 +348,7 @@ spike/
     acstark.py      far-detuned single-beam light shift (BDD vs Hasse)
     scatter.py      Raman off-resonant scattering (Gamma_sc, P_SE/pi) + differential AC-Stark + flip_probability
     raman_optical.py polarization+power-resolved light shifts + scattering (|J',mJ'> basis; scalar/vector; 6j cross-check)
+    raman_dephasing.py relative-phase noise of the two beams: contrast envelopes + mutual-linewidth/T_phi readout of the residual
     rabi.py         damped Rabi-flop fit -> Omega (raw .dat duration scans)
     detection.py    bright/dark discrimination: threshold + fidelity + depumping/leak PMF + ML readout
     readout.py      single-shot fidelity + Fisher/Cramer-Rao P_down precision (diagnostic)

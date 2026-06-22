@@ -108,3 +108,33 @@ def test_report_mentions_inversion_and_channels():
     text = report(info)
     assert "motional" in text and "scattering" in text
     assert "nbar_eff" in text and "hotter" in text
+
+
+# --- Raman-beam dephasing as the alternative residual explanation -----------
+def test_gamma_raman_channel_adds_decay():
+    tw0 = _twin()
+    tw1 = _twin(gamma_raman_hz=5e4)
+    late = 8.0
+    centre = 0.5
+    # the Raman-phase channel collapses the oscillation toward 1/2 faster
+    assert abs(tw1.flip_prob(late, nbar=0.0) - centre) < abs(tw0.flip_prob(late, nbar=0.0) - centre)
+    # and it raises the effective decay at fixed nbar
+    assert tw1.effective_decay(0.07) > tw0.effective_decay(0.07)
+
+
+def test_raman_explanation_reproduces_observed_decay():
+    from spike.engines.raman_dephasing import mutual_linewidth_from_rate
+    twin, fit, info = build()
+    # at the COOLED nbar, adding gamma_raman = residual reproduces the observed decay
+    tw_raman = _twin(rabi=info["rabi_hz"], gamma_raman_hz=info["g_resid"])
+    assert tw_raman.effective_decay(info["nbar_rsb"]) == pytest.approx(info["g_obs"], rel=0.05)
+    # the reported mutual linewidth is the inversion of the residual
+    assert info["dnu_req"] == pytest.approx(mutual_linewidth_from_rate(info["g_resid"]))
+    assert info["dnu_req"] > 0 and info["tphi_req"] > 0
+
+
+def test_dual_explanation_in_report():
+    twin, fit, info = build()
+    text = report(info)
+    assert "MOTIONAL" in text and "RAMAN-BEAM DEPHASING" in text
+    assert "DEGENERATE" in text and "dnu" in text

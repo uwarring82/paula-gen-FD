@@ -56,6 +56,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 from .datfile import DatFile  # noqa: E402
 from .engines.rabi import fit_rabi  # noqa: E402
+from .engines import raman_dephasing  # noqa: E402
 from .engines.raman_optical import RamanOptics, beams_from_ledger  # noqa: E402
 from .engines.scatter import CONTRAST_DECAY_FACTOR, RamanScatter  # noqa: E402
 from .engines.sideband import Sideband, thermal_coherence  # noqa: E402
@@ -82,7 +83,8 @@ class OCFlopTwin:
     def __init__(self, rabi_hz: float, scatter: RamanScatter, sideband: Sideband,
                  omega_lf_hz: float, nbar: float, mu_bright: float, mu_dark: float,
                  balance: float = 1.0, n_shots: int = 40,
-                 gamma_sc_hz: float = None, delta_ac_hz: float = None):
+                 gamma_sc_hz: float = None, delta_ac_hz: float = None,
+                 gamma_raman_hz: float = 0.0):
         self.rabi = rabi_hz
         self.sc = scatter
         self.sb = sideband
@@ -98,6 +100,10 @@ class OCFlopTwin:
         self.gamma_sc = scatter.scatter_rate(rabi_hz, balance) if gamma_sc_hz is None else gamma_sc_hz
         self.delta_ac = scatter.stark_detuning(rabi_hz) if delta_ac_hz is None else delta_ac_hz
         self.gamma_sc_contrast = CONTRAST_DECAY_FACTOR * self.gamma_sc
+        # Raman-beam relative-phase dephasing (engines.raman_dephasing): an exponential
+        # contrast-decay channel, INDEPENDENT of motion/scattering. Default 0; the twin
+        # uses it as the alternative to a hot motional state for the residual.
+        self.gamma_raman = max(0.0, gamma_raman_hz)
         self.omega_eff = math.hypot(rabi_hz, self.delta_ac)
         self.amp_cap = (rabi_hz * rabi_hz) / (self.omega_eff * self.omega_eff)
 
@@ -114,8 +120,9 @@ class OCFlopTwin:
         else:
             eff, amp = self.omega_eff, self.amp_cap
             p = 0.5 * amp * (1.0 - math.cos(2.0 * math.pi * eff * t))
-        if with_scatter and self.gamma_sc_contrast > 0.0:
-            p = 0.5 + (p - 0.5) * math.exp(-self.gamma_sc_contrast * t)
+        rate = (self.gamma_sc_contrast if with_scatter else 0.0) + self.gamma_raman
+        if rate > 0.0:
+            p = 0.5 + (p - 0.5) * math.exp(-rate * t)        # scattering + Raman-phase envelope
         return p
 
     def curve(self, ts_us, **kw):
@@ -137,7 +144,7 @@ class OCFlopTwin:
         t = t_ref_us * 1e-6
         c = thermal_coherence(t, self.rabi, self.eta, nbar)
         gamma_motional = -math.log(max(c, 1e-12)) / t
-        return self.gamma_sc_contrast + gamma_motional
+        return self.gamma_sc_contrast + self.gamma_raman + gamma_motional
 
     def invert_nbar(self, gamma_target: float):
         """The nbar whose predicted flop decays at gamma_target (the observed rate),
@@ -228,6 +235,12 @@ def build(path=_DATAFILE, n_boot=0, seed=0):
     g_floor = twin.effective_decay(nbar_rsb)                      # scatter + thermal@nbar_rsb
     g_thermal = max(0.0, g_floor - twin.gamma_sc_contrast)        # thermal-only contribution
     nbar_eff, saturated = twin.invert_nbar(g_obs)
+    # DUAL explanation of the residual: instead of a hot motional state (nbar_eff), the
+    # part of the decay above the cooled-nbar floor can be Raman-beam relative-phase
+    # dephasing (engines.raman_dephasing). Required rate -> mutual linewidth dnu, T_phi.
+    g_resid = max(0.0, g_obs - g_floor)
+    dnu_req = raman_dephasing.mutual_linewidth_from_rate(g_resid)
+    tphi_req = raman_dephasing.coherence_time_from_rate(g_resid)
 
     info = {
         "t": t, "y": y, "s": s, "dat": dat,
@@ -235,6 +248,7 @@ def build(path=_DATAFILE, n_boot=0, seed=0):
         "g_obs": g_obs, "g_sc": twin.gamma_sc_contrast, "g_thermal": g_thermal,
         "g_floor": g_floor, "eta": twin.eta, "omega_lf": omega_lf,
         "nbar_rsb": nbar_rsb, "nbar_eff": nbar_eff, "nbar_saturated": saturated,
+        "g_resid": g_resid, "dnu_req": dnu_req, "tphi_req": tphi_req,
         "delta_ac": twin.delta_ac, "amp_cap": twin.amp_cap, "se_per_pi": scatter.se_per_pi(),
         "gamma_sc_rate": twin.gamma_sc, "mu_bright": mu_bright, "mu_dark": mu_dark,
         "tspan_us": t[-1] if t else 0.0,
@@ -251,13 +265,16 @@ def build(path=_DATAFILE, n_boot=0, seed=0):
             f = fit_rabi(xs, yb, sb, f_lo_khz=_F_LO_KHZ, f_hi_khz=_F_HI_KHZ)
             tw = _make_twin(f["freq_hz"])
             nb, _sat = tw.invert_nbar(f["decay_per_s"])
-            return {"rabi_hz": f["freq_hz"], "g_obs": f["decay_per_s"], "nbar_eff": nb}
+            resid = max(0.0, f["decay_per_s"] - tw.effective_decay(nbar_rsb))
+            return {"rabi_hz": f["freq_hz"], "g_obs": f["decay_per_s"], "nbar_eff": nb,
+                    "dnu_req": raman_dephasing.mutual_linewidth_from_rate(resid)}
 
         runs = shot_bootstrap(_replica, dat.point_shots(), n_boot=n_boot, seed=seed)
-        summ = summarize(runs, ("rabi_hz", "g_obs", "nbar_eff"))
+        summ = summarize(runs, ("rabi_hz", "g_obs", "nbar_eff", "dnu_req"))
         info["rabi_hz_err"] = summ["rabi_hz"]["sigma"]
         info["g_obs_err"] = summ["g_obs"]["sigma"]
         info["nbar_eff_err"] = summ["nbar_eff"]["sigma"]
+        info["dnu_req_err"] = summ["dnu_req"]["sigma"]
         info["n_boot"] = summ["nbar_eff"]["n"]
 
     return twin, fit, info
@@ -311,13 +328,18 @@ def report(info) -> str:
         "  the ledger floor explains only ~%.0f%% of it at the RSB-cooled nbar=%.2f." % (
             frac(info["g_floor"]), info["nbar_rsb"]),
         "",
-        "EFFECTIVE-nbar INVERSION (attribute the decay to motion through the same model):",
-        "  nbar_eff = %s   vs RSB-cooled nbar = %.2f  (~%.0fx hotter)" % (
+        "RESIDUAL (%.0f%% of the decay above the cooled-nbar floor) — TWO candidate causes:" % (
+            frac(info["g_resid"])),
+        "  A) MOTIONAL: nbar_eff = %s  vs RSB-cooled %.2f (~%.0fx hotter) — cooling" % (
             nbar_eff, info["nbar_rsb"],
             (info["nbar_eff"] / info["nbar_rsb"]) if info["nbar_rsb"] else float("inf")),
-        "  => consistent with a near-unity-nbar motional state: sideband-cooling",
-        "     underperformance / heating in this run and/or technical dephasing",
-        "     (Raman intensity-phase or B-field noise) — NOT the cooled 0.07. Flagged.",
+        "     underperformance / heating this run.",
+        "  B) RAMAN-BEAM DEPHASING: relative-phase noise of the two beams (raman_dephasing)",
+        "     -> mutual two-photon linewidth dnu = %.1f%s kHz  (T_phi = %.1f us)." % (
+            info["dnu_req"] / 1e3, pm("dnu_req_err", 1e3, "%.1f"), info["tphi_req"] * 1e6),
+        "  A and B are DEGENERATE in one flop (both reproduce the envelope); an",
+        "  independent probe (vary path imbalance / spin echo / measure the beat-note",
+        "  linewidth) breaks it. Reality is likely a mix. Flagged, not fabricated.",
         "",
         "DETECTION: bright(flipped) mu = %.2f counts, dark(un-flipped) mu = %.3f counts." % (
             info["mu_bright"], info["mu_dark"]),

@@ -13,6 +13,37 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-22 (later 4) — Raman-beam dephasing engine: an alternative cause for the OC-flop contrast loss
+
+UW: include an engine for dephasing of the two Raman beams as an additional effect
+that can explain the reduced contrast of the OC axial carrier flop.
+
+The twin previously had to absorb the whole OC-flop residual into an effective n̄
+(n̄_eff ≈ 1, "cooling underperformance / technical dephasing"). Added
+`spike/engines/raman_dephasing.py` — decoherence from RELATIVE optical phase/frequency
+noise between the two Raman beams (the spin tracks the beat-note phase φ_B − φ_R), a
+channel INDEPENDENT of the carrier Debye-Waller motional dephasing, the off-resonant
+scattering, and the AC-Stark shift. For beams from one laser the common-mode phase
+cancels (the two-photon frequency is RF-set); what survives is path imbalance (delay
+τ = ΔL/c high-passes the laser noise), AOM/DDS, fibre and pointing noise. Contrast
+envelopes: Lorentzian/white → exp(−π·Δν·t) (exponential, the default — matches the
+rabi-fit exponential), or quasi-static Gaussian → exp(−(t/T₂)²). Capability +
+diagnostic (no measured Raman mutual linewidth to anchor): it converts an observed
+residual decay rate into the mutual linewidth Δν / coherence time T_φ it implies.
+
+Wired into the twin as a `gamma_raman` channel + a **DUAL explanation** of the
+residual (~87% of the decay above the cooled-n̄ floor): **(A) MOTIONAL** n̄_eff =
+1.06 ± 0.27 (~15× the cooled 0.07) OR **(B) RAMAN-BEAM DEPHASING** mutual linewidth
+**Δν = 28.0 ± 6.4 kHz (T_φ = 11.4 µs)**. The two are DEGENERATE in a single flop
+(both reproduce the same envelope); an independent probe — vary the path imbalance,
+a spin echo, or a direct beat-note-linewidth measurement — breaks it. Reality is
+likely a mix. So the engine gives the experimentalist a second, named, quantitative
+candidate instead of a lumped "technical dephasing". State of the Twin flag #2 now
+lists both candidates. Tests 235 -> 244 (+6 raman_dephasing, +3 twin dual-explanation);
+validator green.
+
+---
+
 ## 2026-06-22 (later 3) — Fit uncertainties (bootstrap) → a real error bar on n̄_eff
 
 UW: work on fit uncertainties (the top deferred item from the code review).
