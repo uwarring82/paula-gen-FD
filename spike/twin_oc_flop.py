@@ -212,7 +212,14 @@ def build(path=_DATAFILE, n_boot=0, seed=0):
     # dimensionless ratios are anchored to the measured Rabi (delta_AC[Hz] = ratio*rabi;
     # Gamma_sc[1/s] = ratio*2pi*rabi -- matching the scalar engine's conventions).
     optics = RamanOptics.from_ledger(ledger)
-    powers = {"b1": dat.settings.get("pwr_b1", 1.0), "r2": dat.settings.get("pwr_r2", 1.0)}
+    # per-beam INTENSITIES from the UW-provided waists + powers (the .dat pwr_b1/pwr_r2
+    # are uncalibrated DAC settings). I = 2 P / (pi w^2); only the B1:R2 ratio (3:1) enters.
+    def _intensity(b):
+        p = ledger.input_quantity("raman_%s_power_25mg" % b).value
+        w = ledger.input_quantity("raman_%s_waist_25mg" % b).value
+        return 2.0 * p / (math.pi * w * w)
+    powers = {"b1": _intensity("b1"), "r2": _intensity("r2")}
+    pwr_b1, pwr_r2 = ledger.input_quantity("raman_b1_power_25mg").value, ledger.input_quantity("raman_r2_power_25mg").value
     bB, bR = beams_from_ledger(ledger, "OC", powers=powers)
     beams = [bB, bR]
     stark_ratio = optics.differential_stark_per_rabi(beams, bB, bR)        # delta_AC = ratio*rabi
@@ -254,7 +261,7 @@ def build(path=_DATAFILE, n_boot=0, seed=0):
         "tspan_us": t[-1] if t else 0.0,
         # polarization+power-resolved vs leading-order (scalar) comparison
         "delta_ac_scalar": delta_ac_scalar, "gamma_sc_scalar": gamma_sc_scalar,
-        "pwr_b1": powers["b1"], "pwr_r2": powers["r2"],
+        "pwr_b1": pwr_b1, "pwr_r2": pwr_r2,        # optical power [W] (B1=1 mW, R2=3 mW)
         "circ_b1": optics.circular_fraction(bB), "circ_r2": optics.circular_fraction(bR),
     }
 
@@ -307,8 +314,9 @@ def report(info) -> str:
             info["rabi_hz"] / 1e3, pm("rabi_hz_err", 1e3, "%.1f"), info["t_pi_us"], info["chi2r"]),
         "",
         "AC-STARK — polarization+power resolved (raman_optical, full |J',mJ'> sum):",
-        "  OC = B1(pi, pwr %.3f, C=%+.2f) + R2(linear, pwr %.3f, C=%+.2f)" % (
-            info["pwr_b1"], info["circ_b1"], info["pwr_r2"], info["circ_r2"]),
+        "  OC = B1(pi, %.1f mW, C=%+.2f) + R2(linear, %.1f mW, C=%+.2f); intensity ratio R2/B1=%.0f" % (
+            info["pwr_b1"] * 1e3, info["circ_b1"], info["pwr_r2"] * 1e3, info["circ_r2"],
+            info["pwr_r2"] / info["pwr_b1"] if info["pwr_b1"] else 0),
         "  delta_AC = %+.1f kHz -> amplitude cap %.4f (%.2f%% loss)   "
         "[scalar omega_HF/Delta_R: %+.1f kHz]" % (
             info["delta_ac"] / 1e3, info["amp_cap"], 100.0 * (1.0 - info["amp_cap"]),

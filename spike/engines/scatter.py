@@ -78,7 +78,7 @@ def two_photon_rabi(omega_b_hz: float, omega_r_hz: float, raman_detuning_hz: flo
     frequencies Omega_B/2pi, Omega_R/2pi [Hz] and the Raman detuning [Hz]."""
     if raman_detuning_hz == 0.0:
         raise ValueError("Raman detuning must be non-zero (and far-detuned)")
-    return omega_b_hz * omega_r_hz / (2.0 * raman_detuning_hz)
+    return omega_b_hz * omega_r_hz / (2.0 * abs(raman_detuning_hz))
 
 
 def scatter_rate(omega_b_hz: float, omega_r_hz: float, raman_detuning_hz: float,
@@ -118,7 +118,7 @@ def scatter_rate_from_rabi(rabi_hz: float, raman_detuning_hz: float, gamma_hz: f
     if raman_detuning_hz == 0.0:
         raise ValueError("Raman detuning must be non-zero (and far-detuned)")
     omega = 2.0 * math.pi * rabi_hz
-    return (gamma_hz / raman_detuning_hz) * omega * _imbalance_factor(balance)
+    return (gamma_hz / abs(raman_detuning_hz)) * omega * _imbalance_factor(balance)
 
 
 def se_probability_per_pi(raman_detuning_hz: float, gamma_hz: float,
@@ -129,7 +129,7 @@ def se_probability_per_pi(raman_detuning_hz: float, gamma_hz: float,
     gate's spontaneous-emission error floor (Ozeri 2007)."""
     if raman_detuning_hz == 0.0:
         raise ValueError("Raman detuning must be non-zero (and far-detuned)")
-    return math.pi * (gamma_hz / raman_detuning_hz) * _imbalance_factor(balance)
+    return math.pi * (gamma_hz / abs(raman_detuning_hz)) * _imbalance_factor(balance)
 
 
 def contrast_decay_rate(rabi_hz: float, raman_detuning_hz: float, gamma_hz: float,

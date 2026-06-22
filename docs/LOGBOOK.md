@@ -13,6 +13,34 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-22 (later 7) — UW apparatus corrections: Raman detuning sign + B1/R2 waists & powers (3:1 imbalance)
+
+UW: the Raman detuning is NEGATIVE 20 GHz from S1/2->P3/2; B1 has a 50 um waist + 1 mW;
+R2 has 50 um + 3 mW.
+
+- **Detuning sign.** `raman_detuning_from_p32` 20.0e9 -> **-2.0e10** (SIGNED: red,
+  Delta = w_laser - w_0 < 0). Made `scatter.py` sign-safe -- the rates (Gamma_sc,
+  P_SE/pi, two-photon Rabi) use |Delta_R|; the light-shift SIGN follows the detuning,
+  so the differential AC-Stark is now negative (red), consistent with raman_optical
+  (which already stored -abs). Fixed two test assertions (delta_r<0, stark<0).
+
+- **B1/R2 beam parameters (4 records, UW-provided, source paula_oc_axial_2026):**
+  raman_{b1,r2}_waist_25mg = 50 um, raman_b1_power_25mg = 1 mW, raman_r2_power_25mg =
+  3 mW. The .dat DAC (pwr_b1 = pwr_r2 = 0.425) is UNCALIBRATED and was misleading --
+  the real intensity ratio is **R2/B1 = 3:1** (same waist, 3x power), NOT balanced.
+
+- **Wired the real 3:1 imbalance into the twin** (I = 2P/(pi w^2); only the ratio
+  enters): delta_AC -44.5 -> **-51.3 kHz**, Gamma_sc 4.45e3 -> **5.14e3 /s** (the
+  imbalance factor (1+r^2)/(2r) = 1.155), ledger floor 13% -> 14%. The Raman-dephasing
+  conclusion is unchanged (still dominant; the records' ~50%-uncertainty values stand).
+  First-principles sanity: B1 s ~ 100, R2 s ~ 300 (single-beam Omega 295 / 512 MHz);
+  the bare two-photon Omega_B*Omega_R/(2 Delta_R) ~ 3.8 MHz vs the measured 208 kHz ->
+  an effective two-photon CG^2 ~ 1/18 for the |3,3>->|2,2> path (not computed exactly).
+
+Regenerated docs/APPARATUS.md (83 -> 87 records). Tests 254 (3 scatter sign-assertions updated); validator green.
+
+---
+
 ## 2026-06-22 (later 6) — Apparatus overview (docs/APPARATUS.md) + the inferred quantities recorded
 
 UW: do we have a dedicated file listing all apparatus-specific properties? -> "both"

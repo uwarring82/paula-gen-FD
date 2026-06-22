@@ -15,7 +15,7 @@
 # =============================================================================
 
 - name: raman_detuning_from_p32
-  value: 20.0e9
+  value: -2.0e10                  # Hz, SIGNED: RED of S1/2->P3/2 (Delta = w_laser - w_0 < 0)
   units: Hz
   kind: input
   uncertainty: {value: 1.0e9, type: systematic}
@@ -24,9 +24,11 @@
     loc: "Sec. 2.1.4, p. 11"
     extraction_note: >-
       Two-photon stimulated-Raman (TPSR) single-photon detuning of the virtual
-      level from the 3P_3/2 |F=4,mF=4> state: Delta_R/(2pi) = 20 GHz (Raman line
-      ~279.6 nm). Verbatim: "...detuned by Delta_R/(2pi) = 20 GHz from the
-      P3/2 |F = 4, mF = 4> state".
+      level from the 3P_3/2 |F=4,mF=4> state: Delta_R/(2pi) = -20 GHz (RED of the
+      S1/2->P3/2 transition; Raman line ~279.6 nm). SIGN (confirmed by UW 2026-06-22):
+      Delta_R = w_laser - w_transition < 0 (red-detuned). Doerr quotes the magnitude
+      "...detuned by 20 GHz from the P3/2 |F = 4, mF = 4> state"; the sign is red.
+      Rate/scatter engines use |Delta_R| (magnitude); the light-shift sign follows it.
     extracted_by: claude-agent
     extracted_on: 2026-06-18
   scope: {isotope: 25Mg, subsystem: optics}
@@ -239,6 +241,65 @@
   derived_from: []
   generation: freddy
   caveats: "Balanced linear (C=0) from Clos Tab. 3.2. PROVISIONAL: circular contamination would add a large vector shift; confirm the actual Stokes vector along B."
+  status: provisional
+
+# --- Raman-beam waists + powers (UW-provided, OC pair B1 + R2) --------------
+# The .dat carries per-beam DAC settings (pwr_b1 = pwr_r2 = 0.425, equal) -- those are
+# UNCALIBRATED, NOT the optical power. UW gives the physical values (2026-06-22): same
+# 50 um waist, but B1 = 1 mW and R2 = 3 mW -> an intensity ratio R2/B1 = 3 (the OC pair
+# is NOT balanced). Intensity (Gaussian peak) I = 2 P / (pi w^2); s = I/Isat
+# (mg_saturation_intensity) -> B1 s ~ 100, R2 s ~ 300.
+
+- name: raman_b1_waist_25mg
+  value: 5.0e-5                   # m (50 um), 1/e^2 beam radius at the ion
+  units: m
+  kind: input
+  uncertainty: {value: 5.0e-6, type: systematic}
+  source: {ref: paula_oc_axial_2026, loc: "UW-provided 2026-06-22", extraction_note: "Raman blue beam B1 waist (1/e^2 radius) at the ion ~50 um. Provided by UW.", extracted_by: claude-agent, extracted_on: 2026-06-22}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  caveats: "UW-provided nominal; the 50 um is shared by B1 and R2 in the OC pair."
+  status: provisional
+
+- name: raman_b1_power_25mg
+  value: 1.0e-3                   # W (1 mW) at the ion
+  units: W
+  kind: input
+  uncertainty: {value: 1.0e-4, type: systematic}
+  source: {ref: paula_oc_axial_2026, loc: "UW-provided 2026-06-22", extraction_note: "Raman blue beam B1 optical power ~1 mW at the ion. Provided by UW (the .dat pwr_b1=0.425 is an uncalibrated DAC setting).", extracted_by: claude-agent, extracted_on: 2026-06-22}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  caveats: "UW-provided. With w=50 um -> I = 2P/(pi w^2) ~ 2.5e5 W/m^2, s = I/Isat ~ 100."
+  status: provisional
+
+- name: raman_r2_waist_25mg
+  value: 5.0e-5                   # m (50 um)
+  units: m
+  kind: input
+  uncertainty: {value: 5.0e-6, type: systematic}
+  source: {ref: paula_oc_axial_2026, loc: "UW-provided 2026-06-22", extraction_note: "Raman red beam R2 waist (1/e^2 radius) at the ion ~50 um. Provided by UW.", extracted_by: claude-agent, extracted_on: 2026-06-22}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  caveats: "UW-provided; equal to the B1 waist in the OC pair."
+  status: provisional
+
+- name: raman_r2_power_25mg
+  value: 3.0e-3                   # W (3 mW) at the ion
+  units: W
+  kind: input
+  uncertainty: {value: 3.0e-4, type: systematic}
+  source: {ref: paula_oc_axial_2026, loc: "UW-provided 2026-06-22", extraction_note: "Raman red beam R2 optical power ~3 mW at the ion -- 3x the B1 power (intensity ratio R2/B1 = 3, the OC pair is imbalanced). Provided by UW.", extracted_by: claude-agent, extracted_on: 2026-06-22}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  caveats: "UW-provided. 3 mW vs B1's 1 mW -> intensity ratio 3:1 (the .dat DAC pwr_r2=pwr_b1 is uncalibrated). s = I/Isat ~ 300."
   status: provisional
 
 # --- Raman-beam coherence (INFERRED from the OC flop + sideband thermometry) -

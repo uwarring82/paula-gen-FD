@@ -124,15 +124,16 @@ def test_flip_probability_stark_caps_amplitude():
 def test_from_ledger_consumes_inputs_and_numbers_sane():
     ledger = Ledger.load()
     rs = RamanScatter.from_ledger(ledger)
-    assert rs.delta_r == pytest.approx(20.0e9)
+    assert abs(rs.delta_r) == pytest.approx(20.0e9)   # SIGNED red (-20 GHz); rates use |.|
+    assert rs.delta_r < 0
     assert rs.gamma == pytest.approx(41.8e6)
     # SE/pi ~ 0.66%; at 170 kHz the scattering coherence time is sub-ms (hundreds of us)
     assert rs.se_per_pi() == pytest.approx(6.57e-3, rel=2e-2)
     g_sc = rs.scatter_rate(170e3)
     assert 1.0e3 < g_sc < 5.0e3
     assert 1e-4 < 1.0 / g_sc < 1e-2            # 0.1-10 ms coherence floor
-    # differential AC-Stark ~ (1.79/20) * 170 kHz ~ 15 kHz
-    assert rs.stark_detuning(170e3) == pytest.approx(15.2e3, rel=5e-2)
+    # differential AC-Stark ~ (1.79/20) * 170 kHz ~ 15 kHz; SIGN follows the red detuning (<0)
+    assert rs.stark_detuning(170e3) == pytest.approx(-15.2e3, rel=5e-2)
 
 
 def test_from_ledger_object_flip_matches_free_functions():
