@@ -48,6 +48,7 @@ validations; everything below is a diagnostic or a raw-data tool.
 | raman_optical | capability | no (input_quantity) | polarization+power-resolved shifts/scatter |
 | raman_dephasing | capability | no | relative-phase noise of the 2 beams → Δν/T_φ readout of the residual |
 | sideband (thermal) | capability | no | RSB/BSB thermal flops → nbar thermometry (twin_sideband discriminator) |
+| twin_strobo | raw-data | n/a | stroboscopic OC carrier flop (phase-grating n=0 baseline; strobo dephasing-decoupling) |
 | readout | diagnostic | **no** (count levels are `input`) | single-shot fidelity + Fisher info |
 | sideband_cooling | diagnostic | **YES, by design** | inverts the *measured* n̄ (benchmark) for κ — uses `benchmark_quantity`, documented |
 | tickle | raw-data | n/a | secular-freq spectroscopy on `.dat` |

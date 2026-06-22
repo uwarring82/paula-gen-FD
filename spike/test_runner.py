@@ -104,5 +104,6 @@ def test_uncovered_benchmarks_flags_missing_engine():
         # is excluded above as derived_from != []).
         "raman_mutual_linewidth_25mg",
         "mg_sideband_nbar_oc_lf_ma_25mg",
+        "raman_oc_strobo_rabi_25mg",   # strobo per-cycle Rabi calibration (diagnostic)
     }
     assert set(uncovered_benchmarks(ledger)) == pending

@@ -13,6 +13,38 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-22 (later 8) — Stroboscopic OC carrier flop twin (active phase grating, displ=0 baseline)
+
+UW: analyse the Strobo2.0 script and implement a digital twin.
+
+Decoded main(): cool -> SBC to |n~0> -> MW pi (spin prep) -> tickle DISPLACEMENT of the
+lf mode (but u_displ=0 here -> NO displacement) -> active_phase_grating_Laser: N=50
+stroboscopic OC pulses (B1 cont + R2 pulsed for delta_t), ONE PER DELTA_t=0.769 us =
+1/(1.30 MHz) = the lf MOTIONAL PERIOD, fr_oc_strobo at the qubit carrier (-40 kHz);
+scan = delta_t (per-cycle pulse width, 0..0.1 us). UW-confirmed model: a CARRIER flop
+stroboscopically LOCKED to the motion -- the OC k-vector gradient makes the flop rate
+sample the instantaneous motional position (the "phase grating"). With u_displ=0 the
+mean position is 0 -> the grating's n=0 CALIBRATION (clean single-rate flop on |0>).
+
+twin_strobo.py: P_up(delta_t) = (1/2)(1 - cos(2 pi N Omega_strobo delta_t)), N=50
+amplifying the per-cycle Rabi. Fit (fit_rabi, fast: ~25 cycles/us, needs explicit 10-60
+MHz bounds; +bootstrap): **Omega_strobo/2pi = 499(3) kHz/cycle** (2.5 turns over the
+scan); ground-state Debye-Waller e^{-eta^2/2}=0.927 -> bare Omega_0 ~ 538 kHz.
+
+**KEY (stroboscopic dephasing-decoupling).** The train lasts a FIXED N*DELTA_t = 38.5
+us (independent of delta_t), yet the flop keeps ~61% contrast. A CONTINUOUS carrier
+flop at T_phi~15 us (twin_sideband Raman dephasing) would keep only ~8% over 38.5 us;
+the strobo keeps ~61% (effective T_phi ~ 77 us, ~5x longer) => the stroboscopic
+structure DECOUPLES the slow Raman-beam dephasing -- a dynamical-decoupling benefit of
+the phase-grating technique, and a nice consistency with the inferred Raman dephasing.
+
+Record raman_oc_strobo_rabi_25mg = 4.99e5 Hz (benchmark, fitted; new source
+paula_strobo_2026). Figure twin_strobo_flop.png. The displ!=0 (position-sensitive
+grating -> collapse/revival) is the natural follow-up. Tests +4 (twin_strobo); runner
+uncovered-benchmarks + APPARATUS.md updated; records 87 -> 88; validator green.
+
+---
+
 ## 2026-06-22 (later 7) — UW apparatus corrections: Raman detuning sign + B1/R2 waists & powers (3:1 imbalance)
 
 UW: the Raman detuning is NEGATIVE 20 GHz from S1/2->P3/2; B1 has a 50 um waist + 1 mW;

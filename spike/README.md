@@ -187,6 +187,23 @@ carrier's apparent n̄_eff = 1.06. Decomposing the carrier decay at the *measure
 apparent "hot ion" was Raman dephasing posing as motion. Figure
 [`../docs/figures/twin_sideband_thermometry.png`](../docs/figures/twin_sideband_thermometry.png).
 
+## Twin: stroboscopic OC carrier flop / phase-grating baseline (`twin_strobo`)
+
+[`twin_strobo.py`](twin_strobo.py) (`python -m spike.twin_strobo`) is the displ=0
+baseline of the **"active phase grating"** (`Strobo2.0/1_FlopN_3p3_2p2_PDQ_displ_strobo`).
+The script cools to |0⟩, then drives **N = 50 stroboscopic OC carrier pulses, one per
+`DELTA_t` = 0.769 µs = the lf motional period** (fr_oc_strobo at the qubit carrier −40
+kHz), scanning the per-cycle pulse width `delta_t`. With `u_displ = 0` the motion stays
+in |0⟩, so it is a clean stroboscopic carrier flop: P_up = ½(1−cos(2π·N·Ω_strobo·`delta_t`)),
+N amplifying the per-cycle Rabi. The twin fits **Ω_strobo = 499 ± 3 kHz/cycle** (bare
+Ω₀ = 538 kHz after the |0⟩ Debye-Waller e^(−η²/2)). Key result: the train lasts a
+*fixed* N·DELTA_t = 38.5 µs yet keeps **~61% contrast** — vs the ~8% a continuous
+carrier flop (T_φ ≈ 15 µs, `twin_sideband`) would leave — so the **stroboscopic
+structure decouples the slow Raman-beam dephasing** (effective T_φ ≈ 77 µs). With a
+displacement the flop rate would be position-modulated (the grating → collapse/revival):
+the displ≠0 follow-up. Figure
+[`../docs/figures/twin_strobo_flop.png`](../docs/figures/twin_strobo_flop.png).
+
 ## Integrated twin: OC axial carrier flop (`twin_oc_flop`)
 
 [`twin_oc_flop.py`](twin_oc_flop.py) (`python -m spike.twin_oc_flop`) is the twin of
@@ -379,6 +396,7 @@ spike/
   twin_detection.py realistic detection: depumping count tail + optional ML readout (-> figure)
   twin_oc_flop.py   OC axial Raman carrier-flop twin: coherent x AC-Stark x scatter x motional (n_bar) vs .dat + n_bar_eff inversion (-> figure)
   twin_sideband.py  sideband thermometry discriminator: RSB/BSB ratio -> n_bar (cold) -> carrier loss is mostly Raman dephasing (-> figure)
+  twin_strobo.py    stroboscopic OC carrier flop (phase-grating n=0 baseline): per-cycle Rabi + stroboscopic dephasing-decoupling (-> figure)
   analyze_data.py   raw-data analysis (rabi + detection on the .dat examples)
   validate_twin.py  CLI shim -> runner.main
   test_levels.py    levels physics + Weber/Doerr benchmarks + hyperfine spectrum

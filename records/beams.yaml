@@ -362,6 +362,35 @@
   caveats: "Inherits the mutual-linewidth inference (degenerate, model-dependent). A STATIC imbalance is excluded; this is the DYNAMIC differential path stability the Raman arms must beat."
   status: provisional
 
+- name: raman_oc_strobo_rabi_25mg
+  value: 4.99e5                   # Hz, per-cycle OC carrier Rabi in the strobo drive
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 3.0e3, type: statistical}   # bootstrap
+  source:
+    ref: paula_strobo_2026
+    loc: "Strobo2.0/1_FlopN_3p3_2p2_PDQ_displ_strobo, analyzed by twin_strobo"
+    extraction_note: >-
+      Per-cycle OC carrier Rabi Omega/2pi of the stroboscopic 'active phase grating'
+      drive (B1 continuous + R2 pulsed for delta_t, one pulse per lf motional period
+      DELTA_t=0.769 us, N=50, pwr_strobo=0.46), from the flop vs delta_t: the fitted
+      25.0 cycles/us / N = 499(3) kHz. Ground-state (u_displ=0) Debye-Waller-reduced
+      (e^{-eta^2/2}=0.927 -> bare Omega_0 ~ 538 kHz). Higher than the 0_Car_Flop OC
+      carrier (~208 kHz) because of the different strobo power/duty.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-22
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  measured_on: 2026-06-12
+  conditions: "Stroboscopic OC carrier drive, N=50 pulses @ DELTA_t = lf motional period; fr_oc_strobo at the qubit carrier -40 kHz; motion in |0> (u_displ=0)"
+  caveats: >-
+    The displ=0 grating CALIBRATION. The strobo flop keeps ~61% contrast over the fixed
+    38.5-us train vs ~8% a continuous flop (T_phi~15 us) would -> the stroboscopic
+    structure DECOUPLES the slow Raman-beam dephasing (effective T_phi ~ 77 us).
+  status: provisional
+
 # --- shared constants -------------------------------------------------------
 
 - name: mg_p32_natural_linewidth

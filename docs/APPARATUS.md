@@ -5,7 +5,7 @@
 its full provenance: source, uncertainty, conditions, caveats); this is a flat
 index of every apparatus-specific value, grouped by subsystem.
 
-87 records (83 provisional, 4 confirmed). `kind`: **input** = consumed by the engines; **benchmark** = a measured/inferred value the engines are checked against. See [STATE_OF_THE_TWIN.md](STATE_OF_THE_TWIN.md) and [SOURCES.md](SOURCES.md).
+88 records (84 provisional, 4 confirmed). `kind`: **input** = consumed by the engines; **benchmark** = a measured/inferred value the engines are checked against. See [STATE_OF_THE_TWIN.md](STATE_OF_THE_TWIN.md) and [SOURCES.md](SOURCES.md).
 
 ## Internal state (²⁵Mg⁺ hyperfine / Zeeman)
 
@@ -53,6 +53,7 @@ index of every apparatus-specific value, grouped by subsystem.
 | `raman_detuning_from_p32` | input | -2e+10 | Hz | freddy | provisional | doerr2024 |
 | `raman_mutual_linewidth_25mg` | benchmark | 21000 | Hz | freddy | provisional | paula_oc_axial_2026 |
 | `raman_oc_combination_25mg` | input | [0, 0, 1.41421] | k-vector Delta_k/k (trap x,y,z) | freddy | provisional | doerr2024 |
+| `raman_oc_strobo_rabi_25mg` | benchmark | 4.99e+05 | Hz | freddy | provisional | paula_strobo_2026 |
 | `raman_r1_polarization_25mg` | input | [0.5, 0, 0.5] | polarization intensity fractions (sigma+, pi, sigma-) along B | freddy | provisional | clos2017 |
 | `raman_r2_polarization_25mg` | input | [0.5, 0, 0.5] | polarization intensity fractions (sigma+, pi, sigma-) along B | freddy | provisional | clos2017 |
 | `raman_r2_power_25mg` | input | 0.003 | W | freddy | provisional | paula_oc_axial_2026 |
