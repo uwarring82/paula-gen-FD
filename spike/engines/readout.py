@@ -93,8 +93,11 @@ class ReadoutModel:
 
     @classmethod
     def from_ledger(cls, ledger, depump_bright: float = 0.0, leak_dark: float = 0.0):
-        return cls(lam_bright=ledger.value("mg_bright_counts_25mg"),
-                   lam_dark=ledger.value("mg_dark_counts_25mg"),
+        # The bright/dark COUNT LEVELS are inputs (the readout FIDELITIES, compared
+        # against separately, are the benchmarks). Use input_quantity so the wall is
+        # explicit: this diagnostic consumes only inputs.
+        return cls(lam_bright=ledger.input_quantity("mg_bright_counts_25mg").value,
+                   lam_dark=ledger.input_quantity("mg_dark_counts_25mg").value,
                    depump_bright=depump_bright, leak_dark=leak_dark)
 
     def single_shot_fidelity(self) -> float:

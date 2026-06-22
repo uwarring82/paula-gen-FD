@@ -44,7 +44,18 @@ carrier Rabi computed in the SAME relative dipole units (two_photon_rabi_relativ
 So a twin multiplies these dimensionless ratios by the MEASURED flop Rabi -- the
 engine refines the polarization/power factors while staying pinned to the data.
 
-Pure Python; reuses drive.clebsch_gordan, adds a Racah wigner_6j. Frequencies in Hz.
+PUBLIC API (the |mJ> basis is the PRODUCTION path; the F'-basis is a cross-check):
+  * RamanOptics.light_shift / scatter_rate / two_photon_rabi / scalar_vector_shift  -- production
+  * RamanOptics.differential_stark_per_rabi -> DIMENSIONLESS (Hz/Hz): multiply by the
+    measured rabi_hz to get delta_AC [Hz].
+  * RamanOptics.scatter_per_rabi           -> DIMENSIONLESS (Gamma/Delta-like):
+    multiply by 2*pi*rabi_hz to get Gamma_sc [1/s] (the 2pi turns the /2pi Rabi into a
+    rate, matching engines/scatter.py's convention).
+  * coupling / line_coupling_sq (F'-basis, via wigner_6j) -- CROSS-CHECK ONLY; equals
+    the |mJ> sum in the degenerate limit (tested), not used by the production path.
+
+Pure Python; reuses drive.clebsch_gordan, adds a Racah wigner_6j (cross-checked
+against sympy in the tests). Frequencies in Hz.
 """
 from __future__ import annotations
 
@@ -63,8 +74,10 @@ def wigner_6j(j1, j2, j3, j4, j5, j6) -> float:
     """Wigner 6j symbol {j1 j2 j3; j4 j5 j6} via the Racah formula. Returns 0 if any
     triad fails the triangle rule (half-integer arguments allowed)."""
     def tri(a, b, c):
+        # triangle inequality AND integer perimeter (a 6j triad must sum to an integer;
+        # a half-integer perimeter, e.g. (4,3,2.5), is forbidden -> 6j = 0)
         return (a + b - c) >= 0 and (a - b + c) >= 0 and (-a + b + c) >= 0 and \
-               abs(round(2 * (a + b + c)) - 2 * (a + b + c)) < 1e-9
+               abs(round(a + b + c) - (a + b + c)) < 1e-9
 
     triads = ((j1, j2, j3), (j1, j5, j6), (j4, j2, j6), (j4, j5, j3))
     if not all(tri(*t) for t in triads):

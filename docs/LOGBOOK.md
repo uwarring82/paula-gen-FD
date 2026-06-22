@@ -5,6 +5,12 @@ Load-bearing decisions are captured as ADRs under
 [`decisions/`](decisions/README.md) and linked from here. The goal is that the
 *reasoning* behind the repository state is recoverable, not just the state.
 
+> **Looking for the current state, not the history?** See
+> [`STATE_OF_THE_TWIN.md`](STATE_OF_THE_TWIN.md): the validated-benchmark table, the
+> engine registry (validation / diagnostic / raw-data, and which consume benchmarks),
+> the ranked open flags, and the source warnings — maintained, with a glossary. This
+> log is the chronological appendix; that file is the index.
+
 ---
 
 ## 2026-06-22 (later 2) — Polarization+power-resolved Raman optics (fine-structure basis)

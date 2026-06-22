@@ -71,10 +71,16 @@ class SidebandCooling:
 
     @classmethod
     def from_ledger(cls, ledger):
+        """DIAGNOSTIC that DELIBERATELY consumes benchmarks: it inverts each MEASURED
+        RSB-cooled occupation (mg_rsb_cooled_nbar_*, kind=benchmark) for the implied
+        cooling rate kappa, so it is NOT a wall-enforced prediction. The mode
+        frequencies are inputs. We make the boundary explicit -- input_quantity for
+        the omega inputs, benchmark_quantity for the nbar benchmarks -- rather than
+        the unrestricted ledger.value()."""
         spec = [("axial lf", "omega_z_axial_com_25mg", "mg_rsb_cooled_nbar_axial_lf_25mg"),
                 ("radial mf", "omega_radial_mf_25mg", "mg_rsb_cooled_nbar_radial_mf_25mg"),
                 ("radial hf", "omega_radial_hf_25mg", "mg_rsb_cooled_nbar_radial_hf_25mg")]
-        modes = tuple((lab, ledger.value(o), ledger.value(n))
+        modes = tuple((lab, ledger.input_quantity(o).value, ledger.benchmark_quantity(n).value)
                       for lab, o, n in spec if o in ledger and n in ledger)
         return cls(modes=modes)
 

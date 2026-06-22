@@ -47,6 +47,61 @@ def test_f_levels():
     assert f_levels(1.5) == [1.0, 2.0, 3.0, 4.0]
 
 
+def test_wigner_6j_symmetries():
+    # invariant under any column permutation and under swapping upper<->lower in two
+    # columns (Regge symmetries) -- a property test, not a table lookup
+    a = wigner_6j(1.5, 4, 2.5, 3, 0.5, 1)
+    assert a == pytest.approx(wigner_6j(4, 1.5, 2.5, 0.5, 3, 1))        # swap cols 1,2
+    assert a == pytest.approx(wigner_6j(2.5, 4, 1.5, 1, 0.5, 3))        # swap cols 1,3
+    assert a == pytest.approx(wigner_6j(1.5, 0.5, 1, 3, 4, 2.5))        # swap rows in cols 2,3
+
+
+def test_wigner_6j_vs_sympy():
+    # cross-check the hand-rolled Racah 6j against sympy over a range of (half-)integer
+    # arguments incl. the I=5/2 / J'=3/2 values the engine actually uses (reviewer rec).
+    sympy_wigner = pytest.importorskip("sympy.physics.wigner")
+    from sympy import Rational
+
+    def toR(x):
+        return Rational(int(round(2 * x)), 2)
+
+    args = [(1, 1, 1, 1, 1, 1), (0.5, 0.5, 1, 0.5, 0.5, 1), (1, 1, 2, 1, 1, 2),
+            (1.5, 4, 2.5, 3, 0.5, 1), (1.5, 3, 2.5, 3, 0.5, 1), (1.5, 2, 2.5, 2, 0.5, 1),
+            (2.5, 2.5, 1, 1.5, 1.5, 1), (4, 4, 1, 3, 3, 2.5)]
+    for t in args:
+        try:
+            ref = float(sympy_wigner.wigner_6j(*[toR(x) for x in t]))
+        except ValueError:
+            ref = 0.0                      # sympy raises on triangle violation; we return 0
+        assert wigner_6j(*t) == pytest.approx(ref, abs=1e-12)
+
+
+def test_clebsch_gordan_vs_sympy():
+    sympy_cg = pytest.importorskip("sympy.physics.quantum.cg")
+    from spike.engines.drive import clebsch_gordan
+    from sympy import Rational, S
+
+    def toR(x):
+        return Rational(int(round(2 * x)), 2)
+
+    cases = [(0.5, 0.5, 2.5, 2.5, 3, 3), (0.5, -0.5, 2.5, 2.5, 2, 2),
+             (3, 3, 1, -1, 4, 2), (1.5, 0.5, 1.5, -0.5, 1, 0)]
+    for j1, m1, j2, m2, j3, m3 in cases:
+        ref = float(sympy_cg.CG(toR(j1), toR(m1), toR(j2), toR(m2), toR(j3), toR(m3)).doit())
+        assert clebsch_gordan(j1, m1, j2, m2, j3, m3) == pytest.approx(ref, abs=1e-12)
+
+
+def test_clebsch_gordan_orthogonality():
+    # sum_{m1 m2} CG(j1 m1 j2 m2|J M) CG(j1 m1 j2 m2|J' M') = delta_{JJ'} delta_{MM'}
+    from spike.engines.drive import clebsch_gordan
+    j1, j2 = 0.5, 2.5      # the S1/2 (x) I=5/2 decomposition used by hf_amplitude
+    for (J, M), (Jp, Mp) in [((3, 3), (3, 3)), ((3, 2), (2, 2)), ((2, 2), (2, 2)), ((3, 1), (2, 1))]:
+        s = sum(clebsch_gordan(j1, m1, j2, M - m1, J, M) * clebsch_gordan(j1, m1, j2, Mp - m1, Jp, Mp)
+                for m1 in (0.5, -0.5))
+        expect = 1.0 if (J == Jp and M == Mp) else 0.0
+        assert s == pytest.approx(expect, abs=1e-12)
+
+
 def test_cycling_transition_is_pure_p32():
     # |3,3> + sigma+ couples ONLY to the P3/2 cycling state (P1/2 max F'=3 -> mF'=4 impossible)
     assert line_coupling_sq(3, 3, +1, 0.5) == pytest.approx(0.0)
