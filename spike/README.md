@@ -171,6 +171,22 @@ mutual linewidth Δν / coherence time T_φ it implies (`mutual_linewidth_from_r
 as the **alternative to a hot motional state** — the two are degenerate in one flop.
 See [ADR-0007](../docs/decisions/0007-raman-scatter-vs-dephasing-in-flop-twin.md).
 
+## Discriminator: sideband thermometry (`twin_sideband`)
+
+[`twin_sideband.py`](twin_sideband.py) (`python -m spike.twin_sideband`) settles the
+question `twin_oc_flop` left degenerate — was the OC carrier-flop contrast loss
+**motional** or **Raman-beam dephasing**? — with the RSB+BSB sideband scan
+([`OC_Axial/1_1R_LF_MA`](../sources/data/OC_Axial/1_1R_LF_MA/)). That file drives a
+blue-sideband pulse (counter 0) AND a red-sideband pulse (counter 1) per shot, so it
+holds **two** flop blocks (`DatFile.counter_blocks`). The blue (adds a phonon) flops
+fully while the red (subtracts) is **near-constant** — the ground state can't subtract
+— and the RSB/BSB peak ratio is the direct thermometer n̄/(n̄+1) (`sideband.thermal_
+sideband_flip`, η√n vs η√(n+1)). Result: **n̄ = 0.27 ± 0.13 (COLD)**, far below the
+carrier's apparent n̄_eff = 1.06. Decomposing the carrier decay at the *measured* n̄:
+**~64% Raman-beam dephasing** (Δν ≈ 21 kHz, T_φ ≈ 15 µs) + ~36% motional — the
+apparent "hot ion" was Raman dephasing posing as motion. Figure
+[`../docs/figures/twin_sideband_thermometry.png`](../docs/figures/twin_sideband_thermometry.png).
+
 ## Integrated twin: OC axial carrier flop (`twin_oc_flop`)
 
 [`twin_oc_flop.py`](twin_oc_flop.py) (`python -m spike.twin_oc_flop`) is the twin of
@@ -344,7 +360,7 @@ spike/
     drive.py        relative microwave Rabi couplings (Clebsch-Gordan)
     cooling.py      two-level scattering rate + Doppler limit + occupation
     projection.py   Raman combination -> motional mode (Delta_k . mode axis)
-    sideband.py     absolute Lamb-Dicke + sideband Rabi + Raman differential AC-Stark + carrier Debye-Waller thermal dephasing
+    sideband.py     absolute Lamb-Dicke + sideband Rabi + Raman differential AC-Stark + carrier Debye-Waller + thermal RSB/BSB flops (nbar thermometry)
     acstark.py      far-detuned single-beam light shift (BDD vs Hasse)
     scatter.py      Raman off-resonant scattering (Gamma_sc, P_SE/pi) + differential AC-Stark + flip_probability
     raman_optical.py polarization+power-resolved light shifts + scattering (|J',mJ'> basis; scalar/vector; 6j cross-check)
@@ -362,6 +378,7 @@ spike/
   twin_freqscan.py  Rabi vs Ramsey FREQUENCY scans (tau=100/300/600us), resolution-matched windows (-> figure)
   twin_detection.py realistic detection: depumping count tail + optional ML readout (-> figure)
   twin_oc_flop.py   OC axial Raman carrier-flop twin: coherent x AC-Stark x scatter x motional (n_bar) vs .dat + n_bar_eff inversion (-> figure)
+  twin_sideband.py  sideband thermometry discriminator: RSB/BSB ratio -> n_bar (cold) -> carrier loss is mostly Raman dephasing (-> figure)
   analyze_data.py   raw-data analysis (rabi + detection on the .dat examples)
   validate_twin.py  CLI shim -> runner.main
   test_levels.py    levels physics + Weber/Doerr benchmarks + hyperfine spectrum

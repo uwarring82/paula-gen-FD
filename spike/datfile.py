@@ -115,6 +115,27 @@ class DatFile:
         sig = sorted(max(blocks, key=_var), key=lambda r: r[0])
         return [r[0] for r in sig], [r[1] for r in sig], [r[2] for r in sig]
 
+    def counter_blocks(self):
+        """ALL counter blocks in FILE ORDER, each as (x, y, sigma) sorted by x. Unlike
+        signal() (which keeps only the highest-variance block and treats the rest as a
+        reference), this returns every block -- needed when BOTH counters carry real
+        signal, e.g. a sequence that drives a BSB pulse (counter 0) AND an RSB pulse
+        (counter 1) and gates each into its own detection window (the 1R_LF_MA / BSB_RSB
+        scans). The caller maps blocks to physical meaning by apparatus convention."""
+        if not self._data:
+            return []
+        blocks = [[self._data[0]]]
+        for row in self._data[1:]:
+            if len(blocks[-1]) > 1 and row[0] <= blocks[-1][0][0]:
+                blocks.append([row])
+            else:
+                blocks[-1].append(row)
+        out = []
+        for blk in blocks:
+            srt = sorted(blk, key=lambda r: r[0])
+            out.append(([r[0] for r in srt], [r[1] for r in srt], [r[2] for r in srt]))
+        return out
+
     # --- per-shot count histograms -----------------------------------------
     def histograms(self):
         """List of per-scan-point count histograms, each a dict {count: n_shots},

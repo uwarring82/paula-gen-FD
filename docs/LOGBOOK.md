@@ -13,6 +13,41 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-22 (later 5) — Sideband thermometry RESOLVES it: the carrier loss is mostly Raman dephasing
+
+UW: to distinguish the two effects [motional vs Raman dephasing], look at the
+OC_Axial/1_1R_LF_MA dataset — it shows motional adding and subtracting flops on the
+sidebands. (And the correction mid-analysis: "the near constant is the RSB flop".)
+
+The file drives, per shot, a BLUE-sideband pulse (counter 0) AND a RED-sideband pulse
+(counter 1) vs t_lf_1R, gating each into its own detection window -> TWO real flop
+blocks. DatFile.signal() kept only the high-variance one (treating the other as a
+reference); added **DatFile.counter_blocks()** to return BOTH. Mapping (UW-confirmed,
+inferred from the script's counter_gate / counter_gate_2): block 0 = BSB (full flop,
+adds a phonon), block 1 = RSB (near-constant -- the n=0 ground state cannot subtract).
+
+**The RSB/BSB asymmetry is the direct thermometer** (engines.sideband.thermal_
+sideband_flip / sideband_rabi_factor: red eta*sqrt(n) vanishes at n=0, blue
+eta*sqrt(n+1)): A_RSB/A_BSB = nbar/(nbar+1). Measured BSB peak P_flip = 0.86 (full),
+RSB peak = 0.18 (near-constant) -> ratio 0.21 -> **nbar = 0.27 ± 0.13 (COLD)**
+(Gaussian per-point bootstrap). twin_sideband.py + figure
+docs/figures/twin_sideband_thermometry.png (the BSB shows a clean collapse-revival --
+coherent motional "adding"; the RSB stays flat).
+
+**RESOLUTION of the carrier-flop degeneracy (flag #2).** The carrier alone read
+nbar_eff = 1.06 IF all-motional; the sideband says nbar = 0.27 (cold), ~6 sigma below.
+Decomposing the carrier decay (1.01e5 /s) at the MEASURED nbar = 0.27: motional
+Debye-Waller + scattering = 3.6e4 /s (36%); **Raman-beam dephasing remainder = 6.5e4
+/s (64%), dnu = 21 kHz, T_phi = 15 us**. So the OC carrier-flop contrast loss is
+DOMINATED by Raman-beam dephasing -- the apparent "hot ion" (nbar~1) was the Raman
+dephasing posing as motion. This validates the later-4 raman_dephasing engine and
+breaks the degeneracy with a direct, independent nbar. (Caveat: nbar=0.27 still
+exceeds the RSB-cooled benchmark 0.07 -- this sequence adds motion; and the Raman
+mutual linewidth still has no direct measurement.) State of the Twin flag #2 -> resolved.
+Tests 244 -> 250 (+3 sideband engine, +3 twin_sideband); validator green.
+
+---
+
 ## 2026-06-22 (later 4) — Raman-beam dephasing engine: an alternative cause for the OC-flop contrast loss
 
 UW: include an engine for dephasing of the two Raman beams as an additional effect

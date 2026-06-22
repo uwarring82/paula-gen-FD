@@ -171,3 +171,33 @@ def test_carrier_thermal_flip_method_matches_function():
     eta = sb.lamb_dicke("OC", "lf", 1.30e6)
     assert sb.carrier_thermal_flip("OC", "lf", 1.30e6, 2.0e5, 0.3, 3e-6) == pytest.approx(
         thermal_carrier_flip(3e-6, 2.0e5, eta, 0.3))
+
+
+# --- thermal sideband flop (RSB/BSB thermometry) ---------------------------
+def test_sideband_rabi_factor_red_blue():
+    from spike.engines.sideband import sideband_rabi_factor
+    assert sideband_rabi_factor(0.39, 0, "red") == 0.0           # ground state can't subtract
+    assert sideband_rabi_factor(0.39, 0, "blue") == pytest.approx(0.39)   # n=0 -> n=1 ok
+    assert sideband_rabi_factor(0.39, 4, "red") == pytest.approx(0.39 * 2.0)   # sqrt(4)=2
+    assert sideband_rabi_factor(0.39, 3, "blue") == pytest.approx(0.39 * 2.0)  # sqrt(3+1)=2
+
+
+def test_thermal_sideband_red_suppressed_when_cold():
+    from spike.engines.sideband import thermal_sideband_flip
+    ts = [0.5e-6 * k for k in range(40)]
+    red_cold = max(thermal_sideband_flip(t, 80e3, 0.39, 0.05, "red") for t in ts)
+    blue_cold = max(thermal_sideband_flip(t, 80e3, 0.39, 0.05, "blue") for t in ts)
+    assert red_cold < 0.1                       # cold RSB barely flops (n=0 stuck)
+    assert blue_cold > 0.8                       # cold BSB flops nearly fully
+    # red amplitude grows with nbar (thermometer)
+    red_warm = max(thermal_sideband_flip(t, 80e3, 0.39, 1.0, "red") for t in ts)
+    assert red_warm > red_cold
+
+
+def test_thermal_sideband_red_amplitude_tracks_1_minus_P0():
+    from spike.engines.sideband import thermal_sideband_flip, thermal_pn
+    ts = [0.3e-6 * k for k in range(80)]
+    for nbar in (0.1, 0.5, 2.0):
+        red_peak = max(thermal_sideband_flip(t, 80e3, 0.39, nbar, "red") for t in ts)
+        # the red flop saturates near (1 - P_0)/2 <= 1 - P_0 (only n>=1 can flop)
+        assert red_peak <= (1.0 - thermal_pn(nbar, 0)) + 1e-6

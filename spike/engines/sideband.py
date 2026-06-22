@@ -180,6 +180,36 @@ def thermal_carrier_flip(t_s: float, rabi0_hz: float, eta: float, nbar: float,
     return num / wsum if wsum > 0.0 else 0.0
 
 
+def sideband_rabi_factor(eta: float, n: int, order: str = "red") -> float:
+    """First-order (Lamb-Dicke) sideband Rabi reduction Omega_{n,n-+1}/Omega_0: red
+    |n>->|n-1> = eta*sqrt(n) (ZERO at n=0 -- the ground state has no phonon to remove),
+    blue |n>->|n+1> = eta*sqrt(n+1). The red sideband's vanishing at n=0 is the
+    thermometer: a cold ion barely flops on the red."""
+    return eta * math.sqrt(n if order == "red" else n + 1)
+
+
+def thermal_sideband_flip(t_s: float, rabi0_hz: float, eta: float, nbar: float,
+                          order: str = "red", gamma_common_hz: float = 0.0,
+                          n_max: int | None = None) -> float:
+    """Thermal RED/BLUE sideband-flop P(flipped) at duration t_s: sum_n P_n *
+    sin^2(pi Omega_{n,n-+1} t), Omega_{n,n-+1} = sideband_rabi_factor * Omega_0. On the
+    RED sideband the n=0 population CANNOT flop (no phonon to subtract), so the flop
+    saturates at (1 - P_0)/2 -- a direct motional thermometer. `gamma_common_hz` damps
+    the oscillation (a dephasing SHARED with the carrier: scattering + Raman-beam
+    phase noise); the sideband flop's own decay therefore BOUNDS that common channel."""
+    nmax = _thermal_nmax(nbar) if n_max is None else n_max
+    num = wsum = 0.0
+    for n in range(nmax + 1):
+        pn = thermal_pn(nbar, n)
+        wsum += pn
+        f = rabi0_hz * sideband_rabi_factor(eta, n, order)
+        if f <= 0.0:
+            continue                                   # red n=0: no flop (contributes 0)
+        env = math.exp(-gamma_common_hz * t_s) if gamma_common_hz > 0.0 else 1.0
+        num += pn * 0.5 * (1.0 - env * math.cos(2.0 * math.pi * f * t_s))
+    return num / wsum if wsum > 0.0 else 0.0
+
+
 def thermal_coherence(t_s: float, rabi0_hz: float, eta: float, nbar: float,
                       n_max: int | None = None) -> float:
     """Magnitude of the carrier dephasing envelope, |sum_n P_n e^{i 2pi Omega_n t}|
