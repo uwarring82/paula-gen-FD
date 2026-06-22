@@ -391,6 +391,35 @@
   caveats: "Benchmark for a future sideband-cooling engine (cf. doppler_cooled_occupation_25mg ~10, Doppler). Overall RSB cooling: ground-state fidelity ~90%, T ~ 26 uK."
   status: provisional
 
+- name: mg_sideband_nbar_oc_lf_ma_25mg
+  value: 0.27                     # axial lf nbar in the OC 1R_LF_MA run (RSB/BSB ratio)
+  units: dimensionless
+  kind: benchmark
+  uncertainty: {value: 0.13, type: statistical}   # bootstrap of the RSB/BSB peak ratio
+  source:
+    ref: paula_oc_axial_2026
+    loc: "OC_Axial/1_1R_LF_MA, analyzed by twin_sideband"
+    extraction_note: >-
+      Axial lf mean phonon number from the red/blue sideband-flop amplitude ratio:
+      A_RSB/A_BSB = nbar/(nbar+1). Measured BSB peak P_flip = 0.86 (full -- adds a
+      phonon, works at n=0), RSB peak = 0.18 (near-constant -- the n=0 ground state
+      cannot subtract) -> ratio 0.21 -> nbar = 0.27(13), Gaussian per-point bootstrap.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-22
+  scope: {isotope: 25Mg, subsystem: motion}
+  observation_type: fitted
+  derived_from: []
+  generation: freddy
+  measured_on: 2026-06-12
+  conditions: "Single 25Mg+; OC 1R_LF_MA sequence (drives BSB + RSB pulses per shot); axial lf mode ~1.3 MHz"
+  caveats: >-
+    THIS run/sequence ADDS motion (the BSB shows a coherent collapse-revival), so nbar
+    = 0.27 is the motional state of this measurement, NOT the cooling floor
+    (mg_rsb_cooled_nbar_axial_lf_25mg ~ 0.07). It is COLD relative to the OC carrier
+    flop's apparent all-motional nbar_eff ~ 1.06 -- that is the point: it shows the
+    carrier loss is mostly Raman-beam dephasing (raman_mutual_linewidth_25mg), not motion.
+  status: provisional
+
 - name: mg_rsb_cooled_nbar_radial_mf_25mg
   value: 0.11                     # radial mid-frequency (mf, ~2.7 MHz) mode
   units: dimensionless

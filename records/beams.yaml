@@ -241,6 +241,66 @@
   caveats: "Balanced linear (C=0) from Clos Tab. 3.2. PROVISIONAL: circular contamination would add a large vector shift; confirm the actual Stokes vector along B."
   status: provisional
 
+# --- Raman-beam coherence (INFERRED from the OC flop + sideband thermometry) -
+
+- name: raman_mutual_linewidth_25mg
+  value: 2.1e4                    # Hz, relative two-photon linewidth of the two beams
+  units: Hz
+  kind: benchmark
+  uncertainty: {value: 1.0e4, type: systematic}   # degenerate inference -> ~50%
+  source:
+    ref: paula_oc_axial_2026
+    loc: "OC_Axial/0_Car_Flop + 1_1R_LF_MA, analyzed by twin_oc_flop + twin_sideband"
+    extraction_note: >-
+      Relative optical phase/frequency linewidth (mutual coherence) of the two Raman
+      beams, INFERRED -- not directly measured. The OC carrier flop loses ~60% contrast
+      over the scan; the RSB/BSB sideband ratio (1_1R_LF_MA) fixes the motional
+      occupation at nbar = 0.27(13), so the carrier Debye-Waller + scattering account
+      for only ~36% of the decay and the remainder is Raman-beam dephasing: contrast
+      decay ~6.5e4/s -> mutual linewidth dnu = Gamma_phi/pi ~ 21 kHz (T_phi ~ 15 us).
+      DEGENERATE inference (carrier alone could not separate motion from dephasing);
+      confirm with a direct beat-note-linewidth or path-stability measurement.
+    extracted_by: claude-agent
+    extracted_on: 2026-06-22
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: inferred
+  derived_from: []
+  generation: freddy
+  measured_on: 2026-06-12
+  conditions: "TPSR OC (B1 pi + R2) on the axial lf mode; single 25Mg+; from the carrier-flop residual at the sideband-measured nbar"
+  caveats: >-
+    INFERRED, not measured -- the carrier/sideband split is model-dependent (depends on
+    the resolved AC-Stark + scattering + Debye-Waller channels). Equivalent to a
+    differential beam-path jitter ~ lambda/2pi ~ 45 nm over T_phi (see
+    raman_beam_path_jitter_25mg). A STATIC path imbalance is excluded; the cause is
+    dynamic path jitter (acoustic/vibration) and/or RF-phase / pointing noise.
+  status: provisional
+
+- name: raman_beam_path_jitter_25mg
+  value: 5.9e-3                   # m/s, differential Raman-arm path-jitter speed
+  units: m/s
+  kind: benchmark                 # derived from a benchmark -> stays benchmark
+  uncertainty: {value: 3.0e-3, type: systematic}
+  source:
+    ref: paula_oc_axial_2026
+    loc: "derived: v = lambda * dnu (raman_dephasing.path_jitter_velocity)"
+    extraction_note: >-
+      Differential beam-path-length jitter speed of the two Raman arms implied by the
+      mutual linewidth: a moving path Doppler-shifts the beat note, v = lambda * dnu =
+      279.6 nm * 21 kHz ~ 5.9 mm/s. Equivalently the differential path must be stable to
+      << lambda (lambda/2pi ~ 45 nm; ~14 nm per 2.4-us pi-pulse) on the us-10us flop
+      timescale. Uses the full optical k (differential, post-split path noise; common-
+      mode path before the split cancels in phi_B - phi_R).
+    extracted_by: claude-agent
+    extracted_on: 2026-06-22
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: derived
+  derived_from: [raman_mutual_linewidth_25mg, bd_laser_wavelength]
+  generation: freddy
+  measured_on: 2026-06-12
+  caveats: "Inherits the mutual-linewidth inference (degenerate, model-dependent). A STATIC imbalance is excluded; this is the DYNAMIC differential path stability the Raman arms must beat."
+  status: provisional
+
 # --- shared constants -------------------------------------------------------
 
 - name: mg_p32_natural_linewidth

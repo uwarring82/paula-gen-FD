@@ -454,3 +454,15 @@ paula_trapsim_2018:
   archived: false
   verified: false
   note: "Local: sources/Mathematica/Notes_PAULA_TrapSimulations_2018_10_31.nb."
+
+paula_oc_axial_2026:
+  title: "PAULA OC-axial Raman flop + sideband dataset (2026-06-12)"
+  author: "PAULA group (U. Warring et al.)"
+  year: 2026
+  degree: misc
+  archived: false
+  verified: false
+  note: >-
+    Local: sources/data/OC_Axial/ (group's own .dat scans, 2026-06-12; carrier flop,
+    1st red/blue sideband flops). Quantities inferred by spike/twin_oc_flop +
+    twin_sideband (kalis2017 is the .dat FORMAT ref, not the data origin).

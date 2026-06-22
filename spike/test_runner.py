@@ -99,5 +99,10 @@ def test_uncovered_benchmarks_flags_missing_engine():
         "mg_rsb_cooled_nbar_axial_lf_25mg",
         "mg_rsb_cooled_nbar_radial_mf_25mg",
         "mg_rsb_cooled_nbar_radial_hf_25mg",
+        # INFERRED apparatus properties (twin_oc_flop + twin_sideband), not zero-
+        # parameter predictions -> diagnostics, no sigma engine (raman_beam_path_jitter
+        # is excluded above as derived_from != []).
+        "raman_mutual_linewidth_25mg",
+        "mg_sideband_nbar_oc_lf_ma_25mg",
     }
     assert set(uncovered_benchmarks(ledger)) == pending
