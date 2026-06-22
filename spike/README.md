@@ -128,6 +128,33 @@ diagnostic — there is **no measured Raman-scattering decoherence rate** to
 σ-validate against (cf. the unanchored differential shift in `sideband`); the
 tests pin the formula identities, the balanced collapse, and the `1/Δ_R` scaling.
 
+## Engine: `raman_optical` (polarization+power-resolved light shifts & scattering)
+
+[`engines/raman_optical.py`](engines/raman_optical.py) resolves the Raman AC-Stark
+shift and off-resonant scattering by **each beam's polarization and power** — both of
+which the scalar `scatter` engine ignored. It works in the **fine-structure
+|P_J' mJ'> basis** for the excited manifold (at Δ_R = 20 GHz the 3P hyperfine/Zeeman
+is unresolved, so F', mF' are *not* good quantum numbers for P), with the ground
+|S₁/₂ F mF> decomposed into |mJ, mI> (nuclear spin mI a spectator of the optical
+dipole). Each beam carries a (σ⁺,π,σ⁻) intensity decomposition + a relative power;
+`light_shift`, `scatter_rate`, and the mI-conserving `two_photon_rabi` sum over
+q, J'. The dimensionless ratios `differential_stark_per_rabi` / `scatter_per_rabi`
+(δ_AC and Γ_sc per unit two-photon Rabi) are anchored to the **measured** flop, so
+the absolute field scale cancels. The **scalar+vector polarizability**
+(`scalar_vector_shift`; tensor = 0 for ²S₁/₂) is the transparent summary.
+
+The old |F',mF'>-basis sum (`coupling`, via a Wigner 6j) is retained **only as a
+degenerate-limit cross-check**: it equals the |mJ> sum to machine precision (basis
+independence — tested). Validated against the cycling transition, the sublevel/F-
+independent sum rule, and exact D2:D1 = 2:1 line strengths. Key result: since
+Δ_R ≪ Δ_FS the laser sits essentially on P₃/₂ alone, so the **vector shift is not
+fine-structure-suppressed** (~0.5× scalar for circular light) — a **10% circular
+contamination of R2 changes the differential shift ~47%**. For the OC run it gives
+δ_AC = −44.5 kHz (vs the scalar +18.6 kHz) and Γ_sc ~2× the scalar estimate. Records
+(provisional): `mg_fine_structure_splitting_3p_25mg` (derived, 2.746 THz) +
+`raman_{b1,b3,r1,r2}_polarization_25mg` (Clos Tab. 3.2; geometry/B3 **flagged**). See
+[ADR-0008](../docs/decisions/0008-polarization-power-resolved-raman-optics.md).
+
 ## Integrated twin: OC axial carrier flop (`twin_oc_flop`)
 
 [`twin_oc_flop.py`](twin_oc_flop.py) (`python -m spike.twin_oc_flop`) is the twin of
@@ -302,6 +329,7 @@ spike/
     sideband.py     absolute Lamb-Dicke + sideband Rabi + Raman differential AC-Stark + carrier Debye-Waller thermal dephasing
     acstark.py      far-detuned single-beam light shift (BDD vs Hasse)
     scatter.py      Raman off-resonant scattering (Gamma_sc, P_SE/pi) + differential AC-Stark + flip_probability
+    raman_optical.py polarization+power-resolved light shifts + scattering (|J',mJ'> basis; scalar/vector; 6j cross-check)
     rabi.py         damped Rabi-flop fit -> Omega (raw .dat duration scans)
     detection.py    bright/dark discrimination: threshold + fidelity + depumping/leak PMF + ML readout
     readout.py      single-shot fidelity + Fisher/Cramer-Rao P_down precision (diagnostic)

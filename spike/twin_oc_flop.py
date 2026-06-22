@@ -56,6 +56,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 from .datfile import DatFile  # noqa: E402
 from .engines.rabi import fit_rabi  # noqa: E402
+from .engines.raman_optical import RamanOptics, beams_from_ledger  # noqa: E402
 from .engines.scatter import CONTRAST_DECAY_FACTOR, RamanScatter  # noqa: E402
 from .engines.sideband import Sideband, thermal_coherence  # noqa: E402
 from .ledger import Ledger  # noqa: E402
@@ -80,7 +81,8 @@ class OCFlopTwin:
 
     def __init__(self, rabi_hz: float, scatter: RamanScatter, sideband: Sideband,
                  omega_lf_hz: float, nbar: float, mu_bright: float, mu_dark: float,
-                 balance: float = 1.0, n_shots: int = 40):
+                 balance: float = 1.0, n_shots: int = 40,
+                 gamma_sc_hz: float = None, delta_ac_hz: float = None):
         self.rabi = rabi_hz
         self.sc = scatter
         self.sb = sideband
@@ -91,9 +93,11 @@ class OCFlopTwin:
         self.balance = balance
         self.n_shots = n_shots
         self.eta = sideband.lamb_dicke("OC", "lf", omega_lf_hz)
-        self.gamma_sc = scatter.scatter_rate(rabi_hz, balance)
+        # scattering + differential AC-Stark: the polarization+power-resolved engine
+        # (raman_optical) when supplied, else the scalar/leading-order scatter engine.
+        self.gamma_sc = scatter.scatter_rate(rabi_hz, balance) if gamma_sc_hz is None else gamma_sc_hz
+        self.delta_ac = scatter.stark_detuning(rabi_hz) if delta_ac_hz is None else delta_ac_hz
         self.gamma_sc_contrast = CONTRAST_DECAY_FACTOR * self.gamma_sc
-        self.delta_ac = scatter.stark_detuning(rabi_hz)
         self.omega_eff = math.hypot(rabi_hz, self.delta_ac)
         self.amp_cap = (rabi_hz * rabi_hz) / (self.omega_eff * self.omega_eff)
 
@@ -191,9 +195,24 @@ def build(path=_DATAFILE):
     hists = [DatFile.hist_mean(h) for h in dat.histograms()]
     mu_bright, mu_dark = max(hists), min(hists)
 
+    # POLARIZATION + POWER-RESOLVED differential AC-Stark + scattering (raman_optical):
+    # OC = B1 (pi) + R2 (linear), per-beam powers from the .dat (pwr_b1/pwr_r2). The
+    # dimensionless ratios are anchored to the measured Rabi (delta_AC[Hz] = ratio*rabi;
+    # Gamma_sc[1/s] = ratio*2pi*rabi -- matching the scalar engine's conventions).
+    optics = RamanOptics.from_ledger(ledger)
+    powers = {"b1": dat.settings.get("pwr_b1", 1.0), "r2": dat.settings.get("pwr_r2", 1.0)}
+    bB, bR = beams_from_ledger(ledger, "OC", powers=powers)
+    beams = [bB, bR]
+    delta_ac = optics.differential_stark_per_rabi(beams, bB, bR) * rabi
+    gamma_sc = optics.scatter_per_rabi(beams, bB, bR, state=(3.0, 3.0)) * 2.0 * math.pi * rabi
+    # leading-order (scalar) values, for the old-vs-new comparison in the report
+    delta_ac_scalar = scatter.stark_detuning(rabi)
+    gamma_sc_scalar = scatter.scatter_rate(rabi)
+
     twin = OCFlopTwin(rabi_hz=rabi, scatter=scatter, sideband=sideband,
                       omega_lf_hz=omega_lf, nbar=nbar_rsb,
-                      mu_bright=mu_bright, mu_dark=mu_dark, n_shots=dat.scan["shots"])
+                      mu_bright=mu_bright, mu_dark=mu_dark, n_shots=dat.scan["shots"],
+                      gamma_sc_hz=gamma_sc, delta_ac_hz=delta_ac)
 
     g_floor = twin.effective_decay(nbar_rsb)                      # scatter + thermal@nbar_rsb
     g_thermal = max(0.0, g_floor - twin.gamma_sc_contrast)        # thermal-only contribution
@@ -208,6 +227,10 @@ def build(path=_DATAFILE):
         "delta_ac": twin.delta_ac, "amp_cap": twin.amp_cap, "se_per_pi": scatter.se_per_pi(),
         "gamma_sc_rate": twin.gamma_sc, "mu_bright": mu_bright, "mu_dark": mu_dark,
         "tspan_us": t[-1] if t else 0.0,
+        # polarization+power-resolved vs leading-order (scalar) comparison
+        "delta_ac_scalar": delta_ac_scalar, "gamma_sc_scalar": gamma_sc_scalar,
+        "pwr_b1": powers["b1"], "pwr_r2": powers["r2"],
+        "circ_b1": optics.circular_fraction(bB), "circ_r2": optics.circular_fraction(bR),
     }
     return twin, fit, info
 
@@ -230,12 +253,17 @@ def report(info) -> str:
         "  Omega/2pi = %.1f kHz   t_pi = %.2f us   (fit chi2_red = %.1f)" % (
             info["rabi_hz"] / 1e3, info["t_pi_us"], info["chi2r"]),
         "",
-        "AC-STARK (ledger: omega_HF/Delta_R):  delta_AC = %.1f kHz -> amplitude cap %.4f "
-        "(%.2f%% loss)" % (info["delta_ac"] / 1e3, info["amp_cap"], 100.0 * (1.0 - info["amp_cap"])),
+        "AC-STARK — polarization+power resolved (raman_optical, full |J',mJ'> sum):",
+        "  OC = B1(pi, pwr %.3f, C=%+.2f) + R2(linear, pwr %.3f, C=%+.2f)" % (
+            info["pwr_b1"], info["circ_b1"], info["pwr_r2"], info["circ_r2"]),
+        "  delta_AC = %+.1f kHz -> amplitude cap %.4f (%.2f%% loss)   "
+        "[scalar omega_HF/Delta_R: %+.1f kHz]" % (
+            info["delta_ac"] / 1e3, info["amp_cap"], 100.0 * (1.0 - info["amp_cap"]),
+            info["delta_ac_scalar"] / 1e3),
         "",
         "LEDGER-ANCHORED DECAY CHANNELS (effective rate; %% of the observed decay):",
-        "  scattering  (Gamma/Delta_R):        %.2e /s  (%.0f%%)  P_SE/pi = %.2f%%" % (
-            info["g_sc"], frac(info["g_sc"]), 100.0 * info["se_per_pi"]),
+        "  scattering  (full mJ sum):           %.2e /s  (%.0f%%)  [scalar Gamma/Delta_R: %.2e /s]" % (
+            info["g_sc"], frac(info["g_sc"]), CONTRAST_DECAY_FACTOR * info["gamma_sc_scalar"]),
         "  motional    (eta=%.3f, nbar=%.2f):  %.2e /s  (%.0f%%)  carrier Debye-Waller" % (
             info["eta"], info["nbar_rsb"], info["g_thermal"], frac(info["g_thermal"])),
         "  -> ledger floor (scatter+motional):  %.2e /s  (%.0f%%)" % (

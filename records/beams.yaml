@@ -145,6 +145,102 @@
     (NOT a conflict, just a different trap frequency).
   status: provisional
 
+# --- Raman-beam polarizations + the fine-structure splitting ----------------
+# Polarization- and power-resolved Raman light shifts / scattering (engine:
+# spike/engines/raman_optical.py) need (a) the 3P_1/2-3P_3/2 fine-structure
+# splitting and (b) each beam's polarization decomposition along the quantization
+# axis B. POWER is a per-RUN setting (the .dat pwr_b1/b3/r1/r2), read by the twin;
+# only the apparatus POLARIZATION + the atomic fine structure are recorded here.
+
+- name: mg_fine_structure_splitting_3p_25mg
+  value: 2.7457e12               # Hz = c(1/lambda_P32 - 1/lambda_P12); ~2.746 THz
+  units: Hz
+  kind: input                     # derived purely from inputs -> stays input
+  uncertainty: {value: 1.0e9, type: systematic}   # wavelength-rounding dominated
+  source:
+    ref: clos2017
+    loc: "derived: Delta_FS = c(1/lambda(P3/2) - 1/lambda(P1/2))"
+    extraction_note: >-
+      25Mg+ 3p 2P_1/2 - 2P_3/2 fine-structure splitting, derived ledger-internally
+      from the two recorded D-line wavelengths bd_laser_wavelength (279.635 nm,
+      S1/2->P3/2) and rd_laser_wavelength (280.353 nm, S1/2->P1/2):
+      Delta_FS = c(1/279.635 - 1/280.353) nm^-1 = 2.7457e12 Hz. P3/2 is the higher
+      level (shorter wavelength). Sets the sign/size of the vector light shift and
+      the spin-flip (Raman) scattering: Delta_R = 20 GHz << Delta_FS, so the laser
+      sits essentially on P3/2 alone and the vector shift is NOT fine-structure-
+      suppressed (~0.5x the scalar for circular light).
+    extracted_by: claude-agent
+    extracted_on: 2026-06-22
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: derived
+  derived_from: [bd_laser_wavelength, rd_laser_wavelength]
+  generation: legacy
+  caveats: >-
+    From the two cited wavelengths (3 d.p. in nm), so good to ~1 GHz; a measured
+    3p fine-structure interval would tighten it. Independent of the Raman epoch.
+  status: provisional
+
+# Per-beam polarizations as INTENSITY fractions (sigma+, pi, sigma-) along the
+# quantization axis B. Clos Tab. 3.2 gives the beam-FRAME polarizations (B1 pi,
+# R1 sigma+ + sigma-, R2 sigma+ - sigma-); R1 and R2 are orthogonal LINEAR (perp
+# to B) -> equal |sigma+|^2, |sigma-|^2, no pi (they differ only by a relative
+# PHASE, which does not enter single-beam |C|^2 sums). FLAG (needs UW): the
+# lab-frame -> B-axis projection depends on the beam-propagation geometry, which
+# the theses do not fully tabulate; B3's polarization is not stated at all. These
+# are PROVISIONAL seeds -- refine with the apparatus geometry / measured Stokes.
+
+- name: raman_b1_polarization_25mg
+  value: [0.0, 1.0, 0.0]          # (sigma+, pi, sigma-) intensity fractions along B
+  units: "polarization intensity fractions (sigma+, pi, sigma-) along B"
+  kind: input
+  uncertainty: {value: 0.0, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.2 (B1 pi)", extraction_note: "Raman blue beam B1 is pi-polarized (Clos Tab. 3.2). Recorded as pure pi along B; the beam-frame->B projection geometry is NOT fully pinned in the theses (FLAG: needs UW).", extracted_by: claude-agent, extracted_on: 2026-06-22}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  caveats: "Beam-frame polarization from Clos Tab. 3.2; the projection onto B assumes pi || B. PROVISIONAL: confirm against the apparatus geometry."
+  status: provisional
+
+- name: raman_b3_polarization_25mg
+  value: [0.0, 1.0, 0.0]          # FLAG: B3 polarization not stated; provisional pi (as B1)
+  units: "polarization intensity fractions (sigma+, pi, sigma-) along B"
+  kind: input
+  uncertainty: {value: 0.5, type: systematic}   # large: unconfirmed
+  source: {ref: doerr2024, loc: "Sec. 2.1.4 (B3 a second blue beam)", extraction_note: "Raman blue beam B3 (the AC/ROC blue). Its polarization is NOT stated in Clos Tab. 3.2 or Doerr; PROVISIONALLY set to pi (as B1) pending confirmation. STRONG FLAG: needs UW.", extracted_by: claude-agent, extracted_on: 2026-06-22}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: inferred
+  derived_from: []
+  generation: freddy
+  caveats: "UNCONFIRMED: B3 polarization is not in the sources; provisional pi placeholder, large uncertainty. Needs UW."
+  status: provisional
+
+- name: raman_r1_polarization_25mg
+  value: [0.5, 0.0, 0.5]          # sigma+ + sigma- (linear perp to B): balanced, no pi
+  units: "polarization intensity fractions (sigma+, pi, sigma-) along B"
+  kind: input
+  uncertainty: {value: 0.05, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.2 (R1 sigma+ + sigma-)", extraction_note: "Raman red beam R1 is sigma+ + sigma- (Clos Tab. 3.2): linear, perpendicular to B -> equal sigma+/sigma- intensity, no pi (net circular C=0). The beam-frame->B projection is NOT fully pinned (FLAG: needs UW).", extracted_by: claude-agent, extracted_on: 2026-06-22}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  caveats: "Balanced linear (C=0) from Clos Tab. 3.2. PROVISIONAL: any circular contamination (imperfect waveplate / geometry) would add a LARGE vector light shift; confirm the actual Stokes vector along B."
+  status: provisional
+
+- name: raman_r2_polarization_25mg
+  value: [0.5, 0.0, 0.5]          # sigma+ - sigma- (linear perp to B): balanced, no pi
+  units: "polarization intensity fractions (sigma+, pi, sigma-) along B"
+  kind: input
+  uncertainty: {value: 0.05, type: systematic}
+  source: {ref: clos2017, loc: "Tab. 3.2 (R2 sigma+ - sigma-)", extraction_note: "Raman red beam R2 is sigma+ - sigma- (Clos Tab. 3.2): linear (orthogonal to R1), perpendicular to B -> equal sigma+/sigma- intensity, no pi (net circular C=0). Differs from R1 only by a relative phase (immaterial to single-beam |C|^2). FLAG: projection geometry not fully pinned.", extracted_by: claude-agent, extracted_on: 2026-06-22}
+  scope: {isotope: 25Mg, subsystem: optics}
+  observation_type: direct
+  derived_from: []
+  generation: freddy
+  caveats: "Balanced linear (C=0) from Clos Tab. 3.2. PROVISIONAL: circular contamination would add a large vector shift; confirm the actual Stokes vector along B."
+  status: provisional
+
 # --- shared constants -------------------------------------------------------
 
 - name: mg_p32_natural_linewidth

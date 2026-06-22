@@ -7,6 +7,61 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-22 (later 2) — Polarization+power-resolved Raman optics (fine-structure basis)
+
+UW: carefully distinguish the polarization and power of the individual Raman beams —
+both significantly affect the shifts and the spontaneous emission. Mid-build UW added
+the key physics steer: **F, mF are not good quantum numbers for the P levels** — set
+it up more versatile.
+
+Built `spike/engines/raman_optical.py`. The differential AC-Stark shift was a leading-
+order scalar (omega_HF/Delta_R) and the scattering had a single scalar `balance`
+handle — both polarization- and power-blind. The new engine resolves each beam's
+(sigma+, pi, sigma-) polarization and relative power.
+
+**Basis (the versatile/honest choice, per UW's steer).** At Delta_R = 20 GHz the
+excited 3P hyperfine + Zeeman is UNRESOLVED, so F', mF' are not good for P. The engine
+works in the EXCITED FINE-STRUCTURE |P_{J'} mJ'> basis (no excited hyperfine), with
+the GROUND |S_{1/2} F mF> (F good: hf 1.79 GHz >> Zeeman) decomposed into |mJ, mI>
+with the nuclear spin mI a SPECTATOR of the optical dipole. The dipole is CG(1/2 mJ;
+1 q | J' mJ')*d0 with a COMMON reduced d0 — the D2:D1 = 2:1 line strength comes from
+the (2J'+1) multiplicity. The old |F',mF'>-basis sum (Wigner 6j) is kept ONLY as a
+degenerate-limit cross-check: it equals the |mJ> sum to **machine precision (1e-12)**
+— basis independence, asserted in the tests.
+
+**A normalization bug the validation caught.** The first F'-basis coupling carried an
+extra sqrt(2F'+1) (CG vs 3j convention), so the sum rule <g|d^2|g> came out F-
+dependent (11.07 for F=3 vs 8.30 for F=2) — unphysical. Fixed to C = CG*sqrt(2F+1)*
+{6j}*d_J': the sum rule is now 1.5 for EVERY sublevel and D2:D1 = 2.000 exactly.
+
+**Anchoring.** The absolute field scale cancels in the dimensionless ratios
+differential_stark_per_rabi / scatter_per_rabi (delta_AC and Gamma_sc per two-photon
+Rabi); the twin multiplies by the measured flop Rabi (delta_AC = ratio*rabi;
+Gamma_sc = ratio*2pi*rabi, matching the scalar engine).
+
+**Records (provisional, seeded+flagged).** mg_fine_structure_splitting_3p_25mg =
+2.7457 THz DERIVED from the two D-line wavelengths (solid). Per-beam polarizations
+raman_{b1,b3,r1,r2}_polarization_25mg from Clos Tab. 3.2 (B1 pi; R1/R2 balanced
+linear, C=0), FLAGGED: the lab-frame->B geometry isn't fully tabulated and **B3's
+polarization is not stated anywhere** (large-uncertainty placeholder). POWER is a
+per-run .dat setting (pwr_b1/pwr_r2), read by the twin.
+
+**KEY FINDING (why polarization matters so much here).** Since Delta_R << Delta_FS
+(2.7 THz) the laser sits essentially on P_3/2 alone, so the VECTOR light shift is NOT
+fine-structure-suppressed (~0.5x the scalar for circular light). A **10% circular
+contamination of R2 changes the differential shift by ~47%**. For the OC run (B1 pi +
+R2 balanced linear, equal 0.425 powers) the resolved differential is delta_AC =
+**-44.5 kHz** (vs the scalar +18.6 kHz — now signed, ~4.4% amplitude cap), and
+Gamma_sc ~2x the scalar. The crude factors were explicitly order-of-magnitude; this
+is the documented refinement. The flop's dominant decay is still motional/technical
+(ADR-0007), so the ledger floor rises only ~11% -> ~13%; n_bar_eff ~ 1 unchanged.
+
+Wired into twin_oc_flop (report shows resolved-vs-scalar). ADR-0008. Tests 204 -> 222
+(+18 raman_optical: 6j, basis independence, cycling, sum rule, line strength,
+scalar/vector, two-photon, power/polarization scaling, ledger). Validator green.
+
+---
+
 ## 2026-06-22 (later) — Motional channel for the OC flop twin: carrier Debye-Waller + n̄_eff inversion
 
 UW: continue with the suggested follow-up — turn the (fitted) motional/thermal
