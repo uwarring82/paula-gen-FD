@@ -365,12 +365,17 @@ $\dot\Phi_L=k_{\rm eff}v-2\pi\delta$, so Doppler matching $k_{\rm eff}v=2\pi\del
 
 $$\boxed{\ \text{phase = spatial registration;}\quad\text{detuning = grating velocity;}\quad\text{Doppler shift = relative velocity.}\ }$$
 
-For the trapped oscillator the pulse timing selects which rotating motional quadrature is
-addressed; on the exact motional strobe the oscillator returns to the same phase-space
-orientation, and any residual pulse-to-pulse slip is a *drive-detuning* effect — exactly the
-$\phi_{{\rm drive},k}=\phi_{\rm target}+2\pi k\delta\Delta_t$ that the §6 design criterion
-must program. **Exact strobing fixes the displacement direction; phase programming fixes the
-dressed spin-rotation axis.**
+**Scope.** This literal space–velocity picture applies to a travelling-wave / Raman
+interaction with non-negligible effective wavevector $k_{\rm eff}$ (as for the OC Raman
+drive, $\Delta k\,\|\,z$); for a near-uniform microwave field $k_{\rm eff}\to0$ it does not
+apply literally — though $\phi_{\rm drive}$ and $\delta$ always remain the controllable phase
+*origin* and phase *rate* of the dressed interaction. And for a harmonically trapped ion the
+"velocity" is not a stationary parameter but a *rotating momentum quadrature* selected by the
+pulse timing: on the exact motional strobe the oscillator returns to the same phase-space
+orientation each cycle, so any residual pulse-to-pulse slip is a *drive-detuning* effect —
+exactly the $\phi_{{\rm drive},k}=\phi_{\rm target}+2\pi k\delta\Delta_t$ that the §6 design
+criterion must program. **Exact strobing fixes the displacement direction; phase programming
+fixes the dressed spin-rotation axis.**
 
 **Kinematic figures of merit.** With interrogation $T=N\Delta_t$:
 - *Resolution* $\Delta\delta_{\rm res}\sim1/T$ — *the same* $1/(N\Delta_t)=26$ kHz comb-tooth
@@ -378,13 +383,19 @@ dressed spin-rotation axis.**
 - *Update bandwidth* $B\lesssim1/T_{\rm cycle}$ (the usual resolution/bandwidth trade-off).
 - *Unaliased range* $\lvert\delta\rvert\lesssim1/(2\Delta_t)=650$ kHz — *half the comb spacing*
   $f_{\rm lf}/2$; in velocity $\lvert v\rvert\lesssim\pi/(k_{\rm eff}\Delta_t)$ (a grating
-  slipping $>\!\tfrac12$ cycle per sample cannot be tracked unambiguously).
+  slipping $>\!\tfrac12$ cycle per sample cannot be tracked unambiguously). This is an
+  **estimator/sampling (Nyquist) range** for inferring the cycle-to-cycle detuning phase from
+  stroboscopic samples — *distinct from* the full driven-system response envelope (set by the
+  pulse duration, Rabi frequency, and Floquet structure).
 - *Phase-space baseline* $\lvert\Delta\beta\rvert\le2\eta$ (§6) → reconstruction scale
   $\Delta\alpha_{\rm res}\sim1/\lvert\Delta\beta\rvert_{\max}\gtrsim1/2\eta$ (the §8 PSF).
 - *Projection-noise sensitivity* at $P_\downarrow=\tfrac12[1+C\cos\Phi_{\rm sig}]$:
-  $\Delta\Phi_{\rm sig}\sim1/(C\sqrt M)$ for $M$ shots and contrast $C$, hence
-  $\Delta x\sim1/(k_{\rm eff}C\sqrt M)$, $\Delta v\sim1/(k_{\rm eff}TC\sqrt M)$,
-  $\Delta\delta\sim1/(2\pi TC\sqrt M)$.
+  $\Delta\Phi_{\rm sig}\sim1/(C\sqrt M)$ for $M$ shots and contrast $C$. For a **calibrated
+  signal phase** $\Phi_{\rm sig}=k_{\rm eff}x$ or $k_{\rm eff}vT$ this gives the *equivalent*
+  displacement / velocity sensitivities $\Delta x\sim1/(k_{\rm eff}C\sqrt M)$,
+  $\Delta v\sim1/(k_{\rm eff}TC\sqrt M)$, and $\Delta\delta\sim1/(2\pi TC\sqrt M)$ for a
+  detuning signal. (The *native* measured quantity is $\chi(\Delta\beta)$, not necessarily a
+  physical displacement or velocity.)
 
 **Back-action — coherent, calibrated, but not QND.** The Ramsey readout measures the modular
 phase-space observable $M_\varphi(\Delta\beta)=\tfrac12[e^{i\phi_{\rm geo}}D(\Delta\beta)+e^{-i\phi_{\rm geo}}D(\Delta\beta)^\dagger]$,

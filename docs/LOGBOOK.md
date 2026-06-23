@@ -68,6 +68,13 @@ the modular observable M_phi=1/2(e^{i phi_geo}D(Db)+h.c.) with P_down=1/2[1+<M_p
 NOT QND ([D(Db),H_mot]!=0); benign limits Db=0 (closed, reversible) and |Db|<<1 (weak info).
 Principle: the protocol converts uncontrolled heating into a controllable, modelled
 phase-space back-action channel. Headers renumbered to 0-12 (engine->§11, refs->§12).
+§10 SCOPED (freeze-quality review): (a) the space=phase / velocity=detuning picture is
+explicitly scoped to travelling-wave/Raman k_eff!=0 (OC has Dk||z; near-uniform MW k_eff->0
+-> phi,delta stay the dressed phase origin/rate); velocity = a ROTATING momentum quadrature
+for a trapped ion. (b) Dx, Dv recast as EQUIVALENT sensitivities for a calibrated signal
+phase Phi_sig=k_eff x or k_eff v T (the native quantity is chi(Db), not a physical
+displacement). (c) the 1/(2Dt) unaliased range labelled an ESTIMATOR/sampling (Nyquist)
+range, distinct from the driven-system response envelope.
 
 ---
 
