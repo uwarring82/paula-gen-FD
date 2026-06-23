@@ -35,11 +35,19 @@ omega_lf): x_zpf=12.5 nm, k_eff=31.2 rad/um (=1.39x the 280nm photon k -> Raman 
   DYNAMIC RANGE = N/2 = 25; velocity res 5.2 mm/s, max 131 mm/s.
 - Tomographic reach (the tight one): disk 2eta=0.78 is SMALLER than the cold-state chi
   support (vacuum/coherent 1/e radius ~1.4), so a single Ramsey pair TRUNCATES chi and
-  resolves phase space only to ~1/2eta~1.3 (> zero-point); it captures the full chi only of
-  already-broad (hot, nbar>~0.3 thermal) states. Cold/non-classical states need concatenated
-  Ramsey blocks or SDF to extend |Db|. (Corrected an initial backwards "covers up to nbar~0.3".)
+  resolves phase space only to ~1/2eta~1.3 (> zero-point). The 1/e chi support fits the disk
+  only for nbar >~ 1/(2eta)^2 - 1/2 ~ 1.2 (broad/hot thermal); cold/non-classical states need
+  concatenated Ramsey blocks or SDF to extend |Db|. (Two corrections: first a backwards
+  "covers up to nbar~0.3", then the threshold value 0.3 -> ~1.2, both flagged by review.)
 3-panel figure (sensitivity vs M; resolution-in-window dynamic range; phase-space reach vs
 chi support). Docs-only + notebook re-executed.
+
+SCHEMATICS (review request): added docs/figures/make_grating_schematics.py ->
+grating_pulse_sequence.png (the N-pulse train locked to the motion: drive pulses + the axial
+sinusoid sampled at the same phase each period) and grating_ramsey_phasespace.png (the
+two-pulse Ramsey timeline + the phase-space ring |b|=eta and disk |Db|<=2eta). Embedded as
+Figure 1 (in §1) and Figure 2 (in §6) of the note. Glossary nit: phase-space unit corrected
+to <x>=2 x_zpf Re(alpha) (one alpha unit ~ 2 x_zpf, not x_zpf).
 
 ---
 

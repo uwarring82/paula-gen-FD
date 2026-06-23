@@ -438,11 +438,13 @@ plt.tight_layout(); plt.show()
 #   *smaller* than the characteristic-function support of cold states (the vacuum/coherent
 #   $\chi$ has $1/e$ radius $\approx1.4$). So a single Ramsey pair **truncates** $\chi$ and
 #   resolves phase space only coarsely, $\Delta\alpha\sim1/2\eta\approx1.3$ (larger than the
-#   zero-point spread); it captures the *full* $\chi$ only of already-broad states (hot
-#   thermal, $\bar n\gtrsim0.3$, where $\chi$ has shrunk inside the disk). Cold or
-#   non-classical (cat) states need a larger engineered $|\Delta\beta|$ — concatenated Ramsey
-#   blocks or an SDF displacement. These are **ideal** scalings; heating, dephasing,
-#   pulse-area and phase errors all enter through $C$ and the reachable $|\Delta\beta|_{\max}$.
+#   zero-point spread). The disk only *fully* covers $\chi$ for already-broad thermal states:
+#   at the $1/e$ level, $r_{1/e}=1/\sqrt{\bar n+1/2}\le2\eta$ needs
+#   $\bar n\gtrsim1/(2\eta)^2-1/2\approx1.2$. For $\bar n\lesssim1$ — and for cold or
+#   non-classical (cat) states — $\chi$ is truncated, so they need a larger engineered
+#   $|\Delta\beta|$ (concatenated Ramsey blocks or an SDF displacement). These are **ideal**
+#   scalings; heating, dephasing, pulse-area and phase errors all enter through $C$ and the
+#   reachable $|\Delta\beta|_{\max}$.
 
 # %% [markdown]
 # ## Summary
