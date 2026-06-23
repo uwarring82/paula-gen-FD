@@ -151,14 +151,17 @@ squared-Dirichlet comb for $\theta\ll1$.
 
 In fact this $\eta=0$ formula is the exact-strobe population for **arbitrary $\eta$ and
 arbitrary $\rho$, to all orders** in $\theta$ — so "motion-blind on resonance" is not a
-weak-pulse artefact. On the exact strobe the motional free evolution wraps to the identity
-each cycle, so the spin-dependent-displacement gauge
+weak-pulse artefact. On the exact *motional* strobe the **motional part** of the free
+evolution is the identity each cycle (the qubit detuning phase
+$U_{\rm free}=e^{i\pi\delta\Delta_t\sigma_z}\otimes\mathbb 1$ is *not* identity for
+$\delta\neq0$). The spin-dependent-displacement gauge
 $W=|\!\uparrow\rangle\langle\uparrow|\otimes\mathbb 1+|\!\downarrow\rangle\langle\downarrow|\otimes D(i\eta)$
-removes the kick ($W^\dagger U_{\rm pulse}W=e^{-i\theta\sigma_x/2}\otimes\mathbb 1$) and
-commutes with $U_{\rm free}$, leaving a pure two-level evolution whose flip probability is
-the boxed result independent of $\eta,\rho$ (verified vs the full Floquet propagator at
-$\theta$ up to the $\pi$-pulse, $\eta=0$ and $0.389$ — §9). For $\eta\neq0$ *off* the
-strobe, the weak-pulse expansion (§3) remains the best closed-form handle.
+therefore removes the recoil dressing ($W^\dagger U_{\rm pulse}W=e^{-i\theta\sigma_x/2}\otimes\mathbb 1$)
+and commutes with $U_{\rm free}$, leaving a **pure two-level Floquet problem** — the qubit
+detuning phase plus the bare spin rotation — whose flip probability is the boxed result
+independent of $\eta,\rho$ (verified vs the full Floquet propagator at $\theta$ up to the
+$\pi$-pulse, $\eta=0$ and $0.389$ — §9). For $\eta\neq0$ *off* the strobe, the weak-pulse
+expansion (§3) remains the best closed-form handle.
 
 ## 5. Off-strobe / phase-varying grating — sampling $\chi(\beta)$
 
@@ -194,7 +197,13 @@ maps $\chi$ over a 2-D region — direct characteristic-function tomography.
 
 The cleanest near-term tomography route turns the bare grating into a *direct* $\chi$
 interferometer using **two recoil-dressed $\pi/2$ pulses** and population readout — no
-weak-amplitude/coherence measurement. Define the **recoil-dressed flip** and its $\pi/2$:
+weak-amplitude/coherence measurement. **Design criterion:** for a *multipulse* grating this
+identity holds only when all constituent pulses realise the *same* dressed generator
+$X_{\beta_g}$ — as on the exact strobe with a phase-coherent drive ($\beta_k=\beta_g$ for
+all $k$). Then the per-pulse generators commute ($[X_{\beta_g},X_{\beta_g}]=0$) and a
+calibrated total area $\sum_k\theta_k=\pi/2$ realises the single effective pulse
+$U_{\beta_g}$. (Off-strobe the $\beta_k$ differ and the grating is a multipath operation,
+not one $X_{\beta_g}$.) Define the **recoil-dressed flip** and its $\pi/2$:
 
 $$X_\beta=\sigma_-D(\beta)+\sigma_+D(\beta)^\dagger,\quad X_\beta^2=\mathbb 1,\qquad
 U_\beta=e^{-i\frac{\pi}{4}X_\beta}=\tfrac{1}{\sqrt2}(\mathbb 1-iX_\beta).$$
@@ -209,10 +218,12 @@ $\lesssim10^{-15}$, §9):
 $$\boxed{\;P_\downarrow(\varphi)=\tfrac12\Big[1+\mathrm{Re}\!\big(e^{i[\varphi+\mathrm{Im}(\beta_g\beta_r^*)]}\,\chi(\beta_g-\beta_r)\big)\Big]\;}$$
 
 So $P_\downarrow(0)-\tfrac12\propto\mathrm{Re}\,\chi(\Delta\beta)$ and $\varphi\to\varphi+\pi/2$
-gives the imaginary quadrature: **two populations recover the full complex
-$\chi(\Delta\beta)$**, $\Delta\beta=\beta_g-\beta_r$ (divide out the known geometric phase
-$e^{i\,\mathrm{Im}(\beta_g\beta_r^*)}$). This is *linear* in $\chi$ — qualitatively unlike
-the bare grating's quadratic double-sum $\langle A^\dagger A\rangle$ (§3a).
+gives the imaginary quadrature: **two phase settings recover the two quadratures of
+$\chi(\Delta\beta)$** ($\Delta\beta=\beta_g-\beta_r$), after calibrating the known Weyl
+geometric phase $e^{i\,\mathrm{Im}(\beta_g\beta_r^*)}$, the fringe contrast, and readout
+offsets (ideal-limit values; pulse-area imbalance enters likewise). This is *linear* in
+$\chi$ — qualitatively unlike the bare grating's quadratic double-sum
+$\langle A^\dagger A\rangle$ (§3a).
 
 **Phase-space reach.** With fixed recoil $\lvert\beta\rvert=\eta$ and independently
 programmable pulse phases, $\beta_{r}=i\eta e^{i\phi_r}$, $\beta_g=i\eta e^{i\phi_g}$,
@@ -220,10 +231,14 @@ programmable pulse phases, $\beta_{r}=i\eta e^{i\phi_r}$, $\beta_g=i\eta e^{i\ph
 $$\Delta\beta=i\eta\big(e^{i\phi_g}-e^{i\phi_r}\big)\quad\Rightarrow\quad
 \lvert\Delta\beta\rvert\le2\eta,$$
 
-a genuine 2-D **disk** (not the §5 thin ring) — verified to fill exactly to $2\eta$. The
-identity is **exact in $\eta$**: retaining the full recoil operator $D(i\eta)$ is *not* a
-Lamb–Dicke expansion but the full operator within the two-level, optical-RWA, impulsive
-model, so the Ramsey relation holds for any $\eta$.
+a genuine 2-D **disk** (not the §5 thin ring) — verified to fill exactly to $2\eta$. A
+constructive parameterisation for a target magnitude $r\le2\eta$ and direction $\vartheta$
+is $\phi_{g,r}=\vartheta+\tfrac{\pi}{2}\pm\arcsin\!\big(r/2\eta\big)$, which gives
+$\lvert\Delta\beta\rvert=r$ exactly (the direction is $\vartheta$ up to a fixed $\pi/2$
+convention offset from the $i$ prefactor — verified). The identity is **exact in $\eta$**:
+retaining the full recoil operator $D(i\eta)$ is *not* a Lamb–Dicke expansion but the full
+operator within the two-level, optical-RWA, impulsive model, so the Ramsey relation holds
+for any $\eta$.
 
 **Limitations.** (i) The grating must realise a *single* effective $X_{\beta_g}$ $\pi/2$ —
 automatic on the exact strobe (or under controlled phase programming); off-strobe it

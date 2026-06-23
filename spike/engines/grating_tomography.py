@@ -232,6 +232,15 @@ def delta_beta(eta: float, phi_r: float, phi_g: float) -> complex:
     return 1j * eta * (cmath.exp(1j * phi_g) - cmath.exp(1j * phi_r))
 
 
+def ramsey_phases_for_delta(eta: float, r: float, direction: float = 0.0):
+    """Pulse phases (phi_r, phi_g) realising a target Delta beta of magnitude r (<= 2 eta)
+    at `direction` (up to a fixed pi/2 convention offset): phi_{g,r} = direction + pi/2 +-
+    arcsin(r / 2 eta). Lets you raster the |Delta beta| <= 2 eta disk."""
+    psi = math.asin(min(1.0, r / (2.0 * eta)))
+    base = direction + math.pi / 2.0
+    return base - psi, base + psi                 # (phi_r, phi_g)
+
+
 def ramsey_population(chi, beta_r: complex, beta_g: complex, phi: float = 0.0) -> float:
     """Ideal Ramsey population P_down(phi) for the two-pi/2-pulse characteristic-function
     interferometer (the boxed identity). `chi` is a callable chi(beta)."""

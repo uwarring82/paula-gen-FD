@@ -187,3 +187,10 @@ def test_ramsey_disk_reach_is_two_eta():
     assert all(v <= 2 * eta + 1e-9 for v in vals)      # confined to the disk
     assert max(vals) == pytest.approx(2 * eta, rel=1e-6)
     assert abs(gt.delta_beta(eta, 0.0, math.pi)) == pytest.approx(2 * eta)  # diameter
+
+
+def test_ramsey_phases_realise_target_magnitude():
+    eta = 0.389
+    for r in (0.1, 0.4, 2 * eta):
+        pr, pg = gt.ramsey_phases_for_delta(eta, r, direction=1.2)
+        assert abs(gt.delta_beta(eta, pr, pg)) == pytest.approx(r, abs=1e-9)
