@@ -13,6 +13,32 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-23 (later 7) — End-to-end Wigner tomography twin: displaced state (raw data -> W)
+
+UW: implement the tomography for a displaced state of fixed amplitude and phase with the
+digital twin -- raw data files, plots, analysis steps, and the final reconstructed Wigner
+function.
+
+NEW DRIVER spike/twin_wigner_tomography.py (pure Python + matplotlib). Pipeline:
+  1. PREPARE coherent |gamma>, gamma = 1.3 e^{i pi/4} = 0.919+0.919j (fixed amplitude+phase).
+  2. MEASURE (twin-simulated SDF/Ramsey chi-readout): per probe beta, two bases give
+     P_x=1/2(1+C Re chi), P_y=1/2(1+C Im chi); shot noise via binomial counts (C=0.90,
+     M=500). beta on the disk |beta|<=4 (441 pts). RAW COUNTS written to
+     docs/examples/wigner_tomography/coherent_tomography_raw.dat (clearly labelled
+     TWIN-SIMULATED, NOT real; separate from sources/data/). Reach note: 2-pulse Ramsey
+     reaches only 2eta~0.78, so this uses the SDF/extended-reach route (scan beta up to ~N eta).
+  3. ANALYSE: chi_hat=(2n/M-1)/C ; W=(1/pi^2) FT[chi_hat] (engine wigner_from_samples).
+  4. VALIDATE: <alpha> centroid = gamma -> RECOVERED |gamma|=1.304 (input 1.300), arg=0.790
+     (input 0.785); peak |W_rec-W_ana|=0.035 (shot-limited). Noise-free pipeline exact to ~1e-2.
+Figures: twin_wigner_chi_data.png (measured Re/Im chi + 1-D cut with shot error bars vs
+analytic) and twin_wigner_reconstruction.png (analytic vs reconstructed W + residual, with
+input + and recovered x markers overlapping). README docs/examples/wigner_tomography/ with
+provenance + the 4 analysis steps. Tests +4 (raw-file round-trip; noise-free reconstruction
+recovers gamma to <0.05 & W to <0.02; full shot-noisy pipeline recovers |gamma| & phase to
+0.1; chi_hat unbiased). FAIR: data unmistakably labelled twin-simulated.
+
+---
+
 ## 2026-06-23 (later 6) — Accessibility (MSc-level) + sensing-limits tutorial section
 
 UW: make the note + tutorial accessible to MSc students (no acronyms without explanation,

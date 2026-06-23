@@ -433,6 +433,7 @@ spike/
   twin_oc_flop.py   OC axial Raman carrier-flop twin: coherent x AC-Stark x scatter x motional (n_bar) vs .dat + n_bar_eff inversion (-> figure)
   twin_sideband.py  sideband thermometry discriminator: RSB/BSB ratio -> n_bar (cold) -> carrier loss is mostly Raman dephasing (-> figure)
   twin_strobo.py    stroboscopic OC carrier flop (phase-grating n=0 baseline): per-cycle Rabi + stroboscopic dephasing-decoupling (-> figure)
+  twin_wigner_tomography.py  end-to-end Wigner tomography of a displaced state: twin-simulated chi-readout + shot noise -> raw data -> reconstructed W (docs/examples/wigner_tomography/)
   analyze_data.py   raw-data analysis (rabi + detection on the .dat examples)
   validate_twin.py  CLI shim -> runner.main
   test_levels.py    levels physics + Weber/Doerr benchmarks + hyperfine spectrum
