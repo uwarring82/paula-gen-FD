@@ -5,7 +5,7 @@ measurement transfer function of the Strobo2.0 "active phase grating" and its re
 motional-state (Wigner) tomography. All population-transfer formulas below are validated against
 [`spike/engines/strobo_sim.py`](../../spike/engines/strobo_sim.py); the coherence/SDF
 relations are established transfer-function identities that specify the required
-interferometric extension. See §8.*
+interferometric extension. See §9.*
 
 ## 0. Summary
 
@@ -20,10 +20,12 @@ $\chi(\beta)=\mathrm{Tr}[\rho\,D(\beta)]$ you measure:
 | bare grating, **population** $\langle A^\dagger A\rangle$ | quadratic **double-sum** kernel $\sum_{k,k'}\!\dots\chi(\beta_{k'}\!-\!\beta_k)$ | chord *differences* of ring points | diagnostic kernel; **not** direct tomography; motion-**blind** on the exact strobe |
 | bare grating, **coherence** $\propto\mathrm{Tr}[\rho A]$ | single-sum DFT of $\chi$ | weighted samples on the ring $\lvert\beta\rvert=\eta$ | incomplete (thin ring) unless extra control changes the radius |
 | **spin-dependent force / bichromatic** | $\chi(\beta_{\rm tot})$ directly | 2-D region via controlled displacement | **direct** characteristic-function tomography |
+| **Ramsey two-pulse** (ref + grating $\pi/2$, §6) | population $P_\downarrow(\varphi)$, *linear* in $\chi(\Delta\beta)$ | disk $\lvert\Delta\beta\rvert\le2\eta$ | **direct** χ-interferometry from population only |
 
 So the carrier grating is a phase-space-*sensitive* filter and calibration primitive; the
-fully invertible Wigner tomography needs the conditional-displacement (SDF/bichromatic)
-extension that scans the relative displacement between spin branches over the plane.
+fully invertible Wigner tomography needs a conditional-displacement extension. The cleanest
+near-term route is the **Ramsey two-pulse interferometer (§6)**: a population signal that is
+*linear* in $\chi$, requiring only a calibrated $\pi/2$ pair and pulse-phase control.
 
 **Units.** Throughout, $\delta$ and $f_{\rm lf}$ are ordinary (cyclic) frequencies in Hz,
 $\Delta_t$ in s, and the per-cycle qubit phase is $e^{-i2\pi k\delta\Delta_t}$. Comb teeth
@@ -133,7 +135,7 @@ $U_{\rm cycle}=U_{\rm free}R_x(\theta)$ with $R_x(\theta)=e^{-i\theta\sigma_x/2}
 $U_{\rm free}=\mathrm{diag}(e^{+i\pi\delta\Delta_t},e^{-i\pi\delta\Delta_t})$, so
 $\cos\lambda=\tfrac12\mathrm{Tr}\,U_{\rm cycle}=\cos(\theta/2)\cos(\pi\delta\Delta_t)$
 (reordering the step changes intermediate phases but not $\tfrac12\mathrm{Tr}$, hence not
-$P_\downarrow$). It matches `strobo_sim` to machine precision (§8) and reduces to the
+$P_\downarrow$). It matches `strobo_sim` to machine precision (§9) and reduces to the
 squared-Dirichlet comb for $\theta\ll1$.
 
 In fact this $\eta=0$ formula is the exact-strobe population for **arbitrary $\eta$ and
@@ -144,7 +146,7 @@ $W=|\!\uparrow\rangle\langle\uparrow|\otimes\mathbb 1+|\!\downarrow\rangle\langl
 removes the kick ($W^\dagger U_{\rm pulse}W=e^{-i\theta\sigma_x/2}\otimes\mathbb 1$) and
 commutes with $U_{\rm free}$, leaving a pure two-level evolution whose flip probability is
 the boxed result independent of $\eta,\rho$ (verified vs the full Floquet propagator at
-$\theta$ up to the $\pi$-pulse, $\eta=0$ and $0.389$ — §8). For $\eta\neq0$ *off* the
+$\theta$ up to the $\pi$-pulse, $\eta=0$ and $0.389$ — §9). For $\eta\neq0$ *off* the
 strobe, the weak-pulse expansion (§3) remains the best closed-form handle.
 
 ## 5. Off-strobe / phase-varying grating — sampling $\chi(\beta)$
@@ -159,7 +161,7 @@ the observable variation):
 - **Probability:** the §3(a) double sum; its $\eta$- and state-dependence enters through
   the off-diagonal $k\neq k'$ terms. On the exact strobe these terms *remain present* but
   reduce to $\chi(0)=1$, so their motional dependence vanishes. Off-strobe this is the
-  $\sim13\%$ leading-order variation of $P_\downarrow$ with $\eta$ at a 3% strobe mistune (§8).
+  $\sim13\%$ leading-order variation of $P_\downarrow$ with $\eta$ at a 3% strobe mistune (§9).
 
 **Reach (the architecture break).** For the *bare* grating, $\phi_g$ rotates a
 fixed-radius ring, $\delta$ re-weights the same sampled points, and $N$ changes the number
@@ -177,7 +179,53 @@ branches as $D(\pm\beta)$ instead would give $\chi(2\beta)$ — fix the conventi
 use). Rastering $\phi_g$ (direction) and $\lvert\beta\rvert$ (magnitude, up to $\sim N\eta$)
 maps $\chi$ over a 2-D region — direct characteristic-function tomography.
 
-## 6. From $\chi$ to the Wigner function
+## 6. Ramsey characteristic-function interferometer (population-only)
+
+The cleanest near-term tomography route turns the bare grating into a *direct* $\chi$
+interferometer using **two recoil-dressed $\pi/2$ pulses** and population readout — no
+weak-amplitude/coherence measurement. Define the **recoil-dressed flip** and its $\pi/2$:
+
+$$X_\beta=\sigma_-D(\beta)+\sigma_+D(\beta)^\dagger,\quad X_\beta^2=\mathbb 1,\qquad
+U_\beta=e^{-i\frac{\pi}{4}X_\beta}=\tfrac{1}{\sqrt2}(\mathbb 1-iX_\beta).$$
+
+A reference pulse of displacement $\beta_r$ then a phase-coherent grating $\pi/2$ with
+displacement $\beta_g$ and relative phase $\varphi$, $X_{\beta_g}^{(\varphi)}=e^{i\varphi}
+\sigma_-D(\beta_g)+e^{-i\varphi}\sigma_+D(\beta_g)^\dagger$. Starting in
+$|\!\uparrow\rangle\otimes\rho$, applying $U_{\beta_g}^{(\varphi)}U_{\beta_r}$ and measuring
+$P_\downarrow$ gives, **exactly** (verified vs an exact two-pulse spin⊗Fock simulation to
+$\lesssim10^{-15}$, §9):
+
+$$\boxed{\;P_\downarrow(\varphi)=\tfrac12\Big[1+\mathrm{Re}\!\big(e^{i[\varphi+\mathrm{Im}(\beta_g\beta_r^*)]}\,\chi(\beta_g-\beta_r)\big)\Big]\;}$$
+
+So $P_\downarrow(0)-\tfrac12\propto\mathrm{Re}\,\chi(\Delta\beta)$ and $\varphi\to\varphi+\pi/2$
+gives the imaginary quadrature: **two populations recover the full complex
+$\chi(\Delta\beta)$**, $\Delta\beta=\beta_g-\beta_r$ (divide out the known geometric phase
+$e^{i\,\mathrm{Im}(\beta_g\beta_r^*)}$). This is *linear* in $\chi$ — qualitatively unlike
+the bare grating's quadratic double-sum $\langle A^\dagger A\rangle$ (§3a).
+
+**Phase-space reach.** With fixed recoil $\lvert\beta\rvert=\eta$ and independently
+programmable pulse phases, $\beta_{r}=i\eta e^{i\phi_r}$, $\beta_g=i\eta e^{i\phi_g}$,
+
+$$\Delta\beta=i\eta\big(e^{i\phi_g}-e^{i\phi_r}\big)\quad\Rightarrow\quad
+\lvert\Delta\beta\rvert\le2\eta,$$
+
+a genuine 2-D **disk** (not the §5 thin ring) — verified to fill exactly to $2\eta$. The
+identity is **exact in $\eta$**: retaining the full recoil operator $D(i\eta)$ is *not* a
+Lamb–Dicke expansion but the full operator within the two-level, optical-RWA, impulsive
+model, so the Ramsey relation holds for any $\eta$.
+
+**Limitations.** (i) The grating must realise a *single* effective $X_{\beta_g}$ $\pi/2$ —
+automatic on the exact strobe (or under controlled phase programming); off-strobe it
+becomes a multipath operation. (ii) The threat is finite pulse duration, not large $\eta$:
+the requirement is impulsive control $\omega_{\rm lf}\delta t\ll1$ **and** a calibrated
+$\pi/2$ area, so free motion during a pulse does not spoil the common, state-independent
+dressed rotation. (iii) The disk is finite ($2\eta$; $\eta=0.389\Rightarrow0.78$) — high
+resolution / larger states still want bigger engineered $\lvert\Delta\beta\rvert$
+(concatenated Ramsey blocks or an SDF sequence). **Suggested first experiment:**
+demonstrate the two-pulse identity for vacuum / coherent / thermal, then test that
+grating-phase control fills the predicted $\lvert\Delta\beta\rvert\le2\eta$ disk.
+
+## 7. From $\chi$ to the Wigner function
 
 $\chi$ and $W$ are a 2-D Fourier pair,
 
@@ -199,7 +247,7 @@ Three reconstruction routes:
    gives $W$ directly if the readout maps onto motional parity (a full sideband $\pi$ map)
    rather than the coherence (Leibfried; Lutterbach–Davidovich).
 
-## 7. Finite-pulse and non-ideal corrections
+## 8. Finite-pulse and non-ideal corrections
 
 These are leading-order patches, not a universal substitution:
 
@@ -219,7 +267,7 @@ These are leading-order patches, not a universal substitution:
   point-spread depends on the sampling mask, weighting, and reconstruction
   regularisation) — so the noise/filter-function analysis sets the tomographic resolution.
 
-## 8. Numerical validation
+## 9. Numerical validation
 
 Parameters unless stated: $f_{\rm lf}\Delta_t$ as noted, $\Delta_t=0.769172\,\mu$s,
 $\Omega_{\rm strobo}/2\pi=4.99\times10^5$ Hz, $N=50$, $\bar n=0$ (motion in $|0\rangle$,
@@ -248,8 +296,17 @@ against `strobo_detuning_scan` (the full Floquet propagator).
   saturation).
 - **Heterodyne (§4):** `strobo_population_vs_cycles` nutates with half-beat
   $1/(2f_{\rm IF}\Delta_t)$ — $f_{\rm IF}=50/100/200$ kHz $\to$ 13/7/3 cycles.
+- **Ramsey identity (§6):** the boxed $P_\downarrow(\varphi)$ matches an exact two-pulse
+  spin⊗Fock simulation to $\lesssim10^{-15}$ (vacuum / coherent / Fock, random
+  $\beta_r,\beta_g,\varphi$); $\chi(\Delta\beta)$ recovered from $P(0),P(\pi/2)$ to
+  $\sim10^{-16}$; the accessible set fills the disk to $\max\lvert\Delta\beta\rvert=2\eta$.
 
-## 9. From note to engine (spec sketch)
+These are implemented and tested in
+[`spike/engines/grating_tomography.py`](../../spike/engines/grating_tomography.py)
+(`spike/test_grating_tomography.py`) and walked through in the tutorial notebook
+[`docs/notebooks/strobo_grating_tomography.ipynb`](../notebooks/strobo_grating_tomography.ipynb).
+
+## 10. From note to engine (spec sketch)
 
 ```python
 def kernel_probability(phase, det, rho_chi, eta, N, Delta_t, f_lf):
@@ -259,14 +316,18 @@ def kernel_probability(phase, det, rho_chi, eta, N, Delta_t, f_lf):
 def kernel_coherence(phase, det, rho_chi, eta, N, Delta_t, f_lf):
     """Tr[rho A] = -i theta/2 * sum_k e^{-i2pi k det Delta_t} * chi(b_k)  (single-sum DFT)."""
 
+def ramsey_population(rho_chi, beta_r, beta_g, phi):
+    """P_down(phi) = 1/2[1 + Re( e^{i[phi + Im(beta_g beta_r*)]} chi(beta_g - beta_r) )].
+       phi=0, pi/2 -> Re, Im chi(Delta beta); ramsey_chi_from_populations inverts them."""
+
 def reconstruct_wigner(chi_grid, beta_grid):
-    """2-D FFT of the (SDF-)sampled chi(beta) -> W(alpha); or inverse-Radon of marginals."""
+    """2-D FFT of the (SDF/Ramsey-)sampled chi(beta) -> W(alpha); or inverse-Radon of marginals."""
 ```
 
 `rho_chi` is a callable $\chi(\beta)$ for the state under test (analytic for Fock/coherent/
 cat/thermal; or `strobo_sim` in the SDF mode for the simulated state).
 
-## 10. References (verify bibliographic details before citing)
+## 11. References (verify bibliographic details before citing)
 
 - K. Vogel, H. Risken, *Phys. Rev. A* **40**, R2847 (1989) — quadrature/inverse-Radon
   tomography (Rapid Communication).
@@ -276,7 +337,7 @@ cat/thermal; or `strobo_sim` in the SDF mode for the simulated state).
   measurement via displaced parity.
 - C. Flühmann, J. P. Home, *Phys. Rev. Lett.* **125**, 043602 (2020) — conditional
   state-dependent displacements measuring the symmetric characteristic function on spin
-  readout (closest precedent for §3b/§5).
+  readout (closest precedent for §3b/§5/§6).
 - K. Banaszek, K. Wódkiewicz, *Phys. Rev. Lett.* **76**, 4344 (1996) — "Direct Probing of
   Quantum Phase Space by Photon Counting" (parity/photon-counting, *not* the spin-coherence
   route).
