@@ -55,6 +55,14 @@ defined as the fractional change of P over eta; (ix) tightened Radon caveat (the
 population kernel is NOT a Radon projection of W); (x) refs corrected (Vogel-Risken R2847;
 Banaszek-Wodkiewicz recharacterized; added Fluhmann & Home PRL 125 043602 (2020)); (xi)
 engine API sketch added.
+Second polish pass (same review): population double sum called "quadratic with coherent
+cross terms" (not "incoherent"); coherence eqs carry a calibrated reference coeff C_ref
+(=1 only after calibration); header restricts "validated" to the population formulas (the
+coherence/SDF relations are identities specifying the interferometric extension); the
+exact eta=0 step made explicit (U_cycle = U_free R_x(theta), cos(lam)=½Tr; verified);
+"both channels become" -> "can become" motion-sensitive; theta^2 relerr labelled an
+OBSERVED scaling (amplitude corr O(theta^3), ill-conditioned near zeros); 1/|beta|_max
+resolution marked as a SCALING (true PSF depends on mask/weighting/regularisation).
 
 ---
 

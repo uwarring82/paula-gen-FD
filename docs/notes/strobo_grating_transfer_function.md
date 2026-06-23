@@ -2,8 +2,10 @@
 
 *Technical note, 2026-06-23 (rev. after review). Self-contained derivation of the
 measurement transfer function of the Strobo2.0 "active phase grating" and its relation to
-motional-state (Wigner) tomography. All formulas below are validated against
-[`spike/engines/strobo_sim.py`](../../spike/engines/strobo_sim.py); see §8.*
+motional-state (Wigner) tomography. All population-transfer formulas below are validated against
+[`spike/engines/strobo_sim.py`](../../spike/engines/strobo_sim.py); the coherence/SDF
+relations are established transfer-function identities that specify the required
+interferometric extension. See §8.*
 
 ## 0. Summary
 
@@ -70,8 +72,9 @@ $\langle D(\beta)\rangle=\chi(\beta)$,
 $$\boxed{\;P_\downarrow(\delta,\phi_g)=\Big(\tfrac{\theta}{2}\Big)^2
 \sum_{k,k'=0}^{N-1} e^{\,i2\pi(k-k')\delta\Delta_t}\,e^{\,i\,\mathrm{Im}(\beta_{k'}\beta_k^*)}\,\chi(\beta_{k'}-\beta_k)\;}$$
 
-A real, incoherent **double** sum, sampling $\chi$ at the kick *differences*
-$\beta_{k'}-\beta_k$ — chords of the $\lvert\beta\rvert=\eta$ ring.
+A real **quadratic** double sum with **coherent cross terms** between flips on different
+cycles ($k\neq k'$), sampling $\chi$ at the kick *differences* $\beta_{k'}-\beta_k$ —
+chords of the $\lvert\beta\rvert=\eta$ ring.
 
 **(b) Spin coherence.** $\langle A\rangle$ is *not* by itself the qubit coherence — that
 requires an interferometric sequence. Prepare a superposition, route the grating so the
@@ -79,10 +82,12 @@ two spin branches acquire a *relative* kick, interfere with a reference arm, and
 analysis $\pi/2$ pulse of phase $\varphi$. To leading order the off-diagonal qubit element
 is $\rho_{\uparrow\downarrow}\propto\mathrm{Tr}[\rho A]$, so
 
-$$\langle\sigma_x\rangle=2\,\mathrm{Re}\,\mathrm{Tr}[\rho A]+O(\theta^2),\qquad
-\langle\sigma_y\rangle=-2\,\mathrm{Im}\,\mathrm{Tr}[\rho A]+O(\theta^2)$$
+$$\langle\sigma_x\rangle=2\,\mathrm{Re}\big[C_{\rm ref}\,\mathrm{Tr}[\rho A]\big]+O(\theta^2),\qquad
+\langle\sigma_y\rangle=-2\,\mathrm{Im}\big[C_{\rm ref}\,\mathrm{Tr}[\rho A]\big]+O(\theta^2),$$
 
-(up to the chosen phase convention), with
+where $C_{\rm ref}$ is a complex coefficient fixed by the preparation, reference pathway,
+and analysis-pulse phase (set to $1$ only after calibration/normalisation — do not silently
+drop it), with
 
 $$\boxed{\;\mathrm{Tr}[\rho A]=-\,i\,\frac{\theta}{2}\sum_{k=0}^{N-1} e^{-i2\pi k\delta\Delta_t}\,\chi(\beta_k)\;}$$
 
@@ -118,14 +123,21 @@ grating is a periodically kicked two-level system and is solvable in closed form
 $$\boxed{\;P_\downarrow^{(\eta=0)}(\delta)=\frac{\sin^2(\theta/2)}{\sin^2\lambda}\,\sin^2(N\lambda),\qquad
 \cos\lambda=\cos(\theta/2)\cos(\pi\delta\Delta_t)\;}$$
 
-(at $\delta=0$ this is $\sin^2(N\theta/2)$, the on-resonance flop). It matches `strobo_sim`
-to machine precision (§8) and reduces to the squared-Dirichlet comb for $\theta\ll1$. For
+(at $\delta=0$ this is $\sin^2(N\theta/2)$, the on-resonance flop). Here $\lambda$ is the
+half-angle of the single-cycle Floquet rotation that `strobo_sim` implements,
+$U_{\rm cycle}=U_{\rm free}R_x(\theta)$ with $R_x(\theta)=e^{-i\theta\sigma_x/2}$ and
+$U_{\rm free}=\mathrm{diag}(e^{+i\pi\delta\Delta_t},e^{-i\pi\delta\Delta_t})$, so
+$\cos\lambda=\tfrac12\mathrm{Tr}\,U_{\rm cycle}=\cos(\theta/2)\cos(\pi\delta\Delta_t)$
+(reordering the step changes intermediate phases but not $\tfrac12\mathrm{Tr}$, hence not
+$P_\downarrow$). It matches `strobo_sim` to machine precision (§8) and reduces to the
+squared-Dirichlet comb for $\theta\ll1$. For
 $\eta\neq0$ the weak-pulse expansion (§3) remains the best closed-form handle.
 
 ## 5. Off-strobe / phase-varying grating — sampling $\chi(\beta)$
 
-Off the exact strobe the $\beta_k$ step around the ring and both channels become
-motion-sensitive:
+Off the exact strobe the $\beta_k$ step around the ring and both channels *can* become
+motion-sensitive (a rotationally symmetric state or a special detuning may still suppress
+the observable variation):
 
 - **Coherence:** $\mathrm{Tr}[\rho A]=-i\frac{\theta}{2}\sum_k e^{-i2\pi k\delta\Delta_t}\chi(i\eta e^{i(\phi_g-k\Phi)})$
   — a DFT of $\chi$ over the ring; $\phi_g$ rotates the ring, $\delta$ supplies the Fourier
@@ -187,9 +199,10 @@ These are leading-order patches, not a universal substitution:
   $\omega_{\rm lf}\delta t\approx0.16$ rad at $\delta t=0.02\,\mu$s) plus a midpoint phase
   shift. Beyond this order the time-ordered pulse propagator must be evaluated directly —
   it is *not* equivalent to a global rescaling of $\eta$.
-- **Finite $N$ / decoherence** cap $\lvert\beta\rvert_{\max}$, convolving the reconstructed
-  $W$ with a point spread of width $\sim1/\lvert\beta\rvert_{\max}$ — so the noise/
-  filter-function analysis sets the tomographic resolution.
+- **Finite $N$ / decoherence** cap $\lvert\beta\rvert_{\max}$; the reconstructed $W$ then
+  carries a resolution that *scales* as $\sim1/\lvert\beta\rvert_{\max}$ (the actual
+  point-spread depends on the sampling mask, weighting, and reconstruction
+  regularisation) — so the noise/filter-function analysis sets the tomographic resolution.
 
 ## 8. Numerical validation
 
@@ -200,7 +213,7 @@ against `strobo_detuning_scan` (the full Floquet propagator).
 
 - **Exact $\eta=0$ formula (§4):** matches the Floquet simulation to **machine precision**
   ($\lesssim10^{-13}$) at $\delta t=0.02$ and $0.05\,\mu$s, on and off resonance.
-- **Weak-pulse double-sum kernel (§3a), off-strobe ($f_{\rm lf}\Delta_t=1.03$, $\eta=0.389$, $\delta=0$)** — a **small-signal** expansion, relative error $\propto\theta^2$:
+- **Weak-pulse double-sum kernel (§3a), off-strobe ($f_{\rm lf}\Delta_t=1.03$, $\eta=0.389$, $\delta=0$)** — a **small-signal** expansion; the *observed* relative error scales as $\theta^2$ away from kernel zeros (the amplitude correction is $O(\theta^3)$; near zeros the relative metric is ill-conditioned):
 
   | $\delta t$ ($\mu$s) | $\theta$ | $P_\downarrow$ | rel. err. |
   |---|---|---|---|
