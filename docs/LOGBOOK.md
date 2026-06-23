@@ -38,6 +38,24 @@ single carrier grating samples only |beta|=eta; the SDF/sideband accumulation re
 |beta|~N*eta. Finite-pulse + decoherence -> PSF ~ 1/|beta|_max (the filter-function thread
 sets the resolution). No spike code changed; this is a docs note.
 
+REVISED after a detailed external review (two reviewers). Fixes: (i) detuning units made
+consistent -- delta in Hz with e^{-i2pi k delta Dt}, teeth at m*f_lf; (ii) pulse
+Hamiltonian written via the sigma_- transition so the kick sign (beta_k=+i*eta) matches
+the engine; (iii) added the operational bridge <sigma_x>=2Re Tr[rho A], <sigma_y>=-2Im
+Tr[rho A] + Ramsey sequence, and flagged the coherence route is NOT the current displ=0
+data; (iv) "spiral" -> circle |beta|=eta; (v) architecture-break table up front (bare
+population = diagnostic NOT tomography; bare coherence = thin ring; SDF = direct
+tomography); (vi) fixed the SDF factor (symmetric D(+-beta/2) -> chi(beta), relative
+displacement); (vii) added the EXACT eta=0 kicked-two-level transfer function
+P=sin^2(theta/2)/sin^2(lam) sin^2(N lam), cos(lam)=cos(theta/2)cos(pi delta Dt) -- verified
+vs strobo_sim to MACHINE PRECISION, valid at the N*theta~pi operating point where the
+weak-pulse comb is not; (viii) validation metadata table + weak-pulse relerr ~ theta^2
+(0.18% at theta=0.003 -> 20% at theta=0.03; NOT a model at the pi-pulse point); "13%"
+defined as the fractional change of P over eta; (ix) tightened Radon caveat (the
+population kernel is NOT a Radon projection of W); (x) refs corrected (Vogel-Risken R2847;
+Banaszek-Wodkiewicz recharacterized; added Fluhmann & Home PRL 125 043602 (2020)); (xi)
+engine API sketch added.
+
 ---
 
 ## 2026-06-23 (later 2) — The phase grating as a RECEIVER (SDR / lock-in / heterodyne); + review fixes
