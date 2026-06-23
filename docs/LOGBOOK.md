@@ -13,6 +13,37 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-23 (later 5) — Ramsey characteristic-function interferometer (population-only chi)
+
+UW proposed refining the sequence to a Ramsey type: a recoil-sensitive pi/2 REFERENCE
+pulse + a phase-coherent pi/2 GRATING pulse, whose POPULATION directly contains a
+characteristic-function value -- linear in chi, no weak-amplitude readout.
+
+Recoil-dressed flip X_beta = sigma_- D(beta) + sigma_+ D(beta)^dag (X^2=I), pi/2 pulse
+U_beta = (1/sqrt2)(I - i X_beta). Reference beta_r then grating beta_g with relative phase
+phi, starting |up>(x)rho:
+  P_down(phi) = 1/2 [ 1 + Re( e^{i[phi + Im(beta_g beta_r*)]} chi(beta_g - beta_r) ) ].
+VERIFIED to MACHINE PRECISION (max 7.8e-16) by exact two-pulse spin(x)Fock simulation over
+random (beta_r,beta_g,gamma,phi). phi=0,pi/2 give Re/Im chi; two populations recover the
+full complex chi(Delta beta) (err 2.5e-16). With fixed recoil |beta|=eta and independent
+pulse phases, Delta beta = i eta(e^{i phi_g}-e^{i phi_r}) fills the DISK |Delta beta|<=2eta
+(verified: max = 0.778 = 2*0.389) -- a genuine 2-D region, NOT the thin ring of the bare
+grating. The identity is EXACT in eta (full recoil operator D(i eta), not Lamb-Dicke); the
+requirement is impulsive control omega_lf*delta_t<<1 + calibrated pi/2 area, not small eta.
+
+ENGINE (grating_tomography.py): displacement_matrix_beta (general D(beta)), coherent/fock
+state vecs, delta_beta, ramsey_population (the identity), ramsey_population_exact (the exact
+two-pulse unitary check), ramsey_chi_from_populations (invert P(0),P(pi/2)->chi). Tests +4
+(identity exact==analytic for vacuum/coherent/fock; chi recovery; fringe contrast=|chi|;
+2-eta disk). Notebook §6 added: the Ramsey fringe (exact vs identity), the accessible disk
+filled with recovered Re chi, and chi over the reach for vacuum/coherent/thermal -- with the
+honest note that eta=0.389 gives reach 2eta~0.78 (low-energy states; larger states need
+concatenated Ramsey blocks / SDF). UW: this is the cleanest near-term Strobo2.0 tomography
+experiment -- demonstrate the two-pulse identity (vacuum/coherent/thermal), then test the
+2-eta disk filling. Tests 283 -> 287.
+
+---
+
 ## 2026-06-23 (later 4) — Tomography ENGINE + tutorial notebook (transfer function in code)
 
 UW: (1) draft an engine that also checks the transfer function numerically; (2) combine

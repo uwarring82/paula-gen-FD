@@ -243,6 +243,94 @@ plt.suptitle("Coarse $\\beta$-sampling aliases phase space (Nyquist/Brillouin zo
 plt.tight_layout(); plt.show()
 
 # %% [markdown]
+# ## 6. Ramsey characteristic-function interferometer (population readout only)
+#
+# The cleanest near-term experiment. Two recoil-dressed $\pi/2$ pulses — a reference
+# $\beta_r$ then a phase-coherent grating $\beta_g$ with relative phase $\varphi$ — make the
+# **population** a *linear* $\chi$ readout (no weak-amplitude measurement needed):
+# $$P_\downarrow(\varphi)=\tfrac12\big[1+\mathrm{Re}\big(e^{i[\varphi+\mathrm{Im}(\beta_g\beta_r^*)]}\chi(\beta_g-\beta_r)\big)\big].$$
+# $\varphi=0,\pi/2$ give $\mathrm{Re}\,\chi$ and $\mathrm{Im}\,\chi$ at $\Delta\beta=\beta_g-\beta_r$.
+# With fixed recoil $|\beta|=\eta$ and independent pulse phases,
+# $\Delta\beta=i\eta(e^{i\phi_g}-e^{i\phi_r})$ fills the **disk $|\Delta\beta|\le2\eta$** — a
+# genuine 2-D region. The identity is **exact in $\eta$** (full recoil operator $D(i\eta)$,
+# not a Lamb–Dicke expansion); the requirement is impulsive control $\omega_{lf}\delta t\ll1$
+# and a calibrated $\pi/2$ area, *not* small $\eta$.
+
+# %%
+# (a) the Ramsey fringe, exact two-pulse unitary vs the boxed identity
+gamma = 0.8 + 0.3j
+chi_g = lambda b: gt.chi_coherent(b, gamma)                       # noqa: E731
+br = 1j * ETA * np.exp(1j * 0.0)
+bg = 1j * ETA * np.exp(1j * 2.0)
+phis = np.linspace(0, 2 * np.pi, 200)
+P_ana = [gt.ramsey_population(chi_g, br, bg, ph) for ph in phis]
+psi = gt.coherent_state_vec(gamma, 30)
+P_exact = [gt.ramsey_population_exact(br, bg, ph, psi) for ph in phis[::20]]
+
+plt.figure(figsize=(8, 3.8))
+plt.plot(phis, P_ana, "C0", lw=1.4, label="identity $P_\\downarrow(\\varphi)$")
+plt.plot(phis[::20], P_exact, "k.", ms=7, label="exact two-pulse unitary")
+db = bg - br
+plt.axhline(0.5, color="0.7", lw=0.7)
+for ph, c, t in [(0.0, "C3", "$\\varphi=0\\to\\mathrm{Re}\\,\\chi$"),
+                 (np.pi / 2, "C2", "$\\varphi=\\pi/2\\to\\mathrm{Im}\\,\\chi$")]:
+    plt.plot(ph, gt.ramsey_population(chi_g, br, bg, ph), "o", color=c, ms=9, label=t)
+plt.xlabel("grating phase $\\varphi$"); plt.ylabel("$P_\\downarrow$")
+plt.title(f"Ramsey fringe (coherent $\\gamma={gamma}$): contrast = $|\\chi(\\Delta\\beta)|$={abs(chi_g(db)):.2f}")
+plt.legend(fontsize=8, loc="upper right"); plt.tight_layout(); plt.show()
+print("max |exact - identity| =",
+      max(abs(gt.ramsey_population_exact(br, bg, ph, psi) - gt.ramsey_population(chi_g, br, bg, ph))
+          for ph in phis[::20]))
+
+# %%
+# (b) the accessible disk |Delta beta| <= 2 eta, recovered chi from P(0),P(pi/2)
+PR, PG = np.meshgrid(np.linspace(0, 2 * np.pi, 60), np.linspace(0, 2 * np.pi, 60))
+DB = 1j * ETA * (np.exp(1j * PG) - np.exp(1j * PR))             # Delta beta over the phase grid
+gamma2 = 0.5 + 0.0j
+chi2 = lambda b: gt.chi_coherent(b, gamma2)                      # noqa: E731
+rec_err = 0.0
+ReChi = np.zeros_like(PR)
+for i in range(PR.shape[0]):
+    for j in range(PR.shape[1]):
+        b_r = 1j * ETA * np.exp(1j * PR[i, j]); b_g = 1j * ETA * np.exp(1j * PG[i, j])
+        p0 = gt.ramsey_population(chi2, b_r, b_g, 0.0)
+        p90 = gt.ramsey_population(chi2, b_r, b_g, np.pi / 2)
+        chi_rec = gt.ramsey_chi_from_populations(p0, p90, b_r, b_g)
+        ReChi[i, j] = chi_rec.real
+        rec_err = max(rec_err, abs(chi_rec - chi2(b_g - b_r)))
+
+fig, ax = plt.subplots(1, 2, figsize=(11, 4.3))
+sc = ax[0].scatter(DB.real.ravel(), DB.imag.ravel(), c=ReChi.ravel(), cmap="RdBu_r", s=8)
+th = np.linspace(0, 2 * np.pi, 200)
+ax[0].plot(2 * ETA * np.cos(th), 2 * ETA * np.sin(th), "k--", lw=1)
+ax[0].set_title(f"accessible $\\Delta\\beta$ disk ($|\\Delta\\beta|\\leq2\\eta$={2*ETA:.2f})")
+ax[0].set_xlabel("Re $\\Delta\\beta$"); ax[0].set_ylabel("Im $\\Delta\\beta$"); ax[0].set_aspect("equal")
+fig.colorbar(sc, ax=ax[0], fraction=0.046, label="recovered Re $\\chi$")
+# compare recovered vs analytic chi along a radial cut Delta beta in i*[-2eta, 2eta]
+ss = np.linspace(-2 * ETA, 2 * ETA, 80)
+chi_line = [chi2(1j * s) for s in ss]
+ax[1].plot(ss, [c.real for c in chi_line], "C0", label="analytic Re $\\chi$")
+ax[1].plot(ss, [gt.chi_vacuum(1j * s).real for s in ss], "C1--", label="vacuum Re $\\chi$")
+ax[1].plot(ss, [gt.chi_thermal(1j * s, 1.0) for s in ss], "C2:", label="thermal $\\bar n$=1")
+ax[1].axvspan(-2 * ETA, 2 * ETA, color="0.9", label="Ramsey reach $|\\Delta\\beta|\\leq2\\eta$")
+ax[1].set_xlabel("$s$  (with $\\Delta\\beta = i\\,s$)"); ax[1].set_ylabel("Re $\\chi$")
+ax[1].set_title("characteristic functions over the reach"); ax[1].legend(fontsize=8)
+plt.tight_layout(); plt.show()
+print(f"max |recovered chi - analytic| over the disk = {rec_err:.2e}  (the identity is exact)")
+print(f"our regime: eta={ETA} -> Ramsey reach 2*eta={2*ETA:.2f}; full W of larger states needs")
+print("concatenated Ramsey blocks or an SDF sequence to extend |Delta beta|.")
+
+# %% [markdown]
+# The exact two-pulse unitary lands on the identity to machine precision, and population
+# readout alone recovers $\chi(\Delta\beta)$ over the whole disk. For our $\eta=0.389$ the
+# reach is $2\eta\approx0.78$ — enough to map $\chi$ of low-energy states (vacuum, small
+# coherent/thermal), where $\chi$ is concentrated near the origin; resolving finer
+# phase-space detail needs a larger engineered $|\Delta\beta|$ (concatenated Ramsey blocks
+# or an SDF displacement). **Suggested first experiment:** demonstrate the two-pulse fringe
+# identity for vacuum / coherent / thermal, then test that grating-phase control fills the
+# predicted $|\Delta\beta|\le2\eta$ disk.
+
+# %% [markdown]
 # ## Summary
 #
 # - On the **exact strobe** the spin-flip population is the kicked-two-level comb,
@@ -255,6 +343,10 @@ plt.tight_layout(); plt.show()
 #   reconstructed here to $\lesssim$ few $\times10^{-3}$ including the cat's negative fringe.
 # - **Sampling effects**: the bare ring is incomplete; $|\beta|_{\max}$ sets the resolution
 #   (PSF $\sim1/|\beta|_{\max}$); the grid spacing sets a phase-space aliasing zone.
+# - **Ramsey interferometer** (the near-term experiment): two recoil-dressed $\pi/2$ pulses
+#   make the *population* a linear $\chi(\Delta\beta)$ readout; phase $\varphi=0,\pi/2$ give
+#   the quadratures, and independent pulse phases fill the disk $|\Delta\beta|\le2\eta$ —
+#   exact in $\eta$, no weak-amplitude readout needed.
 #
 # See [`docs/notes/strobo_grating_transfer_function.md`](../notes/strobo_grating_transfer_function.md)
 # for the derivation and [`spike/engines/grating_tomography.py`](../../spike/engines/grating_tomography.py)

@@ -141,3 +141,49 @@ def test_chi_wigner_fourier_consistency_fock():
     # chi_fock and wigner_fock must be a 2-D Fourier pair (reconstruct W_1 from chi_1).
     err, _ = _recon_err(lambda b: gt.chi_fock(b, 1), lambda a: gt.wigner_fock(a, 1))
     assert err < 5e-3
+
+
+# ---- Ramsey characteristic-function interferometer -------------------------
+def test_ramsey_identity_exact_vs_analytic():
+    # Two recoil-dressed pi/2 pulses: the exact unitary population == the boxed identity
+    # P_down(phi) = 1/2[1 + Re(e^{i[phi+Im(bg br*)]} chi(bg-br))], for pure states.
+    br, bg = 0.15 + 0.05j, 0.45 + 0.25j
+    cases = [(gt.chi_vacuum, gt.coherent_state_vec(0j, 30)),
+             (lambda b: gt.chi_coherent(b, 0.9 - 0.4j), gt.coherent_state_vec(0.9 - 0.4j, 30)),
+             (lambda b: gt.chi_fock(b, 1), gt.fock_state_vec(1, 30))]
+    for chi, psi in cases:
+        for phi in (0.0, math.pi / 2, 1.3):
+            assert gt.ramsey_population_exact(br, bg, phi, psi) == pytest.approx(
+                gt.ramsey_population(chi, br, bg, phi), abs=1e-10)
+
+
+def test_ramsey_recovers_chi_from_two_populations():
+    g = 0.9 - 0.4j
+    chi = lambda b: gt.chi_coherent(b, g)               # noqa: E731
+    br, bg = 0.15 + 0.05j, 0.45 + 0.25j
+    p0 = gt.ramsey_population(chi, br, bg, 0.0)
+    p90 = gt.ramsey_population(chi, br, bg, math.pi / 2)
+    assert gt.ramsey_chi_from_populations(p0, p90, br, bg) == pytest.approx(chi(bg - br), abs=1e-9)
+
+
+def test_ramsey_population_valid_and_fringe_contrast_is_chi():
+    chi = lambda b: gt.chi_coherent(b, 0.7j)            # noqa: E731
+    br, bg = 0.1 + 0j, 0.3 + 0.2j
+    db = bg - br
+    Ps = [gt.ramsey_population(chi, br, bg, i * 2 * math.pi / 64) for i in range(64)]
+    assert all(-1e-12 <= p <= 1 + 1e-12 for p in Ps)   # valid probabilities
+    # peak-to-trough fringe (at the extremal phases) = |chi(Delta beta)|
+    phi_pk = -(bg * br.conjugate()).imag - cmath.phase(chi(db))
+    p_pk = gt.ramsey_population(chi, br, bg, phi_pk)
+    p_tr = gt.ramsey_population(chi, br, bg, phi_pk + math.pi)
+    assert p_pk - p_tr == pytest.approx(abs(chi(db)), rel=1e-9)
+
+
+def test_ramsey_disk_reach_is_two_eta():
+    eta = 0.389
+    vals = [abs(gt.delta_beta(eta, pr, pg))
+            for pr in [i * math.pi / 12 for i in range(24)]
+            for pg in [i * math.pi / 12 for i in range(24)]]
+    assert all(v <= 2 * eta + 1e-9 for v in vals)      # confined to the disk
+    assert max(vals) == pytest.approx(2 * eta, rel=1e-6)
+    assert abs(gt.delta_beta(eta, 0.0, math.pi)) == pytest.approx(2 * eta)  # diameter

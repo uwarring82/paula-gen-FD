@@ -47,7 +47,7 @@ validations; everything below is a diagnostic or a raw-data tool.
 | scatter | capability | no | scalar Raman scatter + differential AC-Stark |
 | raman_optical | capability | no (input_quantity) | polarization+power-resolved shifts/scatter; absolute differential_stark_hz (saturation-anchored) |
 | strobo_sim | capability | n/a | spin⊗Fock stroboscopic propagator → symmetric Floquet comb + heterodyne IF beat; transfer function in [notes/strobo_grating_transfer_function.md](notes/strobo_grating_transfer_function.md) |
-| grating_tomography | capability | n/a | char.-function / Wigner transfer-function kernels (chi, double/single-sum kernels, exact η=0, χ→W reconstruction) self-checked vs strobo_sim; tutorial [notebooks/strobo_grating_tomography](notebooks/strobo_grating_tomography.ipynb) |
+| grating_tomography | capability | n/a | char.-function / Wigner transfer-function kernels (chi, double/single-sum kernels, exact η=0, χ→W reconstruction) + Ramsey 2-pulse χ-interferometer (population→χ(Δβ), disk \|Δβ\|≤2η) self-checked vs exact sims; tutorial [notebooks/strobo_grating_tomography](notebooks/strobo_grating_tomography.ipynb) |
 | raman_dephasing | capability | no | relative-phase noise of the 2 beams → Δν/T_φ readout of the residual |
 | sideband (thermal) | capability | no | RSB/BSB thermal flops → nbar thermometry (twin_sideband discriminator) |
 | twin_strobo | raw-data | n/a | stroboscopic OC carrier flop (phase-grating n=0 baseline; strobo dephasing-decoupling; detuning-scan + AC-Stark-vs-N) |

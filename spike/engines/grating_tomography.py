@@ -173,6 +173,108 @@ def square_grid(half_width, n):
     return pts, step
 
 
+# ---------- Ramsey characteristic-function interferometer --------------------
+# Two recoil-dressed pi/2 pulses (reference beta_r, then a phase-coherent grating beta_g
+# with relative phase phi) turn the POPULATION into a LINEAR chi readout:
+#   X_beta = sigma_- D(beta) + sigma_+ D(beta)^dag,  U_beta = (1/sqrt2)(I - i X_beta),
+#   P_down(phi) = 1/2 [ 1 + Re( e^{i[phi + Im(beta_g beta_r*)]} chi(beta_g - beta_r) ) ].
+# Re/Im chi(Delta beta) come from phi = 0, pi/2. With fixed recoil |beta|=eta and
+# independently programmable pulse phases, Delta beta = i eta (e^{i phi_g} - e^{i phi_r})
+# fills the DISK |Delta beta| <= 2 eta -- a genuine 2-D region, not a thin ring.
+def _laguerre_gen(n: int, k: int, x: float) -> float:
+    """Generalized Laguerre L_n^{(k)}(x)."""
+    if n <= 0:
+        return 1.0
+    lkm1, lk = 1.0, 1.0 + k - x
+    for j in range(1, n):
+        lkm1, lk = lk, ((2 * j + 1 + k - x) * lk - (j + k) * lkm1) / (j + 1)
+    return lk
+
+
+def displacement_matrix_beta(beta: complex, F: int):
+    """<m|D(beta)|n> for general complex beta (F x F)."""
+    a2 = abs(beta) ** 2
+    e = math.exp(-a2 / 2.0)
+    fact = [1.0] * (F + 1)
+    for i in range(1, F + 1):
+        fact[i] = fact[i - 1] * i
+    M = [[0j] * F for _ in range(F)]
+    for m in range(F):
+        for n in range(F):
+            if m >= n:
+                k = m - n
+                M[m][n] = math.sqrt(fact[n] / fact[m]) * (beta ** k) * e * _laguerre_gen(n, k, a2)
+            else:
+                k = n - m
+                M[m][n] = math.sqrt(fact[m] / fact[n]) * ((-beta.conjugate()) ** k) * e * _laguerre_gen(m, k, a2)
+    return M
+
+
+def coherent_state_vec(gamma: complex, F: int):
+    """|gamma> in the Fock basis (truncated to F levels)."""
+    amp = math.exp(-abs(gamma) ** 2 / 2.0)
+    v, f = [0j] * F, 1.0
+    for n in range(F):
+        if n:
+            f *= n
+        v[n] = amp * (gamma ** n) / math.sqrt(f)
+    return v
+
+
+def fock_state_vec(n: int, F: int):
+    v = [0j] * F
+    v[n] = 1.0 + 0j
+    return v
+
+
+def delta_beta(eta: float, phi_r: float, phi_g: float) -> complex:
+    """Sampled displacement difference, beta_g - beta_r = i eta (e^{i phi_g} - e^{i phi_r})."""
+    return 1j * eta * (cmath.exp(1j * phi_g) - cmath.exp(1j * phi_r))
+
+
+def ramsey_population(chi, beta_r: complex, beta_g: complex, phi: float = 0.0) -> float:
+    """Ideal Ramsey population P_down(phi) for the two-pi/2-pulse characteristic-function
+    interferometer (the boxed identity). `chi` is a callable chi(beta)."""
+    z = cmath.exp(1j * (phi + (beta_g * beta_r.conjugate()).imag)) * chi(beta_g - beta_r)
+    return 0.5 * (1.0 + z.real)
+
+
+def ramsey_chi_from_populations(p0: float, p90: float, beta_r: complex, beta_g: complex) -> complex:
+    """Invert the two populations P(0), P(pi/2) -> chi(beta_g - beta_r) (the geometric
+    phase e^{i Im(beta_g beta_r*)} is divided out)."""
+    phi0 = (beta_g * beta_r.conjugate()).imag
+    z = 2.0 * (p0 - 0.5) - 2j * (p90 - 0.5)            # = e^{i phi0} chi(Delta beta)
+    return cmath.exp(-1j * phi0) * z
+
+
+def ramsey_population_exact(beta_r: complex, beta_g: complex, phi: float, psi_fock, F=None) -> float:
+    """EXACT two-pulse population: U_g^(phi) U_r on |up> (x) psi_fock, P_down summed over
+    motion. Uses U = (1/sqrt2)(I - i X) with X = sigma_- D + sigma_+ D^dag (X^2=I). For
+    validating ramsey_population; `psi_fock` a Fock-basis state vector."""
+    F = F or len(psi_fock)
+    Dr, Dg = displacement_matrix_beta(beta_r, F), displacement_matrix_beta(beta_g, F)
+    D = 2 * F
+    inv2 = 1.0 / math.sqrt(2.0)
+
+    def Xmat(Dm, ph):                                  # X^(ph) = sigma_- e^{i ph} D + h.c.
+        X = [[0j] * D for _ in range(D)]
+        for m in range(F):
+            for n in range(F):
+                X[F + m][n] += cmath.exp(1j * ph) * Dm[m][n]
+                X[n][F + m] += cmath.exp(-1j * ph) * Dm[m][n].conjugate()
+        return X
+
+    def U_apply(X, v):
+        return [inv2 * v[i] - 1j * inv2 * sum(X[i][k] * v[k] for k in range(D)) for i in range(D)]
+
+    psi = [0j] * D
+    for n in range(F):
+        psi[n] = psi_fock[n]                           # |up> (x) psi_fock
+    psi = U_apply(Xmat(Dr, 0.0), psi)                  # reference pi/2
+    psi = U_apply(Xmat(Dg, phi), psi)                  # grating pi/2 (phase phi)
+    return sum((psi[F + n] * psi[F + n].conjugate()).real for n in range(F))
+
+
 # ---------- numerical self-checks vs the full Floquet propagator -------------
 def check_probability_vs_floquet(eta=0.389, omega_strobo_hz=4.99e5, delta_t_us=0.001,
                                  N=50, DELTA_t_us=0.769172, f_lf_factor=1.03, det_hz=0.0):
