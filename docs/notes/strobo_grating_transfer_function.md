@@ -7,6 +7,81 @@ motional-state (Wigner) tomography. All population-transfer formulas below are v
 relations are established transfer-function identities that specify the required
 interferometric extension. See §9.*
 
+## Plain-language overview (read me first)
+
+The PAULA experiment traps a single ²⁵Mg⁺ ion and encodes a **qubit** (a two-level quantum
+system, written $|\!\uparrow\rangle,|\!\downarrow\rangle$) in two of its internal electronic
+states. The ion also *vibrates* in the trap; that vibration is a quantum **harmonic
+oscillator** ("the motion"), and its quantum state is what we want to characterise. The
+**"active phase grating"** is a laser sequence that flips the qubit with a train of short
+pulses while each pulse also gives the ion a tiny momentum kick (a photon **recoil**). Because
+the kick links the qubit to the motion, *how often the qubit ends up flipped* carries
+information about the motional state.
+
+This note derives, exactly, **which function of the motional state the flip signal measures**
+(its "transfer function"), and shows that a two-pulse **Ramsey** version (a standard
+interferometer: two pulses with a controlled phase between them) reads the motional state's
+**characteristic function** directly — and hence, by a Fourier transform, its **Wigner
+function**, a picture of the state in position–momentum **phase space** — using qubit
+populations alone. It assumes MSc-level quantum mechanics (harmonic oscillator, Pauli spin,
+Fourier transforms); all other notation and jargon is defined just below.
+
+## Notation and terminology
+
+**Symbols** (frequencies are ordinary/cyclic, in hertz; angular versions carry a $2\pi$).
+
+| symbol | meaning |
+|---|---|
+| $\lvert\!\uparrow\rangle,\lvert\!\downarrow\rangle$ | the two qubit (internal-state) levels; $P_\downarrow$ = probability the qubit is found flipped |
+| $\rho$ | the motional quantum state (density matrix of the vibration) |
+| $a,a^\dagger$ | lowering / raising (annihilation / creation) operators of the motional mode |
+| $\omega_{\rm lf}=2\pi f_{\rm lf}$ | angular / cyclic frequency of the low-frequency (lf) axial motional mode ($f_{\rm lf}\!\approx\!1.30$ MHz) |
+| $\eta$ | **Lamb–Dicke parameter** — dimensionless recoil strength, $\eta=k_{\rm eff}x_{\rm zpf}$ (zero-point motion in units of the optical wavelength); $\eta\!\approx\!0.389$ here |
+| $\delta t$ | duration of *one* grating pulse |
+| $\Omega_{\rm strobo}$ | per-pulse Rabi frequency (spin-flip rate) of the grating drive |
+| $\theta=2\pi\,\Omega_{\rm strobo}\,\delta t$ | **pulse area** — the spin-rotation angle of one pulse ($\theta\ll1$ = "weak pulse") |
+| $\Delta_t$ | strobe *period* (time between pulses), set equal to the motional period $1/f_{\rm lf}$ |
+| $N$ | number of pulses in the train |
+| $\Phi=\omega_{\rm lf}\Delta_t$ | motional phase the oscillator advances per pulse period |
+| $\phi_g$ | **grating phase** — the programmable optical phase of the drive |
+| $\delta$ | **drive detuning** — offset of the drive frequency from the qubit transition (Hz) |
+| $D(\alpha)=e^{\alpha a^\dagger-\alpha^* a}$ | **displacement operator** — shifts the motion by $\alpha$ in phase space |
+| $\beta,\beta_k$ | the per-pulse phase-space kick (a displacement amplitude); $\beta_k=i\eta e^{i(\phi_g-k\Phi)}$ |
+| $\alpha$ | complex phase-space coordinate ($\mathrm{Re}\,\alpha\leftrightarrow$ position, $\mathrm{Im}\,\alpha\leftrightarrow$ momentum, oscillator units) |
+| $\chi(\beta)=\mathrm{Tr}[\rho D(\beta)]$ | **characteristic function** — a complete description of $\rho$; the Fourier transform of $W$ |
+| $W(\alpha)$ | **Wigner function** — a quasi-probability map of $\rho$ in phase space (2-D Fourier transform of $\chi$) |
+| $C,\,M$ | interferometer fringe contrast; number of experimental repetitions ("shots") |
+| $k_{\rm eff}$ | effective wavevector of the drive (sets the optical grating's spatial period; $\approx\!31$ rad/µm here) |
+
+**Acronyms.**
+- **OC** — *orthogonal-carrier*: the two-photon stimulated-Raman laser drive arranged so the
+  net photon-momentum kick $\Delta\mathbf k$ lies along the trap (axial) direction, so a qubit
+  flip is accompanied by an axial recoil. (*lf* = the low-frequency axial mode.)
+- **Strobo2.0** — the experimental pulse sequence / dataset this note models.
+- **SDF** — *spin-dependent force* (a force whose direction depends on the qubit state).
+- **MS** — *Mølmer–Sørensen*: a standard spin–motion entangling operation built from a
+  two-tone ("bichromatic") spin-dependent force.
+- **RWA** — *rotating-wave approximation* (dropping fast counter-rotating terms).
+- **QND** — *quantum non-demolition*: a measurement that does not disturb the very quantity it
+  measures (so it can be repeated).
+- **DFT / FFT** — discrete / fast Fourier transform.
+- **PSF** — *point-spread function*: the blurring kernel a finite, noisy reconstruction
+  applies to the true image.
+- **AC-Stark shift** — a light-induced shift of the qubit energy levels.
+
+**Concepts in one line.**
+- *Phase space* — the position–momentum plane of the oscillator (dimensionless units, one unit
+  ≈ the zero-point spread $x_{\rm zpf}$).
+- *Coherent / Fock / thermal / cat states* — standard motional states: a displaced ground
+  state (most "classical"), a state of definite phonon number, a hot statistical mixture, and
+  a superposition of two coherent states (a "Schrödinger-cat" state, with non-classical
+  interference fringes and regions of negative $W$).
+- *Floquet* — the framework for time-periodic (here, pulse-periodic) Hamiltonians.
+- *Projection noise* — the irreducible statistical noise of a yes/no (two-level) quantum
+  measurement; it averages down as $1/\sqrt M$.
+- *Dirichlet / Fejér kernel* — the diffraction-grating lineshapes produced by summing $N$
+  equally spaced phases (a sharp comb of peaks).
+
 ## 0. Summary
 
 In the weak-pulse limit a bare stroboscopic carrier grating produces a spin-flip
@@ -39,9 +114,9 @@ then sit at $\delta=m/\Delta_t=m f_{\rm lf}$.
 
 - Qubit $\{|\!\uparrow\rangle,|\!\downarrow\rangle\}$, one motional mode $\omega_{\rm lf}=2\pi f_{\rm lf}$,
   $a,a^\dagger$, Lamb–Dicke parameter $\eta$.
-- $N$ identical OC pulses, one per strobe period $\Delta_t$, each of area
-  $\theta=\Omega_{\rm strobo}\,\delta t$. **Weak-pulse limit** $\theta\ll1$ and short pulse
-  $\omega_{\rm lf}\delta t\ll1$.
+- $N$ identical OC (orthogonal-carrier; see Notation) pulses, one per strobe period
+  $\Delta_t$, each of area $\theta=\Omega_{\rm strobo}\,\delta t$. **Weak-pulse limit**
+  $\theta\ll1$ and short pulse $\omega_{\rm lf}\delta t\ll1$.
 - One impulsive recoil-dressed pulse, retaining the **full** harmonic-oscillator
   displacement operator $D(i\eta)$ (not its Lamb–Dicke expansion $1+i\eta(a+a^\dagger)+\dots$),
   written so the $|\!\uparrow\rangle\!\to\!|\!\downarrow\rangle$ transition direction is
@@ -182,8 +257,8 @@ the observable variation):
 fixed-radius ring, $\delta$ re-weights the same sampled points, and $N$ changes the number
 and angular coverage of points — **none alone increases $\lvert\beta\rvert$ beyond $\eta$**.
 Resolving finer phase-space structure requires the per-branch kicks to **add coherently**,
-i.e. a spin-*dependent* displacement (MS/SDF / bichromatic sidebands). With the symmetric
-convention
+i.e. a spin-*dependent* displacement (an MS — Mølmer–Sørensen — / SDF / two-tone
+"bichromatic" sideband interaction). With the symmetric convention
 
 $$U_{\rm SDF}=|\!\uparrow\rangle\langle\uparrow|\otimes D(+\beta/2)+|\!\downarrow\rangle\langle\downarrow|\otimes D(-\beta/2),$$
 

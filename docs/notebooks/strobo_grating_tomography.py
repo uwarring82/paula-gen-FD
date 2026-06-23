@@ -13,25 +13,41 @@
 # %% [markdown]
 # # The stroboscopic phase grating as a phase-space probe — tutorial
 #
-# A self-consistent walk-through of the transfer function in
-# [`docs/notes/strobo_grating_transfer_function.md`](../notes/strobo_grating_transfer_function.md),
-# tying together the analytic kernels in
-# [`spike/engines/grating_tomography.py`](../../spike/engines/grating_tomography.py) and the
-# full Floquet propagator [`spike/engines/strobo_sim.py`](../../spike/engines/strobo_sim.py).
+# A walk-through of the companion note
+# [`docs/notes/strobo_grating_transfer_function.md`](../notes/strobo_grating_transfer_function.md)
+# (which has a full **Notation and terminology** glossary). It ties together the analytic
+# formulas in [`spike/engines/grating_tomography.py`](../../spike/engines/grating_tomography.py)
+# and the full simulator [`spike/engines/strobo_sim.py`](../../spike/engines/strobo_sim.py).
 #
-# **What the grating is.** $N$ weak OC pulses, one per strobe period $\Delta_t$, each a
-# spin-flip with a Lamb–Dicke kick $D(i\eta)$. It produces a flip *amplitude operator*
-# $A=-i\frac{\theta}{2}\sum_k e^{-i2\pi k\delta\Delta_t}D(\beta_k)$, $\beta_k=i\eta
-# e^{i(\phi_g-k\Phi)}$, $\Phi=2\pi f_{\rm lf}\Delta_t$. The qubit *observable* selects the
-# functional of the **characteristic function** $\chi(\beta)=\mathrm{Tr}[\rho D(\beta)]$:
+# ### Plain-language setup
 #
-# | observable | signal | reconstructs |
+# A single trapped ion carries a **qubit** (two internal levels $|\!\uparrow\rangle,
+# |\!\downarrow\rangle$) and also *vibrates* in the trap — a quantum **harmonic oscillator**
+# whose state $\rho$ we want to read out. The **grating** is a train of $N$ short laser
+# pulses ("OC" = orthogonal-carrier Raman drive): each flips the qubit a little *and* gives
+# the ion a momentum kick (a displacement $D(i\eta)$ in **phase space**, the position–momentum
+# plane; $\eta\approx0.39$ is the Lamb–Dicke recoil strength).
+#
+# A motional state is fully described by its **characteristic function**
+# $\chi(\beta)=\mathrm{Tr}[\rho D(\beta)]$ (here $D(\alpha)=e^{\alpha a^\dagger-\alpha^*a}$ is
+# the displacement operator). The **Wigner function** $W(\alpha)$ — a quasi-probability map of
+# the state in phase space — is its 2-D Fourier transform,
+# $W(\alpha)=\frac{1}{\pi^2}\int d^2\beta\,\chi(\beta)e^{\alpha\beta^*-\alpha^*\beta}$.
+#
+# **What the grating measures.** Summed over its pulses, the train produces a flip *amplitude*
+# $A=-i\frac{\theta}{2}\sum_k e^{-i2\pi k\delta\Delta_t}D(\beta_k)$ (pulse area $\theta$, kicks
+# $\beta_k=i\eta e^{i(\phi_g-k\Phi)}$, per-period motional phase $\Phi=2\pi f_{\rm lf}\Delta_t$).
+# Which *function of $\chi$* you measure depends on the qubit observable:
+#
+# | qubit observable | signal | what it reconstructs |
 # |---|---|---|
-# | population $\langle A^\dagger A\rangle$ | double sum over $\chi(\beta_{k'}-\beta_k)$ | diagnostic; motion-blind on the exact strobe |
-# | coherence $\propto\mathrm{Tr}[\rho A]$ | single-sum DFT of $\chi$ | $\chi\to W$ (ring-limited for the bare grating) |
-# | spin-dependent force | $\chi(\beta)$ directly | **direct** Wigner tomography |
+# | flip **probability** $\langle A^\dagger A\rangle$ | a double sum over $\chi(\beta_{k'}-\beta_k)$ | a diagnostic; *blind to the motion* on the exact strobe |
+# | flip **coherence** (interferometric) $\propto\mathrm{Tr}[\rho A]$ | a single-sum Fourier transform of $\chi$ | $\chi\to W$, but only on a thin ring $\lvert\beta\rvert=\eta$ |
+# | **spin-dependent force / Ramsey** | $\chi(\Delta\beta)$ directly | direct Wigner tomography over a finite disk |
 #
-# and $W(\alpha)=\frac{1}{\pi^2}\int d^2\beta\,\chi(\beta)e^{\alpha\beta^*-\alpha^*\beta}$.
+# This notebook builds each row up, validates the formulas against the full simulator, then
+# (last sections) reconstructs Wigner functions and puts **real numbers** on the sensitivity,
+# bandwidth, and dynamic range of the device.
 
 # %%
 import os
@@ -331,6 +347,104 @@ print("concatenated Ramsey blocks or an SDF sequence to extend |Delta beta|.")
 # predicted $|\Delta\beta|\le2\eta$ disk.
 
 # %% [markdown]
+# ## 7. Sensing limits in our regime — real numbers
+#
+# Used as a *sensor*, the grating has three figures of merit (note §10). Here we put numbers
+# on them from the twin parameters. Three terms, in plain language:
+#
+# * **Sensitivity** — the smallest signal change resolvable in one experimental run. Set by
+#   projection noise: a yes/no qubit readout has phase uncertainty $\Delta\Phi\sim1/(C\sqrt M)$
+#   for contrast $C$ and $M$ repetitions, so sensitivities improve as $1/\sqrt M$.
+# * **Bandwidth / resolution** — the frequency (or velocity) resolution $\sim1/T_g$ set by the
+#   interrogation time $T_g=N\Delta_t$, and the update rate $\sim1/T_{\rm cycle}$.
+# * **Dynamic range** — the ratio of the largest *unambiguous* signal to the resolution. The
+#   stroboscopic sampling can only track a detuning up to $1/(2\Delta_t)$ (half the comb
+#   spacing) before it aliases, giving a detuning dynamic range $\approx N/2$.
+#
+# The effective wavevector follows from $\eta=k_{\rm eff}x_{\rm zpf}$ with the zero-point
+# spread $x_{\rm zpf}=\sqrt{\hbar/2m\omega_{\rm lf}}$.
+
+# %%
+HBAR, U = 1.054571817e-34, 1.66053907e-27
+M_ION = 25 * U                                   # 25Mg+ mass
+C = 0.61                                          # measured strobo-flop contrast (round 'twin_strobo')
+w_lf = 2 * np.pi * F_LF
+x_zpf = np.sqrt(HBAR / (2 * M_ION * w_lf))        # zero-point position spread
+k_eff = ETA / x_zpf                               # eta = k_eff * x_zpf
+v_zpf = x_zpf * w_lf                              # zero-point velocity
+Tg = N * DT * 1e-6                                # grating/comb interrogation time [s]
+
+print(f"x_zpf = {x_zpf*1e9:.1f} nm,  k_eff = {k_eff/1e6:.1f} rad/um "
+      f"(= {k_eff/(2*np.pi/280e-9):.2f} x the 280 nm photon k -> Raman geometry)")
+print("\nRESOLUTION / BANDWIDTH")
+print(f"  detuning resolution   1/Tg       = {1/Tg/1e3:5.1f} kHz   (Tg = {Tg*1e6:.1f} us)")
+print(f"  unaliased range       1/(2 DT)   = {1/(2*DT*1e-6)/1e3:5.0f} kHz   (= f_lf/2)")
+print(f"  velocity resolution   2pi/(k T)  = {2*np.pi/(k_eff*Tg)*1e3:5.2f} mm/s")
+print(f"  max trackable velocity pi/(k DT) = {np.pi/(k_eff*DT*1e-6)*1e3:5.0f} mm/s")
+print(f"  detuning DYNAMIC RANGE = (1/2DT)/(1/Tg) = N/2 = {N/2:.0f}")
+print("\nSENSITIVITY (ideal C=1, per sqrt(M) shots)")
+for M in (1, 100, 10000):
+    f = 1 / np.sqrt(M)
+    print(f"  M={M:6d}:  ddelta={1/(2*np.pi*Tg)*f/1e3:6.2f} kHz   "
+          f"dv={1/(k_eff*Tg)*f*1e3:6.3f} mm/s   dx={1/k_eff*f*1e9:6.2f} nm")
+print(f"  (divide by C={C} for the measured contrast)")
+
+# --- figure: (A) sensitivity vs shots, (B) detuning dynamic range, (C) phase-space reach ---
+fig = plt.figure(figsize=(14, 4.2))
+# (A) sensitivity scaling
+axA = fig.add_subplot(1, 3, 1)
+Ms = np.logspace(0, 5, 60)
+axA.loglog(Ms, 1 / (2 * np.pi * Tg) / C / np.sqrt(Ms) / 1e3, label="$\\Delta\\delta$ [kHz]")
+axA.loglog(Ms, 1 / (k_eff * Tg) / C / np.sqrt(Ms) * 1e3, label="$\\Delta v$ [mm/s]")
+axA.loglog(Ms, 1 / k_eff / C / np.sqrt(Ms) * 1e9, label="$\\Delta x$ [nm]")
+axA.set_xlabel("repetitions $M$"); axA.set_ylabel("equivalent sensitivity")
+axA.set_title(f"(A) projection-noise sensitivity ($C$={C})\n$\\propto1/\\sqrt{{M}}$")
+axA.grid(alpha=0.3, which="both"); axA.legend(fontsize=8)
+# (B) detuning dynamic range: the narrow resolution lineshape inside the unaliased window
+axB = fig.add_subplot(1, 3, 2)
+res = 1 / Tg; rng = 1 / (2 * DT * 1e-6)
+ds = np.linspace(-rng, rng, 4000)
+peak = np.sinc(N * ds * DT * 1e-6) ** 2          # squared-Dirichlet resolution lineshape (width ~res)
+axB.fill_between(ds / 1e3, peak, color="#1f77b4", alpha=0.7)
+axB.axvline(-rng / 1e3, color="0.5", ls=":"); axB.axvline(rng / 1e3, color="0.5", ls=":")
+axB.set_xlabel("detuning $\\delta$ [kHz]"); axB.set_ylim(0, 1.1); axB.set_yticks([])
+axB.set_title(f"(B) resolution {res/1e3:.0f} kHz in $\\pm${rng/1e3:.0f} kHz window\n"
+              f"$\\Rightarrow$ dynamic range $\\approx N/2$={int(N/2)}")
+# (C) phase-space tomographic reach: disk |Db|<=2eta vs chi-support of vacuum/thermal
+axC = fig.add_subplot(1, 3, 3)
+th = np.linspace(0, 2 * np.pi, 200)
+axC.plot(2 * ETA * np.cos(th), 2 * ETA * np.sin(th), "k--", lw=1.4, label="Ramsey reach $2\\eta$")
+for nbar, col in [(0.0, "C0"), (0.3, "C1"), (1.0, "C3")]:
+    # chi(beta) 1/e radius for a thermal state: |chi|=e^{-(nbar+1/2)|b|^2} -> radius 1/sqrt(nbar+1/2)
+    r = 1 / np.sqrt(nbar + 0.5)
+    axC.plot(r * np.cos(th), r * np.sin(th), col, lw=1.1, label=f"$\\chi$ 1/e, $\\bar n$={nbar}")
+axC.set_aspect("equal"); axC.set_xlabel("Re $\\Delta\\beta$"); axC.set_ylabel("Im $\\Delta\\beta$")
+axC.set_title("(C) tomographic reach: disk $2\\eta$=%.2f\n$<$ cold-state $\\chi$ support ($\\approx$1.4)" % (2 * ETA))
+axC.legend(fontsize=7, loc="upper right")
+plt.tight_layout(); plt.show()
+
+# %% [markdown]
+# **Reading the numbers (our $\eta=0.389$, $N=50$, $T_g=38.5$ µs, $C\approx0.6$):**
+#
+# * **Sensitivity** (single shot, ideal): $\Delta\delta\approx4$ kHz, $\Delta v\approx0.8$ mm/s,
+#   $\Delta x\approx32$ nm — improving as $1/\sqrt M$ (≈10× better per 100 shots), degraded by
+#   $1/C\approx1.6$ at the measured contrast.
+# * **Bandwidth**: detuning resolution $\approx26$ kHz (the comb-tooth width); the per-run
+#   update rate is set by the full experiment cycle (cooling + grating + readout), not by
+#   $T_g$ alone.
+# * **Dynamic range**: detuning $\approx N/2=25$ (track up to $\pm650$ kHz at $26$ kHz
+#   resolution); velocity up to $\approx131$ mm/s at $5.2$ mm/s resolution.
+# * **Tomographic reach** is the tight one for us: the Ramsey disk $2\eta\approx0.78$ is
+#   *smaller* than the characteristic-function support of cold states (the vacuum/coherent
+#   $\chi$ has $1/e$ radius $\approx1.4$). So a single Ramsey pair **truncates** $\chi$ and
+#   resolves phase space only coarsely, $\Delta\alpha\sim1/2\eta\approx1.3$ (larger than the
+#   zero-point spread); it captures the *full* $\chi$ only of already-broad states (hot
+#   thermal, $\bar n\gtrsim0.3$, where $\chi$ has shrunk inside the disk). Cold or
+#   non-classical (cat) states need a larger engineered $|\Delta\beta|$ — concatenated Ramsey
+#   blocks or an SDF displacement. These are **ideal** scalings; heating, dephasing,
+#   pulse-area and phase errors all enter through $C$ and the reachable $|\Delta\beta|_{\max}$.
+
+# %% [markdown]
 # ## Summary
 #
 # - On the **exact strobe** the spin-flip population is the kicked-two-level comb,
@@ -349,6 +463,12 @@ print("concatenated Ramsey blocks or an SDF sequence to extend |Delta beta|.")
 #   make the *population* a linear $\chi(\Delta\beta)$ readout; phase $\varphi=0,\pi/2$ give
 #   the quadratures, and independent pulse phases fill the disk $|\Delta\beta|\le2\eta$ —
 #   exact in $\eta$, no weak-amplitude readout needed.
+# - **Sensing limits (our regime)**: single-shot sensitivity $\Delta\delta\approx4$ kHz,
+#   $\Delta v\approx0.8$ mm/s, $\Delta x\approx32$ nm ($\propto1/\sqrt M$); detuning resolution
+#   $26$ kHz, dynamic range $\approx N/2=25$. The tight limit is the tomographic reach: the
+#   disk $2\eta\approx0.78$ is smaller than the cold-state $\chi$ support ($\approx1.4$), so
+#   phase-space resolution is only $\sim1/2\eta\approx1.3$ — cold/non-classical states need a
+#   larger $|\Delta\beta|$.
 #
 # See [`docs/notes/strobo_grating_transfer_function.md`](../notes/strobo_grating_transfer_function.md)
 # for the derivation and [`spike/engines/grating_tomography.py`](../../spike/engines/grating_tomography.py)

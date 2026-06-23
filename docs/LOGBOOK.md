@@ -13,6 +13,36 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-23 (later 6) — Accessibility (MSc-level) + sensing-limits tutorial section
+
+UW: make the note + tutorial accessible to MSc students (no acronyms without explanation,
+less jargon); and illustrate the sensitivity / bandwidth / dynamic-range limits with
+NUMBERS from our twin.
+
+ACCESSIBILITY. Note gains a "Plain-language overview (read me first)" + a full "Notation
+and terminology" section (symbol table: |up>,rho,a,omega_lf,eta,delta_t,Omega_strobo,theta,
+Delta_t,N,Phi,phi_g,delta,D(alpha),beta,alpha,chi,W,C,M,k_eff; acronyms OC/Strobo2.0/SDF/
+MS/RWA/QND/DFT/PSF/AC-Stark all spelled out; one-line concepts: phase space, coherent/Fock/
+thermal/cat, Floquet, projection noise, Dirichlet/Fejer). OC + MS also spelled at first body
+use. Notebook intro rewritten in plain language (qubit, motion, chi, Wigner, displacement,
+Lamb-Dicke) with a pointer to the glossary.
+
+SENSING NUMBERS (notebook §7, from the twin). k_eff = eta/x_zpf with x_zpf=sqrt(hbar/2 m
+omega_lf): x_zpf=12.5 nm, k_eff=31.2 rad/um (=1.39x the 280nm photon k -> Raman geometry).
+- Sensitivity (single shot, ideal C=1): Ddelta~4.1 kHz, Dv~0.83 mm/s, Dx~32 nm; ~1/sqrt(M);
+  /C for the measured contrast C~0.61.
+- Resolution 1/Tg=26 kHz (Tg=N*Dt=38.5 us); unaliased range 1/(2Dt)=650 kHz; detuning
+  DYNAMIC RANGE = N/2 = 25; velocity res 5.2 mm/s, max 131 mm/s.
+- Tomographic reach (the tight one): disk 2eta=0.78 is SMALLER than the cold-state chi
+  support (vacuum/coherent 1/e radius ~1.4), so a single Ramsey pair TRUNCATES chi and
+  resolves phase space only to ~1/2eta~1.3 (> zero-point); it captures the full chi only of
+  already-broad (hot, nbar>~0.3 thermal) states. Cold/non-classical states need concatenated
+  Ramsey blocks or SDF to extend |Db|. (Corrected an initial backwards "covers up to nbar~0.3".)
+3-panel figure (sensitivity vs M; resolution-in-window dynamic range; phase-space reach vs
+chi support). Docs-only + notebook re-executed.
+
+---
+
 ## 2026-06-23 (later 5) — Ramsey characteristic-function interferometer (population-only chi)
 
 UW proposed refining the sequence to a Ramsey type: a recoil-sensitive pi/2 REFERENCE
