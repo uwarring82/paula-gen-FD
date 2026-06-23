@@ -36,7 +36,16 @@ twin_wigner_reconstruction.png (analytic vs reconstructed W + residual, with inp
 recovered x markers overlapping). README docs/examples/wigner_tomography/ with provenance +
 the 4 analysis steps. RAW DATA relabelled as the parameters VARIED in the runs (scanned:
 disp_mag, disp_phase=phi_g, readout_phase=varphi) with the measured P_down as the y-axis
-(dependent) column; one row per run (882 = 441 beta x 2 quadratures). Tests +4 (raw-file round-trip; noise-free reconstruction
+(dependent) column; one row per run (882 = 441 beta x 2 quadratures).
+
+WALKTHROUGH NOTE (UW request): docs/notes/wigner_tomography_walkthrough.md describes each
+step (prepare |gamma> -> measure chi via the conditional-displacement sequence -> reconstruct
+chi then W by FFT -> validate by recovering gamma), MSc-accessible, embedding the three
+figures + an EXPERIMENTAL SEQUENCE ILLUSTRATION (new docs/figures/wigner_tomography_sequence.png
+from make_grating_schematics.py: cool+prepare -> pi/2 -> conditional displacement D(beta) ->
+analysis pi/2(varphi) -> detect, + the scan loop and a phase-space inset of |gamma> and the
+probe beta). Honesty: twin-simulated, 2-pulse reach 2eta~0.78 -> uses the SDF/extended-reach
+route. Example README points to the walkthrough. Tests +4 (raw-file round-trip; noise-free reconstruction
 recovers gamma to <0.05 & W to <0.02; full shot-noisy pipeline recovers |gamma| & phase to
 0.1; chi_hat unbiased). FAIR: data unmistakably labelled twin-simulated.
 

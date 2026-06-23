@@ -5,6 +5,7 @@ docs/notes/strobo_grating_transfer_function.md:
   grating_ramsey_phasespace.png -- the two-pulse Ramsey sequence + the phase-space disk
 These are illustrations (not data); run:  python docs/figures/make_grating_schematics.py
 """
+import cmath
 import os
 
 import matplotlib
@@ -92,7 +93,47 @@ def ramsey_phasespace(path, eta=0.45):
     plt.close(fig)
 
 
+def tomography_sequence(path, gamma=1.3 * cmath.exp(1j * 0.785), eta=0.45):
+    """The experimental measurement sequence for ONE probe point of the Wigner-tomography
+    scan (state prep -> qubit pi/2 -> conditional displacement D(beta) -> analysis pi/2 ->
+    detect), plus the phase-space picture of the scanned probe."""
+    fig = plt.figure(figsize=(11.5, 4.4))
+    axS = fig.add_axes([0.04, 0.05, 0.63, 0.9]); axS.set_xlim(0, 12); axS.set_ylim(0, 3); axS.axis("off")
+    axS.plot([0.2, 11.8], [1.25, 1.25], color="k", lw=1)               # time axis
+    def box(x, w, label, col, fs=8.5):
+        axS.add_patch(plt.Rectangle((x, 0.82), w, 0.86, fc=col, ec="k", alpha=0.88))
+        axS.text(x + w / 2, 1.25, label, ha="center", va="center", fontsize=fs, color="white")
+    box(0.4, 2.0, "cool +\nprepare\n" + r"$|\gamma\rangle$", _GRAY)
+    box(2.9, 0.9, r"$\pi/2$", _BLUE)
+    box(4.2, 2.2, "conditional\ndisplacement\n" + r"$D(\beta)$", _RED)
+    box(7.1, 1.3, r"$\pi/2$" + "\n" + r"$(\varphi)$", _BLUE)
+    box(9.0, 1.6, "detect\n" + r"$\to P_\downarrow$", _GREEN)
+    axS.annotate("", xy=(2.9, 0.55), xytext=(10.6, 0.55),
+                 arrowprops=dict(arrowstyle="<->", color="0.4", lw=1))
+    axS.text(6.7, 0.30, r"repeat $M$ shots $\to P_\downarrow$;   scan probe "
+             r"$\beta=\mathrm{mag}\cdot e^{i\phi_g}$ and readout $\varphi\in\{0,\pi/2\}$",
+             ha="center", fontsize=8.5, color="0.25")
+    axS.text(6.0, 2.62, "Wigner-tomography measurement sequence (one probe point)",
+             ha="center", fontsize=10.5)
+    # phase-space inset: the prepared state and the scanned probe displacement
+    axP = fig.add_axes([0.73, 0.16, 0.25, 0.66])
+    th = np.linspace(0, 2 * np.pi, 200)
+    axP.add_patch(plt.Circle((gamma.real, gamma.imag), 0.7, fc=_GRAY, ec="none", alpha=0.35))
+    axP.text(gamma.real, gamma.imag, r"$|\gamma\rangle$", ha="center", va="center", fontsize=10)
+    beta = 1.6 * cmath.exp(1j * 2.4)
+    axP.annotate("", xy=(beta.real, beta.imag), xytext=(0, 0),
+                 arrowprops=dict(arrowstyle="->", color=_RED, lw=2))
+    axP.text(beta.real * 1.15, beta.imag * 1.15, r"probe $\beta$", color=_RED, fontsize=9, ha="center")
+    axP.plot(0, 0, "k+", ms=8)
+    axP.set_xlim(-2.6, 2.6); axP.set_ylim(-2.6, 2.6); axP.set_aspect("equal")
+    axP.set_xlabel(r"Re", fontsize=8); axP.set_ylabel(r"Im", fontsize=8)
+    axP.set_title(r"scan $\beta$ over phase space", fontsize=9)
+    fig.savefig(path, dpi=140, bbox_inches="tight"); plt.close(fig)
+
+
 if __name__ == "__main__":
     pulse_sequence(os.path.join(_HERE, "grating_pulse_sequence.png"))
     ramsey_phasespace(os.path.join(_HERE, "grating_ramsey_phasespace.png"))
-    print("wrote grating_pulse_sequence.png, grating_ramsey_phasespace.png")
+    tomography_sequence(os.path.join(_HERE, "wigner_tomography_sequence.png"))
+    print("wrote grating_pulse_sequence.png, grating_ramsey_phasespace.png, "
+          "wigner_tomography_sequence.png")
