@@ -131,11 +131,12 @@ $\mathrm{Tr}[\rho A]=-i\frac{\theta}{2}\chi(i\eta e^{i\phi_g})S_N(\delta)$ still
 $\chi$ at one point, so the motion is invisible to $P_\downarrow$ but visible to the
 coherence even on resonance.
 
-**Exact, all-orders in $\theta$ (for $\eta=0$).** The weak-pulse comb is only a
-small-signal limit; the actual operating point is $N\theta\approx\pi$. For $\eta=0$ the
-grating is a periodically kicked two-level system and is solvable in closed form:
+**Exact, all-orders in $\theta$ — the exact-strobe transfer function.** The weak-pulse comb
+is only a small-signal limit; the actual operating point is $N\theta\approx\pi$. Derived
+first in the $\eta=0$ gauge (the grating is then a periodically kicked two-level system),
+the closed form is
 
-$$\boxed{\;P_\downarrow^{(\eta=0)}(\delta)=\frac{\sin^2(\theta/2)}{\sin^2\lambda}\,\sin^2(N\lambda),\qquad
+$$\boxed{\;P_\downarrow^{\rm strobe}(\delta)=\frac{\sin^2(\theta/2)}{\sin^2\lambda}\,\sin^2(N\lambda),\qquad
 \cos\lambda=\cos(\theta/2)\cos(\pi\delta\Delta_t)\;}$$
 
 (at $\delta=0$ this is $\sin^2(N\theta/2)$, the on-resonance flop). Here $\lambda$ is the
@@ -149,9 +150,9 @@ which only phases the $z$-eigenstates $|\!\uparrow\rangle,|\!\downarrow\rangle$ 
 preserves the $|\!\uparrow\rangle\!\to\!|\!\downarrow\rangle$ population). It matches `strobo_sim` to machine precision (§9) and reduces to the
 squared-Dirichlet comb for $\theta\ll1$.
 
-In fact this $\eta=0$ formula is the exact-strobe population for **arbitrary $\eta$ and
-arbitrary $\rho$, to all orders** in $\theta$ — so "motion-blind on resonance" is not a
-weak-pulse artefact. On the exact *motional* strobe the **motional part** of the free
+Although derived in the $\eta=0$ gauge, $P_\downarrow^{\rm strobe}$ is the exact population
+transfer on the exact motional strobe for **arbitrary $\eta$ and arbitrary $\rho$, to all
+orders** in $\theta$ — so "motion-blind on resonance" is not a weak-pulse artefact. On the exact *motional* strobe the **motional part** of the free
 evolution is the identity each cycle (the qubit detuning phase
 $U_{\rm free}=e^{i\pi\delta\Delta_t\sigma_z}\otimes\mathbb 1$ is *not* identity for
 $\delta\neq0$). The spin-dependent-displacement gauge
@@ -197,13 +198,22 @@ maps $\chi$ over a 2-D region — direct characteristic-function tomography.
 
 The cleanest near-term tomography route turns the bare grating into a *direct* $\chi$
 interferometer using **two recoil-dressed $\pi/2$ pulses** and population readout — no
-weak-amplitude/coherence measurement. **Design criterion:** for a *multipulse* grating this
-identity holds only when all constituent pulses realise the *same* dressed generator
-$X_{\beta_g}$ — as on the exact strobe with a phase-coherent drive ($\beta_k=\beta_g$ for
-all $k$). Then the per-pulse generators commute ($[X_{\beta_g},X_{\beta_g}]=0$) and a
-calibrated total area $\sum_k\theta_k=\pi/2$ realises the single effective pulse
-$U_{\beta_g}$. (Off-strobe the $\beta_k$ differ and the grating is a multipath operation,
-not one $X_{\beta_g}$.) Define the **recoil-dressed flip** and its $\pi/2$:
+weak-amplitude/coherence measurement.
+
+**Design criterion (load-bearing).** For a *multipulse* grating to implement a single
+effective recoil-dressed rotation $U_{\beta_g}$, every constituent pulse must share **both**
+the same motional displacement $\beta_k=\beta_g$ **and** the same dressed *spin* phase. Exact
+motional strobing ($f_{\rm lf}\Delta_t=1$) guarantees the first. But the qubit detuning still
+advances the spin phase by $-2\pi k\delta\Delta_t$ per cycle, so the generators are
+$X_{\beta_g}^{(\phi_k)}$ with $\phi_k=\phi_0-2\pi k\delta\Delta_t$ — and these **do not
+commute** for $\phi_k\neq\phi_\ell$ (verified: $\lVert[X^{(\phi_k)},X^{(\phi_\ell)}]\rVert$
+runs from $0$ at $\Delta\phi=0$ to $2$ at $\Delta\phi=\pi/2$). The second condition therefore
+requires either $\delta\Delta_t\in\mathbb Z$ (the grating drive sits on a comb tooth) **or**
+cycle-by-cycle phase programming $\phi_{{\rm drive},k}=\phi_{\rm target}+2\pi k\delta\Delta_t$
+that cancels the accumulated detuning phase. Only then do all generators coincide and
+commute, so a calibrated total area $\sum_k\theta_k=\pi/2$ implements $U_{\beta_g}$.
+
+Define the **recoil-dressed flip** and its $\pi/2$:
 
 $$X_\beta=\sigma_-D(\beta)+\sigma_+D(\beta)^\dagger,\quad X_\beta^2=\mathbb 1,\qquad
 U_\beta=e^{-i\frac{\pi}{4}X_\beta}=\tfrac{1}{\sqrt2}(\mathbb 1-iX_\beta).$$
@@ -232,17 +242,19 @@ $$\Delta\beta=i\eta\big(e^{i\phi_g}-e^{i\phi_r}\big)\quad\Rightarrow\quad
 \lvert\Delta\beta\rvert\le2\eta,$$
 
 a genuine 2-D **disk** (not the §5 thin ring) — verified to fill exactly to $2\eta$. A
-constructive parameterisation for a target magnitude $r\le2\eta$ and direction $\vartheta$
-is $\phi_{g,r}=\vartheta+\tfrac{\pi}{2}\pm\arcsin\!\big(r/2\eta\big)$, which gives
-$\lvert\Delta\beta\rvert=r$ exactly (the direction is $\vartheta$ up to a fixed $\pi/2$
-convention offset from the $i$ prefactor — verified). The identity is **exact in $\eta$**:
+constructive parameterisation: writing $\phi_g=a+s$, $\phi_r=a-s$ gives
+$\Delta\beta=-2\eta\,e^{ia}\sin s$, so for a target $\Delta\beta=r\,e^{i\vartheta}$
+($0\le r\le2\eta$) take $s=\arcsin(r/2\eta)$, $a=\vartheta+\pi$, i.e.
+$$\phi_{g,r}=\vartheta+\pi\pm\arcsin\!\big(r/2\eta\big)\quad\Rightarrow\quad\Delta\beta=r\,e^{i\vartheta}\ \text{(exactly; verified).}$$
+The identity is **exact in $\eta$**:
 retaining the full recoil operator $D(i\eta)$ is *not* a Lamb–Dicke expansion but the full
 operator within the two-level, optical-RWA, impulsive model, so the Ramsey relation holds
 for any $\eta$.
 
 **Limitations.** (i) The grating must realise a *single* effective $X_{\beta_g}$ $\pi/2$ —
-automatic on the exact strobe (or under controlled phase programming); off-strobe it
-becomes a multipath operation. (ii) The threat is finite pulse duration, not large $\eta$:
+which (per the design criterion above) needs the drive on a comb tooth $\delta\Delta_t\in\mathbb Z$
+or cycle-by-cycle phase programming; otherwise the per-cycle spin-phase slip makes it a
+noncommuting multipath sequence, not one $X_{\beta_g}$. (ii) The threat is finite pulse duration, not large $\eta$:
 the requirement is impulsive control $\omega_{\rm lf}\delta t\ll1$ **and** a calibrated
 $\pi/2$ area, so free motion during a pulse does not spoil the common, state-independent
 dressed rotation. (iii) The disk is finite ($2\eta$; $\eta=0.389\Rightarrow0.78$) — high
@@ -300,10 +312,14 @@ $\Omega_{\rm strobo}/2\pi=4.99\times10^5$ Hz, $N=50$, $\bar n=0$ (motion in $|0\
 $\chi(\beta)=e^{-|\beta|^2/2}$). Error metric = $|P_{\rm analytic}-P_{\rm Floquet}|/P_{\rm Floquet}$
 against `strobo_detuning_scan` (the full Floquet propagator).
 
-- **Exact $\eta=0$ formula (§4):** matches the Floquet simulation to **machine precision**
-  ($\lesssim10^{-13}$) at $\delta t=0.02$ and $0.05\,\mu$s, on and off resonance — and (the
-  all-orders gauge result) equals the full-Floquet exact-strobe population for $\eta=0.389$
-  as well, at $\theta$ up to the $\pi$-pulse and several $\delta$.
+- **Exact-strobe formula $P_\downarrow^{\rm strobe}$ (§4):** matches the Floquet simulation
+  to **machine precision** ($\lesssim10^{-13}$) at $\delta t=0.02$ and $0.05\,\mu$s, on and
+  off resonance — and (the all-orders gauge result) equals the full-Floquet exact-strobe
+  population for $\eta=0.389$ as well, at $\theta$ up to the $\pi$-pulse and several $\delta$.
+- **Multipulse design criterion (§6):** the dressed generators $X^{(\phi_k)}$ commute iff
+  the spin phases coincide — $\lVert[X^{(\phi_k)},X^{(\phi_\ell)}]\rVert=0$ at $\Delta\phi=0$,
+  rising to $2$ at $\Delta\phi=\pi/2$ (so a clean single $X_{\beta_g}$ needs $\delta\Delta_t\in\mathbb Z$
+  or phase programming).
 - **Weak-pulse double-sum kernel (§3a), off-strobe ($f_{\rm lf}\Delta_t=1.03$, $\eta=0.389$, $\delta=0$)** — a **small-signal** expansion; the *observed* relative error scales as $\theta^2$ away from kernel zeros (the amplitude correction is $O(\theta^3)$; near zeros the relative metric is ill-conditioned):
 
   | $\delta t$ ($\mu$s) | $\theta$ | $P_\downarrow$ | rel. err. |

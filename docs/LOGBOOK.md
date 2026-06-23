@@ -42,6 +42,22 @@ concatenated Ramsey blocks / SDF). UW: this is the cleanest near-term Strobo2.0 
 experiment -- demonstrate the two-pulse identity (vacuum/coherent/thermal), then test the
 2-eta disk filling. Tests 283 -> 287.
 
+REVIEW CORRECTIONS (3 passes). (a) §6 DESIGN CRITERION made load-bearing: exact motional
+strobing only fixes beta_k=beta_g; the qubit detuning still slips the SPIN phase
+phi_k=phi_0-2pi k delta Dt per cycle, so the dressed generators X^{(phi_k)} do NOT commute
+unless delta Dt in Z (drive on a comb tooth) OR cycle-by-cycle phase programming cancels it
+-- VERIFIED: ||[X^(phi_k),X^(phi_l)]|| = 0 at dphi=0, rising to 2 at dphi=pi/2. So a clean
+single effective X_{beta_g} needs phase coherence, not just the motional strobe. (b) Disk
+parameterisation corrected to the EXACT prescription phi_{g,r}=theta+pi+-asin(r/2eta) ->
+Delta beta = r e^{i theta} exactly (was a pi/2-offset form); engine ramsey_phases_for_delta
++ test updated. (c) §4 P_down^{(eta=0)} renamed P_down^{strobe} (it is the exact-strobe
+transfer function for ANY eta, not an eta=0 benchmark). (d) non-LD pulse wording; z-axis
+conjugation for the ½Tr argument; calibration language for the chi recovery. Engine nit:
+_laguerre_gen asserts n>=0. Suite at 288 (the ramsey_phases disk test, added with the
+parameterisation, now also asserts the EXACT direction, not just the magnitude). Notebook
+summary: Ramsey flagged as the direct finite-radius alternative; figures preserved via
+jupytext --update.
+
 ---
 
 ## 2026-06-23 (later 4) — Tomography ENGINE + tutorial notebook (transfer function in code)

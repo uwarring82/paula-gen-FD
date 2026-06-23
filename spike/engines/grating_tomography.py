@@ -183,7 +183,8 @@ def square_grid(half_width, n):
 # fills the DISK |Delta beta| <= 2 eta -- a genuine 2-D region, not a thin ring.
 def _laguerre_gen(n: int, k: int, x: float) -> float:
     """Generalized Laguerre L_n^{(k)}(x)."""
-    if n <= 0:
+    assert n >= 0, "Laguerre/Fock index must be >= 0"
+    if n == 0:
         return 1.0
     lkm1, lk = 1.0, 1.0 + k - x
     for j in range(1, n):
@@ -233,11 +234,13 @@ def delta_beta(eta: float, phi_r: float, phi_g: float) -> complex:
 
 
 def ramsey_phases_for_delta(eta: float, r: float, direction: float = 0.0):
-    """Pulse phases (phi_r, phi_g) realising a target Delta beta of magnitude r (<= 2 eta)
-    at `direction` (up to a fixed pi/2 convention offset): phi_{g,r} = direction + pi/2 +-
-    arcsin(r / 2 eta). Lets you raster the |Delta beta| <= 2 eta disk."""
+    """Pulse phases (phi_r, phi_g) realising EXACTLY Delta beta = r * exp(i*direction)
+    (magnitude r <= 2 eta). From Delta beta = -2 eta e^{i a} sin s with phi_{g,r}=a+-s,
+    take s = arcsin(r/2 eta) and a = direction + pi:
+        phi_{g,r} = direction + pi +- arcsin(r / 2 eta).
+    Lets you raster the |Delta beta| <= 2 eta disk."""
     psi = math.asin(min(1.0, r / (2.0 * eta)))
-    base = direction + math.pi / 2.0
+    base = direction + math.pi
     return base - psi, base + psi                 # (phi_r, phi_g)
 
 

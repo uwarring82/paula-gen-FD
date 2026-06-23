@@ -338,9 +338,11 @@ print("concatenated Ramsey blocks or an SDF sequence to extend |Delta beta|.")
 # - Detuning down-converts as a **heterodyne** mixer; the comb is its image spectrum.
 # - The grating's transfer function is a functional of $\chi(\beta)$: a **double-sum** kernel
 #   for the population (diagnostic), a **single-sum DFT** for the coherence (ring-limited).
-# - **Full Wigner tomography** needs the spin-dependent-force conditional displacement to
-#   scan $\chi(\beta)$ over the plane; then $W$ is the 2-D Fourier transform of $\chi$,
-#   reconstructed here to $\lesssim$ few $\times10^{-3}$ including the cat's negative fringe.
+# - **Full high-resolution Wigner tomography** needs a large $\chi(\beta)$ reach: the
+#   spin-dependent-force conditional displacement scans the whole plane (the Ramsey pair
+#   below is a *direct, finite-radius* alternative, reaching $|\Delta\beta|\le2\eta$); then
+#   $W$ is the 2-D Fourier transform of $\chi$, reconstructed here to $\lesssim$ few
+#   $\times10^{-3}$ including the cat's negative fringe.
 # - **Sampling effects**: the bare ring is incomplete; $|\beta|_{\max}$ sets the resolution
 #   (PSF $\sim1/|\beta|_{\max}$); the grid spacing sets a phase-space aliasing zone.
 # - **Ramsey interferometer** (the near-term experiment): two recoil-dressed $\pi/2$ pulses
