@@ -97,6 +97,7 @@ def test_kernel_coherence_on_strobe_reads_chi_at_one_point():
     eta, phi = 0.389, 0.4
     th = gt.theta_of(OM, 0.001)
     coh = gt.kernel_coherence(lambda b: gt.chi_coherent(b, 0.5 + 0.2j), eta, phi, 0.0, N, DT, f_ex, th)
+    assert isinstance(coh, complex)                             # API: coherence is complex (Re,Im)
     S_N = N                                                     # delta=0 -> S_N = N
     expect = -0.5j * th * gt.chi_coherent(1j * eta * cmath.exp(1j * phi), 0.5 + 0.2j) * S_N
     assert coh == pytest.approx(expect, rel=1e-9)

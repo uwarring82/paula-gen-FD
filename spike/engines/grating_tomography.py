@@ -28,7 +28,8 @@ import math
 
 # ---------- generalized Laguerre L_n(x) (Fock chi / Wigner) ------------------
 def laguerre(n: int, x: float) -> float:
-    if n <= 0:
+    assert n >= 0, "Laguerre/Fock index must be >= 0"
+    if n == 0:
         return 1.0
     lkm1, lk = 1.0, 1.0 - x
     for k in range(1, n):
@@ -150,7 +151,9 @@ def wigner_from_samples(beta_pts, chi_vals, alpha_pts, dbeta_area):
     """Reconstruct W on `alpha_pts` from chi sampled at `beta_pts` (a list of complex),
     W(alpha) = (1/pi^2) sum_beta chi(beta) e^{alpha beta* - alpha* beta} * dbeta_area.
     This is the 2-D Fourier inversion that turns measured chi(beta) into the Wigner
-    function (real part returned)."""
+    function (real part returned). `dbeta_area` is the UNIFORM area element of the beta
+    sampling (e.g. dx*dy for a square grid from `square_grid`); the midpoint rule assumes
+    `beta_pts` are uniformly spaced with that element."""
     out = []
     pref = dbeta_area / math.pi ** 2
     for a in alpha_pts:
