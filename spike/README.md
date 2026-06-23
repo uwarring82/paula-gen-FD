@@ -213,6 +213,21 @@ N=50 cycles). The result is the **stroboscopic comb**: full-contrast resonances 
 the motional sidebands *alias onto* the carrier comb (the phase-grating coupling).
 Figure [`../docs/figures/twin_strobo_detuning_scan.png`](../docs/figures/twin_strobo_detuning_scan.png).
 
+It also estimates the **AC-Stark systematics vs N** (`ac_stark_vs_N`). In the pulse train
+**B1 stays on continuously and only R2 is pulsed**; for a π pulse the R2 width is
+`delta_t = 1/(2N·Ω_strobo)` (= 0.020 µs at N=50). The differential shift is **negative**
+(|2,2⟩ is closer to P₃/₂ → the qubit resonance moves *down* — the sign of the −40 kHz
+`fr_oc_strobo` offset and of the earlier `scatter` estimate). Its absolute scale is
+anchored to the **observed** flop rate rather than the nominal powers/waists, which
+over-predict the 2γ Rabi (~1.2 MHz vs observed ~0.54 MHz → κ≈0.46): Rabi-anchored
+**B1 ≈ −33 kHz** (continuous → a constant detuning floor) and **R2 ≈ −100 kHz** (only
+while pulsing), bracketed below by the scalar (ω_HF/Δ)·Ω₀ ≈ −48 kHz and above by the
+nominal upper bound (−72 / −214 kHz). Because R2's on-time `1/(2Ω_strobo)` is fixed by
+the π condition, its AC-Stark phase is **N-independent**, while **B1's grows ∝ N** (it
+acts for the whole `N·DELTA_t` train — ~1.3 cycles of phase already at N=50; the *shape*
+is robust to the absolute anchor). Figure
+[`../docs/figures/twin_strobo_acstark_vs_N.png`](../docs/figures/twin_strobo_acstark_vs_N.png).
+
 ## Integrated twin: OC axial carrier flop (`twin_oc_flop`)
 
 [`twin_oc_flop.py`](twin_oc_flop.py) (`python -m spike.twin_oc_flop`) is the twin of
@@ -389,7 +404,7 @@ spike/
     sideband.py     absolute Lamb-Dicke + sideband Rabi + Raman differential AC-Stark + carrier Debye-Waller + thermal RSB/BSB flops (nbar thermometry)
     acstark.py      far-detuned single-beam light shift (BDD vs Hasse)
     scatter.py      Raman off-resonant scattering (Gamma_sc, P_SE/pi) + differential AC-Stark + flip_probability
-    raman_optical.py polarization+power-resolved light shifts + scattering (|J',mJ'> basis; scalar/vector; 6j cross-check)
+    raman_optical.py polarization+power-resolved light shifts + scattering (|J',mJ'> basis; scalar/vector; 6j cross-check; absolute differential_stark_hz)
     raman_dephasing.py relative-phase noise of the two beams: contrast envelopes + mutual-linewidth/T_phi readout of the residual
     strobo_sim.py    stroboscopic spin-motion propagator (displacement matrix + U_pulse/U_free) -> detuning-scan comb (carrier + sidebands)
     rabi.py         damped Rabi-flop fit -> Omega (raw .dat duration scans)

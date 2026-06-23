@@ -350,6 +350,39 @@ class RamanOptics:
         dn = self._electronic_shift(beam, -0.5, F)
         return 0.5 * (up + dn), 0.5 * (up - dn)
 
+    # --- ABSOLUTE anchoring: relative engine units -> Hz via the saturation -----
+    def cycling_scale_hz(self) -> float:
+        """Engine(relative)->Hz scale, anchored so that a sigma+ beam of saturation
+        s=1 on the cycling |3,3>->|P3/2 4,4> gives the textbook scalar light shift
+        s*Gamma^2/(8|Delta|). Multiply any light_shift (with beam.intensity set to the
+        saturation parameter s) by this to get the absolute shift in Hz."""
+        ref = self.light_shift(RamanBeam(1.0, POL_SIGMA_PLUS), 3.0, 3.0)
+        phys = self.gamma[1.5] ** 2 * 0.5 / (4.0 * self.delta_p32)   # SIGNED: red -> negative
+        return phys / ref if ref else float("nan")                  # +ve scale (preserves sign)
+
+    def differential_stark_hz(self, beam_at_saturation: RamanBeam,
+                              up=(2.0, 2.0), dn=(3.0, 3.0)) -> float:
+        """ABSOLUTE single-beam differential AC-Stark shift delta_AC = LS(up)-LS(dn)
+        [Hz] of the qubit (|up>=|2,2>, |dn>=|3,3>). The beam's .intensity must be its
+        saturation parameter s (= I/I_sat = 2P/(pi w^2 I_sat)). Signed (red beam)."""
+        sc = self.cycling_scale_hz()
+        return sc * (self.light_shift(beam_at_saturation, *up)
+                     - self.light_shift(beam_at_saturation, *dn))
+
+    @staticmethod
+    def saturation(power_w: float, waist_m: float, i_sat_w_m2: float) -> float:
+        """On-axis saturation parameter s = I/I_sat for a Gaussian beam, I = 2P/(pi w^2)."""
+        return (2.0 * power_w / (math.pi * waist_m * waist_m)) / i_sat_w_m2
+
+    def two_photon_rabi_hz(self, beam_b: RamanBeam, beam_r: RamanBeam,
+                           lower=(3.0, 3.0), upper=(2.0, 2.0)) -> float:
+        """ABSOLUTE two-photon (carrier) Rabi |Omega_2gamma|/2pi [Hz] for beams whose
+        .intensity are saturation parameters s -- anchored by the SAME cycling scale as
+        the light shifts (both are dipole^2/Delta in the engine's units). Lets the twin
+        check the NOMINAL beam intensities against the OBSERVED flop rate (the real
+        measure of the intensity at the ion) and re-anchor the AC-Stark shifts to it."""
+        return abs(self.two_photon_rabi(beam_b, beam_r, lower, upper)) * self.cycling_scale_hz()
+
     def circular_fraction(self, beam: RamanBeam) -> float:
         """Net circular polarization C = (|sigma+|^2 - |sigma-|^2)/(total) along B --
         the quantity that controls the vector light shift (0 for pi or balanced

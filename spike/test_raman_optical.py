@@ -180,6 +180,51 @@ def test_vector_shift_opposite_for_sigma_plus_minus():
     assert sp == pytest.approx(spi)
 
 
+# --- ABSOLUTE anchoring: relative engine units -> Hz via the saturation -------
+def test_cycling_scale_matches_textbook_light_shift():
+    ro = _ro()
+    s, G, D = 100.0, 41.8e6, 20e9
+    shift = ro.light_shift(RamanBeam(s, POL_SIGMA_PLUS), 3.0, 3.0) * ro.cycling_scale_hz()
+    expected = -s * G * G / (8.0 * D)            # red-detuned -> negative; |.|=s*Gamma^2/(8|Delta|)
+    assert shift == pytest.approx(expected, rel=1e-6)
+
+
+def test_differential_stark_absolute_magnitudes():
+    ro = _ro()
+    dB1 = ro.differential_stark_hz(RamanBeam(100.0, POL_PI))            # B1 pi, s=100
+    dR2 = ro.differential_stark_hz(RamanBeam(300.0, POL_LINEAR_PERP))   # R2 linear, s=300
+    # NEGATIVE: |up>=|2,2> is closer to P3/2 -> shifted down more -> the qubit resonance
+    # moves DOWN (consistent with fr_oc_strobo set ~40 kHz below the bare carrier)
+    assert dB1 == pytest.approx(-71.5e3, rel=0.1)
+    assert dR2 == pytest.approx(-214e3, rel=0.1)
+    # the differential is a small fraction (~omega_HF/Delta) of the ~MHz scalar
+    assert -0.2e6 < dB1 < 0.0
+
+
+def test_differential_stark_scales_with_saturation():
+    ro = _ro()
+    a = ro.differential_stark_hz(RamanBeam(100.0, POL_PI))
+    b = ro.differential_stark_hz(RamanBeam(200.0, POL_PI))
+    assert b == pytest.approx(2.0 * a, rel=1e-9)               # linear in intensity
+
+
+def test_saturation_helper():
+    # I = 2P/(pi w^2); s = I/I_sat. 1 mW, 50 um waist, Mg cycling I_sat ~ 2545 W/m^2
+    assert RamanOptics.saturation(1e-3, 50e-6, 2545.0) == pytest.approx(100.0, rel=0.05)
+
+
+def test_two_photon_rabi_hz_absolute_and_scaling():
+    ro = _ro()
+    B1 = RamanBeam(100.0, POL_PI)
+    R2 = RamanBeam(300.0, POL_LINEAR_PERP)
+    om = ro.two_photon_rabi_hz(B1, R2)
+    assert om > 0.0
+    assert 0.3e6 < om < 5e6                                    # ~MHz for s=100/300 at 20 GHz
+    # bilinear in the field amplitudes: 4x both intensities -> 4x the two-photon Rabi
+    om4 = ro.two_photon_rabi_hz(RamanBeam(400.0, POL_PI), RamanBeam(1200.0, POL_LINEAR_PERP))
+    assert om4 == pytest.approx(4.0 * om, rel=1e-9)
+
+
 def test_circular_fraction():
     ro = _ro()
     assert ro.circular_fraction(RamanBeam(1.0, POL_SIGMA_PLUS)) == pytest.approx(1.0)

@@ -13,6 +13,52 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-23 (later) — Stroboscopic pi-pulse AC-Stark systematics vs N (B1 continuous, only R2 pulsed)
+
+UW clarified the pulse-train mechanics: B1 is kept ON CONTINUOUSLY and only R2 is
+pulsed. Asked to estimate the AC-Stark shifts for variable N (R2 width set for a pi
+pulse). Then UW cross-checked: "the AC-Stark shift of the Raman beams was negative in
+our previous est?" -- YES, and that flagged a real magnitude tension worth fixing.
+
+SETUP. For a pi pulse N*Omega_strobo*delta_t = 1/2 -> delta_t = 1/(2 N Omega_strobo)
+(= 0.020 us at N=50, exactly UW's fixed value -> N=50 IS the pi pulse). So R2's total
+on-time t_R2 = N*delta_t = 1/(2 Omega_strobo) ~ 1.0 us is FIXED; but B1 is on for the
+whole train t_seq = N*DELTA_t, which grows ~ N.
+
+ENGINE. Added absolute anchoring to raman_optical: cycling_scale_hz() (relative->Hz,
+so a sigma+ s=1 cycling beam gives the textbook s*Gamma^2/(8|Delta|)),
+differential_stark_hz(beam_at_saturation) and two_photon_rabi_hz() (same scale anchors
+both -- both are dipole^2/Delta). saturation(P,w,Isat) helper.
+
+SIGN (answering UW). delta_AC = LS(|2,2>)-LS(|3,3>) is NEGATIVE: |2,2> is closer to
+P3/2 (by omega_HF) -> shifted down more -> the qubit resonance moves DOWN. Same sign as
+(a) the -40 kHz fr_oc_strobo offset (1775.46 vs the 1775.50 carrier) and (b) the earlier
+scatter estimate differential_stark_shift=(omega_HF/Delta_R)*Omega with Delta_R<0. (I
+hit a transient sign bug mid-build -- abs(Delta) in the anchor flipped it -- caught by
+the cycling-scale unit test, fixed to the signed detuning.)
+
+MAGNITUDE / re-anchoring (the FAIR fix). The NOMINAL powers/waists (s_B1~100, s_R2~300)
+predict Omega_2gamma ~ 1.16 MHz, ~2x the OBSERVED bare Rabi Omega_0 ~ 0.54 MHz. The flop
+rate is the true measure of the intensity at the ion, so re-anchor the effective
+intensity: kappa = Omega_0/Omega_2g(nominal) ~ 0.46. Per-beam differential shifts:
+  nominal(upper bound)   Rabi-anchored    scalar (omega_HF/Delta)*Omega_0
+  B1  -71.5 kHz          -33.2 kHz
+  R2  -214.4 kHz         -99.6 kHz
+  sum -285.9 kHz         -132.9 kHz        -48.2 kHz  (~ the -40 kHz offset)
+A known factor-~2.7 spread remains between the polarization-resolved engine (-0.25*Omega)
+and the scalar (omega_HF/Delta = -0.09)*Omega -- an OPEN item; the scalar tracks the
+-40 kHz offset best. Reported as a bracket, not a single number.
+
+N-SCALING (robust to the absolute anchor). B1's continuous shift is a constant detuning
+floor whose accumulated phase grows ~ N (1.3 cycles already at N=50, 12.8 at N=500);
+R2's pi-pulse phase is N-INDEPENDENT (-0.10 cyc); the time-averaged shift falls from
+~-98 kHz (N=2) toward the B1 floor ~-34 kHz as N grows (R2 duty ~ 1/N). => few cycles
+keep the AC-Stark phase small, but the phase grating wants many -> a real trade-off.
+Tests +4 (cycling-scale anchor, differential magnitudes/sign, intensity scaling,
+saturation). Figure twin_strobo_acstark_vs_N.png.
+
+---
+
 ## 2026-06-23 — Stroboscopic detuning-scan SIMULATION (the phase-grating frequency comb)
 
 UW: fix delta_t = 0.02 us, keep everything else fixed, and simulate a detuning scan of

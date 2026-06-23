@@ -4,7 +4,7 @@ A maintained, structured summary of what is **validated**, what is **diagnostic*
 and what is **open** — so a reader does not have to grep the >1300-line chronological
 [LOGBOOK](LOGBOOK.md). Regenerate the tables from the code:
 `python -m spike.validate_twin` (validations) and `python -m validator.validate`
-(source warnings). Last reconciled: 2026-06-22.
+(source warnings). Last reconciled: 2026-06-23.
 
 > **Glossary.** UW = Ulrich Warring (group lead, decisions). PAULA = the Freiburg
 > ²⁵Mg⁺ apparatus. *freddy* / *legacy* = apparatus generations (freddy = F. Dörr's
@@ -45,10 +45,11 @@ validations; everything below is a diagnostic or a raw-data tool.
 | projection | diagnostic | no | Raman comb → mode geometry |
 | sideband | diagnostic | no (input_quantity) | η + sideband Rabi + carrier Debye-Waller |
 | scatter | capability | no | scalar Raman scatter + differential AC-Stark |
-| raman_optical | capability | no (input_quantity) | polarization+power-resolved shifts/scatter |
+| raman_optical | capability | no (input_quantity) | polarization+power-resolved shifts/scatter; absolute differential_stark_hz (saturation-anchored) |
+| strobo_sim | capability | n/a | spin⊗Fock stroboscopic propagator → detuning-scan comb (carrier + sidebands) |
 | raman_dephasing | capability | no | relative-phase noise of the 2 beams → Δν/T_φ readout of the residual |
 | sideband (thermal) | capability | no | RSB/BSB thermal flops → nbar thermometry (twin_sideband discriminator) |
-| twin_strobo | raw-data | n/a | stroboscopic OC carrier flop (phase-grating n=0 baseline; strobo dephasing-decoupling) |
+| twin_strobo | raw-data | n/a | stroboscopic OC carrier flop (phase-grating n=0 baseline; strobo dephasing-decoupling; detuning-scan + AC-Stark-vs-N) |
 | readout | diagnostic | **no** (count levels are `input`) | single-shot fidelity + Fisher info |
 | sideband_cooling | diagnostic | **YES, by design** | inverts the *measured* n̄ (benchmark) for κ — uses `benchmark_quantity`, documented |
 | tickle | raw-data | n/a | secular-freq spectroscopy on `.dat` |

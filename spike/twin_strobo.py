@@ -45,6 +45,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 from .datfile import DatFile  # noqa: E402
 from .engines.rabi import _ls_solve, fit_rabi  # noqa: E402
 from .engines.sideband import Sideband  # noqa: E402
+from .engines.raman_optical import RamanBeam, RamanOptics  # noqa: E402
+from .engines.scatter import differential_stark_shift  # noqa: E402
 from .engines.strobo_sim import strobo_detuning_scan  # noqa: E402
 from .ledger import Ledger  # noqa: E402
 
@@ -52,6 +54,7 @@ _DATAFILE = (Path(__file__).resolve().parent.parent / "sources" / "data" / "Stro
              "1_FlopN_3p3_2p2_PDQ_displ_strobo" / "10_22_22_12_06_2026.dat")
 _OUT = Path(__file__).resolve().parent.parent / "docs" / "figures" / "twin_strobo_flop.png"
 _OUT_SCAN = Path(__file__).resolve().parent.parent / "docs" / "figures" / "twin_strobo_detuning_scan.png"
+_OUT_ACS = Path(__file__).resolve().parent.parent / "docs" / "figures" / "twin_strobo_acstark_vs_N.png"
 _BLUE, _RED, _GRAY = "#1f77b4", "#d62728", "#888888"
 _F_LO_KHZ, _F_HI_KHZ = 10_000.0, 60_000.0      # fast flop: ~25 cycles/us in delta_t
 _TPHI_CONT_US = 15.0                            # continuous-carrier-flop T_phi (twin_sideband)
@@ -223,6 +226,129 @@ def make_detuning_figure(sim, out=_OUT_SCAN):
     return out
 
 
+# --- AC-Stark systematics vs N (B1 continuous, only R2 pulsed for a pi pulse) -
+def ac_stark_vs_N(Ns=(2, 5, 10, 20, 50, 100, 200, 500), omega_strobo_hz=4.99e5,
+                  eta=None):
+    """Estimate the (NEGATIVE) differential AC-Stark shift of the OC pi pulse vs N (the
+    number of stroboscopic cycles). R2 is pulsed, its width set for a pi pulse,
+    delta_t = 1/(2 N Omega_strobo); B1 is ON CONTINUOUSLY. Hence:
+
+      * B1 acts for the WHOLE train t_seq = N*DELTA_t -> phase grows ~ N (its shift is a
+        constant detuning floor, present even between pulses);
+      * R2's on-time t_R2 = N*delta_t = 1/(2 Omega_strobo) is FIXED by the pi condition
+        -> its AC-Stark phase is N-INDEPENDENT, but its duty delta_t/DELTA_t (its weight
+        in the time-averaged shift) falls ~ 1/N.
+
+    ABSOLUTE scale: the per-beam shifts are NEGATIVE (|2,2> is closer to P3/2 -> the
+    qubit resonance moves DOWN -- the sign of the -40 kHz fr_oc_strobo offset and of our
+    earlier scatter estimate). The NOMINAL powers/waists (s_B1~100, s_R2~300) over-
+    predict the OBSERVED two-photon flop rate (the true measure of the intensity at the
+    ion), so we RE-ANCHOR the effective intensity to it: kappa = Omega_0(observed) /
+    Omega_2gamma(nominal). The Rabi-anchored shifts are reported alongside the nominal
+    upper bound and the scalar (omega_HF/Delta) cross-check (a known factor-~2.7 spread
+    between the scalar and the polarization-resolved differential -- an open item)."""
+    L = Ledger.load()
+    ro = RamanOptics.from_ledger(L)
+    Isat = L.input_quantity("mg_saturation_intensity").value
+    sB1 = ro.saturation(L.input_quantity("raman_b1_power_25mg").value,
+                        L.input_quantity("raman_b1_waist_25mg").value, Isat)
+    sR2 = ro.saturation(L.input_quantity("raman_r2_power_25mg").value,
+                        L.input_quantity("raman_r2_waist_25mg").value, Isat)
+    polB1 = tuple(L.input_quantity("raman_b1_polarization_25mg").value)   # (0,1,0)=pi
+    polR2 = tuple(L.input_quantity("raman_r2_polarization_25mg").value)   # (.5,0,.5)=lin-perp
+    B1n, R2n = RamanBeam(sB1, polB1), RamanBeam(sR2, polR2)
+    dB1_nom = ro.differential_stark_hz(B1n)                           # nominal upper bound
+    dR2_nom = ro.differential_stark_hz(R2n)
+    # re-anchor the effective intensity to the observed bare carrier Rabi Omega_0
+    if eta is None:
+        eta = Sideband.from_ledger(L).lamb_dicke(
+            "OC", "lf", L.input_quantity("omega_z_axial_com_25mg").value)
+    om0_obs = omega_strobo_hz / math.exp(-eta * eta / 2.0)            # un-Debye-Waller bare Rabi
+    om2g_nom = ro.two_photon_rabi_hz(B1n, R2n)                        # nominal-intensity prediction
+    kappa = om0_obs / om2g_nom if om2g_nom else 1.0                   # effective/nominal intensity
+    dB1, dR2 = dB1_nom * kappa, dR2_nom * kappa                       # RABI-ANCHORED (used below)
+    d_scalar = differential_stark_shift(om0_obs, ro.omega_hf, ro.delta_p32)  # scalar cross-check
+    dat = DatFile(_DATAFILE) if _DATAFILE.exists() else None
+    DELTA_t = (dat.settings.get("DELTA_t", 0.769172) if dat else 0.769172) * 1e-6   # s
+    Om = omega_strobo_hz
+    t_R2 = 1.0 / (2.0 * Om)                           # fixed pi-pulse R2 on-time [s]
+    phi_R2 = 2.0 * math.pi * dR2 * t_R2              # R2 AC-Stark phase [rad], N-independent
+    rows = []
+    for N in Ns:
+        delta_t = 1.0 / (2.0 * N * Om)              # per-cycle R2 width for a pi pulse [s]
+        duty = delta_t / DELTA_t                     # R2 fraction of each period
+        t_seq = N * DELTA_t                           # full train duration [s]
+        d_eff = dB1 + dR2 * duty                     # time-averaged shift over the train
+        phi_B1 = 2.0 * math.pi * dB1 * t_seq         # B1 AC-Stark phase [rad] (~N)
+        rows.append({"N": N, "delta_t_us": delta_t * 1e6, "duty": duty,
+                     "t_seq_us": t_seq * 1e6, "d_eff_khz": d_eff / 1e3,
+                     "phi_B1_cyc": phi_B1 / (2.0 * math.pi),
+                     "phi_tot_cyc": (phi_B1 + phi_R2) / (2.0 * math.pi)})
+    return {"dB1": dB1, "dR2": dR2, "dB1_nom": dB1_nom, "dR2_nom": dR2_nom,
+            "d_scalar": d_scalar, "sB1": sB1, "sR2": sR2, "kappa": kappa,
+            "om0_obs": om0_obs, "om2g_nom": om2g_nom, "t_R2_us": t_R2 * 1e6,
+            "phi_R2_cyc": phi_R2 / (2.0 * math.pi), "DELTA_t_us": DELTA_t * 1e6, "rows": rows}
+
+
+def report_acstark(acs) -> str:
+    L = ["", "OC pi-pulse AC-Stark systematics vs N  (B1 continuous, only R2 pulsed)",
+         "  differential shift delta_AC = LS(|2,2>)-LS(|3,3>) is NEGATIVE (resonance",
+         "  moves down; same sign as the -40 kHz fr_oc_strobo offset & our scatter est.):",
+         "  intensity anchor: nominal s_B1=%.0f, s_R2=%.0f predict Omega_2g=%.2f MHz, but the" % (
+             acs["sB1"], acs["sR2"], acs["om2g_nom"] / 1e6),
+         "    OBSERVED bare Rabi Omega_0=%.2f MHz -> re-anchor kappa=%.2f (ion below nominal peak)" % (
+             acs["om0_obs"] / 1e6, acs["kappa"]),
+         "                              nominal(upper)   Rabi-anchored",
+         "    B1 (pi,  CONTINUOUS):       %+7.1f kHz     %+7.1f kHz   [constant floor]" % (
+             acs["dB1_nom"] / 1e3, acs["dB1"] / 1e3),
+         "    R2 (lin, PULSED):           %+7.1f kHz     %+7.1f kHz   [t_R2=%.2f us fixed]" % (
+             acs["dR2_nom"] / 1e3, acs["dR2"] / 1e3, acs["t_R2_us"]),
+         "    sum (both on, during pulse):%+7.1f kHz     %+7.1f kHz" % (
+             (acs["dB1_nom"] + acs["dR2_nom"]) / 1e3, (acs["dB1"] + acs["dR2"]) / 1e3),
+         "    scalar (omega_HF/Delta)*Omega_0 cross-check: %+.1f kHz  (~ the -40 kHz offset)" % (
+             acs["d_scalar"] / 1e3),
+         "    R2 pi-pulse phase (N-independent): %+.2f cycles" % acs["phi_R2_cyc"],
+         "    N    delta_t/us  R2-duty  t_seq/us  <delta_AC>/kHz  phi_B1/cyc  phi_tot/cyc"]
+    for r in acs["rows"]:
+        L.append("  %4d   %8.4f   %5.2f   %7.1f   %+11.1f   %+8.2f   %+8.2f" % (
+            r["N"], r["delta_t_us"], r["duty"], r["t_seq_us"], r["d_eff_khz"],
+            r["phi_B1_cyc"], r["phi_tot_cyc"]))
+    L.append("  => the SHAPE is robust: B1's continuous shift dominates and its phase")
+    L.append("     grows ~N (few cycles already at N=50); R2's pi-pulse phase is fixed.")
+    L.append("     Small N keeps the AC-Stark phase small; the grating wants many -> trade-off.")
+    return "\n".join(L)
+
+
+def make_acstark_figure(acs, out=_OUT_ACS):
+    Ns = [r["N"] for r in acs["rows"]]
+    deff = [r["d_eff_khz"] for r in acs["rows"]]
+    phiB1 = [abs(r["phi_B1_cyc"]) for r in acs["rows"]]
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.2, 4.5))
+    ax1.semilogx(Ns, deff, "o-", color=_RED, label="Rabi-anchored ⟨δ$_{AC}$⟩")
+    ax1.axhline(acs["dB1"] / 1e3, ls="--", color=_BLUE,
+                label="B1 floor (continuous): %+.0f kHz" % (acs["dB1"] / 1e3))
+    ax1.axhline(acs["d_scalar"] / 1e3, ls=":", color=_GRAY,
+                label="scalar (ω$_{HF}$/Δ)·Ω$_0$: %+.0f kHz" % (acs["d_scalar"] / 1e3))
+    ax1.set_xlabel("N  (stroboscopic cycles)")
+    ax1.set_ylabel("time-averaged differential AC-Stark shift  [kHz]")
+    ax1.set_title("Effective shift over the train  (δ$_{B1}$ + δ$_{R2}$·duty)")
+    ax1.grid(alpha=0.3, which="both"); ax1.legend(fontsize=8)
+    ax2.loglog(Ns, phiB1, "o-", color=_RED, label="B1 (continuous) ∝ N")
+    ax2.axhline(abs(acs["phi_R2_cyc"]), ls="--", color=_BLUE,
+                label="R2 (pulsed π) fixed: %.2f cyc" % abs(acs["phi_R2_cyc"]))
+    ax2.set_xlabel("N  (stroboscopic cycles)")
+    ax2.set_ylabel("|accumulated AC-Stark phase|  [cycles]")
+    ax2.set_title("AC-Stark phase of the π pulse")
+    ax2.grid(alpha=0.3, which="both"); ax2.legend(fontsize=8)
+    fig.suptitle("OC π-pulse AC-Stark systematics vs N  —  B1 continuous, only R2 pulsed "
+                 "(Rabi-anchored, κ=%.2f)" % acs["kappa"], fontsize=10.5)
+    fig.tight_layout()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=140)
+    plt.close(fig)
+    return out
+
+
 def main(argv=None) -> int:
     if not _DATAFILE.exists():
         print("strobo data not found at", _DATAFILE)
@@ -238,6 +364,11 @@ def main(argv=None) -> int:
           "(width ~%.0f kHz)" % sim["fwhm_khz"])
     out2 = make_detuning_figure(sim)
     print("wrote", out2.relative_to(Path(__file__).resolve().parent.parent))
+    # AC-Stark systematics vs N (B1 continuous, only R2 pulsed for a pi pulse)
+    acs = ac_stark_vs_N(omega_strobo_hz=info["omega_strobo"])
+    print(report_acstark(acs))
+    out3 = make_acstark_figure(acs)
+    print("\nwrote", out3.relative_to(Path(__file__).resolve().parent.parent))
     return 0
 
 
