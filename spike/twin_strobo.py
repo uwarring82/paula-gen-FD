@@ -45,11 +45,13 @@ import matplotlib.pyplot as plt  # noqa: E402
 from .datfile import DatFile  # noqa: E402
 from .engines.rabi import _ls_solve, fit_rabi  # noqa: E402
 from .engines.sideband import Sideband  # noqa: E402
+from .engines.strobo_sim import strobo_detuning_scan  # noqa: E402
 from .ledger import Ledger  # noqa: E402
 
 _DATAFILE = (Path(__file__).resolve().parent.parent / "sources" / "data" / "Strobo2.0" /
              "1_FlopN_3p3_2p2_PDQ_displ_strobo" / "10_22_22_12_06_2026.dat")
 _OUT = Path(__file__).resolve().parent.parent / "docs" / "figures" / "twin_strobo_flop.png"
+_OUT_SCAN = Path(__file__).resolve().parent.parent / "docs" / "figures" / "twin_strobo_detuning_scan.png"
 _BLUE, _RED, _GRAY = "#1f77b4", "#d62728", "#888888"
 _F_LO_KHZ, _F_HI_KHZ = 10_000.0, 60_000.0      # fast flop: ~25 cycles/us in delta_t
 _TPHI_CONT_US = 15.0                            # continuous-carrier-flop T_phi (twin_sideband)
@@ -165,6 +167,62 @@ def make_figure(info, out=_OUT):
     return out
 
 
+# --- forward SIMULATION: detuning scan of the pulse train (delta_t fixed) ----
+def simulate_detuning_scan(omega_strobo_hz=4.99e5, delta_t_us=0.02, span_flf=1.6,
+                           n_pts=641, F=10):
+    """SIMULATE P_flip vs the drive detuning of the stroboscopic pulse train, delta_t
+    FIXED at delta_t_us, all other params from the apparatus (engines.strobo_sim). The
+    scan covers +- span_flf * f_lf, i.e. the carrier (delta=0) and the FIRST SIDEBANDS
+    (+- the motional frequency). Because DELTA_t = the motional period, the motional
+    sidebands ALIAS onto the carrier comb -> equal narrow teeth at delta = k * f_lf."""
+    ledger = Ledger.load()
+    eta = Sideband.from_ledger(ledger).lamb_dicke(
+        "OC", "lf", ledger.input_quantity("omega_z_axial_com_25mg").value)
+    dat = DatFile(_DATAFILE) if _DATAFILE.exists() else None
+    f_lf = (dat.settings.get("fr_lf", 1.3001) * 1e6) if dat else \
+        ledger.input_quantity("omega_z_axial_com_25mg").value
+    DELTA_t = dat.settings.get("DELTA_t", 0.769172) if dat else 0.769172
+    N = int(dat.settings.get("N_strobo_OC_lf_PDQ", 50)) if dat else 50
+
+    dets = [(-span_flf + 2 * span_flf * k / (n_pts - 1)) * f_lf for k in range(n_pts)]
+    P = strobo_detuning_scan(eta, omega_strobo_hz, delta_t_us, DELTA_t, N, f_lf, dets, F=F)
+    peaks = [(dets[k], P[k]) for k in range(1, n_pts - 1)
+             if P[k] > 0.5 and P[k] >= P[k - 1] and P[k] >= P[k + 1]]
+    return {"dets": dets, "P": P, "f_lf": f_lf, "DELTA_t": DELTA_t, "N": N, "eta": eta,
+            "omega_strobo": omega_strobo_hz, "delta_t_us": delta_t_us, "peaks": peaks,
+            "fwhm_khz": 1e3 / (N * DELTA_t)}      # tooth width ~ 1/(N*DELTA_t)
+
+
+def make_detuning_figure(sim, out=_OUT_SCAN):
+    f_lf_mhz = sim["f_lf"] / 1e6
+    dmhz = [d / 1e6 for d in sim["dets"]]
+    fig, ax = plt.subplots(figsize=(8.6, 4.8))
+    ax.plot(dmhz, sim["P"], "-", color=_RED, lw=1.4)
+    for d, _h in sim["peaks"]:
+        k = round(d / sim["f_lf"])
+        lab = "carrier" if k == 0 else ("%+d × f$_{lf}$" % k)
+        ax.annotate(lab, (d / 1e6, 1.02), ha="center", va="bottom", fontsize=8, color=_GRAY)
+    ax.set_xlabel("drive detuning from the carrier  δ  [MHz]")
+    ax.set_ylabel("P$_{flip}$ (simulated)")
+    ax.set_ylim(-0.03, 1.15)
+    ax.set_title("Stroboscopic pulse train — simulated detuning scan (delta_t=%.2f µs, N=%g)" % (
+        sim["delta_t_us"], sim["N"]))
+    txt = "\n".join([
+        r"strobo comb: teeth at δ = k·f$_{lf}$ (f$_{lf}$=%.3f MHz)" % f_lf_mhz,
+        r"carrier (k=0) + FIRST SIDEBANDS (k=±1, ±%.2f MHz)" % f_lf_mhz,
+        r"tooth width ~ 1/(N·DELTA_t) = %.0f kHz" % sim["fwhm_khz"],
+        r"DELTA_t = motional period ⇒ motional sidebands alias onto the comb",
+    ])
+    ax.text(0.5, 0.5, txt, transform=ax.transAxes, ha="center", va="center", fontsize=8.5,
+            bbox=dict(boxstyle="round", fc="white", ec=_GRAY, alpha=0.9))
+    ax.grid(alpha=0.25)
+    fig.tight_layout()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=140)
+    plt.close(fig)
+    return out
+
+
 def main(argv=None) -> int:
     if not _DATAFILE.exists():
         print("strobo data not found at", _DATAFILE)
@@ -173,6 +231,13 @@ def main(argv=None) -> int:
     print(report(info))
     out = make_figure(info)
     print("\nwrote", out.relative_to(Path(__file__).resolve().parent.parent))
+    # forward simulation: detuning scan at delta_t = 0.02 us (covers the first sidebands)
+    sim = simulate_detuning_scan(omega_strobo_hz=info["omega_strobo"], delta_t_us=0.02)
+    print("\nSIMULATED DETUNING SCAN (delta_t=0.02 us, N=%g): comb teeth at" % sim["N"],
+          ", ".join("%+.0f kHz" % (d / 1e3) for d, _ in sim["peaks"]),
+          "(width ~%.0f kHz)" % sim["fwhm_khz"])
+    out2 = make_detuning_figure(sim)
+    print("wrote", out2.relative_to(Path(__file__).resolve().parent.parent))
     return 0
 
 

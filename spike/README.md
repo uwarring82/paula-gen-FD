@@ -204,6 +204,15 @@ displacement the flop rate would be position-modulated (the grating → collapse
 the displ≠0 follow-up. Figure
 [`../docs/figures/twin_strobo_flop.png`](../docs/figures/twin_strobo_flop.png).
 
+It also **forward-simulates a detuning scan** of the pulse train (`delta_t` fixed at
+0.02 µs) via [`engines/strobo_sim.py`](engines/strobo_sim.py) — an exact small spin⊗Fock
+stroboscopic propagator (displacement matrix D(iη), per-cycle U_pulse × U_free(δ),
+N=50 cycles). The result is the **stroboscopic comb**: full-contrast resonances at the
+**carrier (δ=0) and the first sidebands (±f_lf = ±1.3 MHz)**, each ~26 kHz wide
+(1/N·DELTA_t) with finite-train sinc side lobes. Because DELTA_t = the motional period,
+the motional sidebands *alias onto* the carrier comb (the phase-grating coupling).
+Figure [`../docs/figures/twin_strobo_detuning_scan.png`](../docs/figures/twin_strobo_detuning_scan.png).
+
 ## Integrated twin: OC axial carrier flop (`twin_oc_flop`)
 
 [`twin_oc_flop.py`](twin_oc_flop.py) (`python -m spike.twin_oc_flop`) is the twin of
@@ -382,6 +391,7 @@ spike/
     scatter.py      Raman off-resonant scattering (Gamma_sc, P_SE/pi) + differential AC-Stark + flip_probability
     raman_optical.py polarization+power-resolved light shifts + scattering (|J',mJ'> basis; scalar/vector; 6j cross-check)
     raman_dephasing.py relative-phase noise of the two beams: contrast envelopes + mutual-linewidth/T_phi readout of the residual
+    strobo_sim.py    stroboscopic spin-motion propagator (displacement matrix + U_pulse/U_free) -> detuning-scan comb (carrier + sidebands)
     rabi.py         damped Rabi-flop fit -> Omega (raw .dat duration scans)
     detection.py    bright/dark discrimination: threshold + fidelity + depumping/leak PMF + ML readout
     readout.py      single-shot fidelity + Fisher/Cramer-Rao P_down precision (diagnostic)

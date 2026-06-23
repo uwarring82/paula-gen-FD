@@ -13,6 +13,35 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-23 — Stroboscopic detuning-scan SIMULATION (the phase-grating frequency comb)
+
+UW: fix delta_t = 0.02 us, keep everything else fixed, and simulate a detuning scan of
+the pulse train covering a range of the first sidebands.
+
+A forward simulation (not a fit). Built engines/strobo_sim.py: an exact small
+spin (x) Fock stroboscopic propagator (pure-Python complex matrices, no numpy) --
+displacement matrix D(i eta) (<m|D|n>, Laguerre; unitary, carrier=e^{-eta^2/2}, blue/
+red = eta*e^{-eta^2/2}), per-cycle U_pulse = exp(-i (Omega/2)(s+ (x) D + h.c.) delta_t)
+and U_free(delta) = diag(spin detuning + n*omega_lf), then (U_free U_pulse)^N on
+|up,0>. twin_strobo.simulate_detuning_scan scans the DRIVE detuning delta over +-1.6
+f_lf at delta_t=0.02 us fixed.
+
+RESULT (figure twin_strobo_detuning_scan.png): the **stroboscopic comb** -- full-
+contrast (delta_t ~ pi/2 at N=50) NARROW resonances at the **carrier (delta=0) and the
+FIRST SIDEBANDS (delta = +-f_lf = +-1.30 MHz)**, each ~26 kHz wide (= 1/(N*DELTA_t),
+the 38.5-us train) with the finite-train sinc side lobes; off the teeth it is dark.
+KEY: because DELTA_t = the motional period EXACTLY, the motional sidebands ALIAS onto
+the carrier comb (every transition |up,n>->|down,m> gets the same per-cycle phase
+delta*DELTA_t) -- so the teeth are equal and the red/blue distinction merges into the
+comb. To RESOLVE the bare motional sidebands one would detune DELTA_t off the period;
+the user kept it fixed, so the comb is the honest prediction.
+
+Validated: D unitarity, carrier+sidebands at delta=k*f_lf, off-resonance dark, P bounded,
+no-pulse -> no flip. Tests +5 (test_strobo_sim). The displ!=0 position-sensitive grating
+remains the natural follow-up.
+
+---
+
 ## 2026-06-22 (later 8) — Stroboscopic OC carrier flop twin (active phase grating, displ=0 baseline)
 
 UW: analyse the Strobo2.0 script and implement a digital twin.
