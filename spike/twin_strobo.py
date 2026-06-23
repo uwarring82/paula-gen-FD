@@ -25,8 +25,12 @@ once the motion is displaced). The twin fits Omega_strobo and the contrast.
 KEY: the whole train lasts a FIXED N * DELTA_t = 38.5 us (independent of delta_t), yet
 the flop keeps a sizeable contrast -- much more than the CONTINUOUS carrier flop's
 T_phi ~ 15 us (engines.raman_dephasing, from twin_sideband) would leave over 38.5 us
-(e^{-38.5/15} ~ 8%). The stroboscopic structure DECOUPLES the slow Raman-beam
-dephasing (a dynamical-decoupling benefit of the phase-grating technique).
+(e^{-38.5/15} ~ 8%). This is CONSISTENT WITH the stroboscopic structure decoupling the
+slow Raman-beam dephasing (the expected dynamical-decoupling benefit), but it is a
+heuristic comparison, NOT a prediction of this engine: strobo_sim is the ideal coherent
+propagator and has NO noise model, so whether the train truly filters the dephasing
+depends on the (unmodelled) noise spectrum and correlation time. Making it quantitative
+needs the filter function -- see strobo_population_vs_cycles / the heterodyne picture.
 
     python -m spike.twin_strobo   ->  docs/figures/twin_strobo_flop.png
 
@@ -47,7 +51,8 @@ from .engines.rabi import _ls_solve, fit_rabi  # noqa: E402
 from .engines.sideband import Sideband  # noqa: E402
 from .engines.raman_optical import RamanBeam, RamanOptics  # noqa: E402
 from .engines.scatter import differential_stark_shift  # noqa: E402
-from .engines.strobo_sim import strobo_detuning_scan  # noqa: E402
+from .engines.strobo_sim import (  # noqa: E402
+    strobo_detuning_scan, strobo_population_vs_cycles)
 from .ledger import Ledger  # noqa: E402
 
 _DATAFILE = (Path(__file__).resolve().parent.parent / "sources" / "data" / "Strobo2.0" /
@@ -55,6 +60,7 @@ _DATAFILE = (Path(__file__).resolve().parent.parent / "sources" / "data" / "Stro
 _OUT = Path(__file__).resolve().parent.parent / "docs" / "figures" / "twin_strobo_flop.png"
 _OUT_SCAN = Path(__file__).resolve().parent.parent / "docs" / "figures" / "twin_strobo_detuning_scan.png"
 _OUT_ACS = Path(__file__).resolve().parent.parent / "docs" / "figures" / "twin_strobo_acstark_vs_N.png"
+_OUT_HET = Path(__file__).resolve().parent.parent / "docs" / "figures" / "twin_strobo_heterodyne_beat.png"
 _BLUE, _RED, _GRAY = "#1f77b4", "#d62728", "#888888"
 _F_LO_KHZ, _F_HI_KHZ = 10_000.0, 60_000.0      # fast flop: ~25 cycles/us in delta_t
 _TPHI_CONT_US = 15.0                            # continuous-carrier-flop T_phi (twin_sideband)
@@ -226,6 +232,58 @@ def make_detuning_figure(sim, out=_OUT_SCAN):
     return out
 
 
+# --- heterodyne / mixer demonstration: cycle-domain IF beat (delta_t fixed) ---
+def heterodyne_beat(f_IF_khz=(0.0, 50.0, 100.0, 200.0), omega_strobo_hz=4.99e5,
+                    delta_t_us=0.02, n_max=200, eta=None):
+    """DEMONSTRATE the train as a sampling mixer. Keep delta_t fixed and detune the
+    strobe from a comb tooth by f_IF; the CYCLE-DOMAIN population P_flip(N) is the down-
+    converted output: on a tooth (f_IF=0) it builds up (homodyne -> the pi flop), and
+    detuned by f_IF it nutates with a first turning point ~ 1/(2 f_IF DELTA_t) -- the
+    intermediate frequency appearing in the slow cycle index. The motion is in |0>, so
+    this is the strobe<->qubit-transition beat (the displ!=0 case would carry the
+    motional signal)."""
+    L = Ledger.load()
+    if eta is None:
+        eta = Sideband.from_ledger(L).lamb_dicke(
+            "OC", "lf", L.input_quantity("omega_z_axial_com_25mg").value)
+    dat = DatFile(_DATAFILE) if _DATAFILE.exists() else None
+    f_lf = (dat.settings.get("fr_lf", 1.3001) * 1e6) if dat else \
+        L.input_quantity("omega_z_axial_com_25mg").value
+    DELTA_t = dat.settings.get("DELTA_t", 0.769172) if dat else 0.769172
+    curves = []
+    for fIF in f_IF_khz:
+        P = strobo_population_vs_cycles(eta, omega_strobo_hz, delta_t_us, DELTA_t,
+                                        n_max, f_lf, fIF * 1e3, F=10)
+        half_beat = (1.0 / (2.0 * fIF * 1e3 * DELTA_t * 1e-6)) if fIF > 0 else None
+        curves.append({"f_IF_khz": fIF, "P": P, "half_beat_cyc": half_beat})
+    return {"curves": curves, "DELTA_t_us": DELTA_t, "f_lf": f_lf, "eta": eta,
+            "delta_t_us": delta_t_us, "n_max": n_max}
+
+
+def make_heterodyne_figure(het, out=_OUT_HET):
+    Ns = list(range(1, het["n_max"] + 1))
+    fig, ax = plt.subplots(figsize=(8.8, 4.8))
+    colors = [_BLUE, _RED, "#2ca02c", "#9467bd"]
+    for c, col in zip(het["curves"], colors):
+        if c["f_IF_khz"] == 0:
+            lab = "f$_{IF}$=0 (on tooth → homodyne π flop)"
+        else:
+            lab = "f$_{IF}$=%g kHz  (half-beat ~%.0f cyc)" % (c["f_IF_khz"], c["half_beat_cyc"])
+        ax.plot(Ns, c["P"], "-", color=col, lw=1.4, label=lab)
+    ax.set_xlabel("cycle index  N  (one pulse per DELTA_t = %.3f µs)" % het["DELTA_t_us"])
+    ax.set_ylabel("P$_{flip}$ (cycle-domain output)")
+    ax.set_title("Stroboscopic train as a sampling mixer — IF down-converted to the cycle domain")
+    ax.text(0.02, 0.60, "delta_t=%.2f µs fixed\ndetuning = f$_{IF}$ off the carrier tooth\n"
+            "(off-tooth amplitude ∝ (Ω/f$_{IF}$)² — read the PERIOD, not the height)" % het["delta_t_us"],
+            transform=ax.transAxes, ha="left", va="center", fontsize=8, color=_GRAY)
+    ax.set_ylim(-0.03, 1.05); ax.grid(alpha=0.25); ax.legend(fontsize=8, loc="upper right")
+    fig.tight_layout()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=140)
+    plt.close(fig)
+    return out
+
+
 # --- AC-Stark systematics vs N (B1 continuous, only R2 pulsed for a pi pulse) -
 def ac_stark_vs_N(Ns=(2, 5, 10, 20, 50, 100, 200, 500), omega_strobo_hz=4.99e5,
                   eta=None):
@@ -284,8 +342,9 @@ def ac_stark_vs_N(Ns=(2, 5, 10, 20, 50, 100, 200, 500), omega_strobo_hz=4.99e5,
                      "t_seq_us": t_seq * 1e6, "d_eff_khz": d_eff / 1e3,
                      "phi_B1_cyc": phi_B1 / (2.0 * math.pi),
                      "phi_tot_cyc": (phi_B1 + phi_R2) / (2.0 * math.pi)})
+    pi_corr = math.sqrt(1.0 + (dB1 / Om) ** 2) - 1.0          # pi-time shift from delta_AC ~ dB1
     return {"dB1": dB1, "dR2": dR2, "dB1_nom": dB1_nom, "dR2_nom": dR2_nom,
-            "d_scalar": d_scalar, "sB1": sB1, "sR2": sR2, "kappa": kappa,
+            "d_scalar": d_scalar, "sB1": sB1, "sR2": sR2, "kappa": kappa, "pi_corr": pi_corr,
             "om0_obs": om0_obs, "om2g_nom": om2g_nom, "t_R2_us": t_R2 * 1e6,
             "phi_R2_cyc": phi_R2 / (2.0 * math.pi), "DELTA_t_us": DELTA_t * 1e6, "rows": rows}
 
@@ -316,6 +375,11 @@ def report_acstark(acs) -> str:
     L.append("  => the SHAPE is robust: B1's continuous shift dominates and its phase")
     L.append("     grows ~N (few cycles already at N=50); R2's pi-pulse phase is fixed.")
     L.append("     Small N keeps the AC-Stark phase small; the grating wants many -> trade-off.")
+    L.append("  CAVEATS (2nd order): (1) a SINGLE kappa rescales both beams -- exact only if")
+    L.append("     B1 and R2 sit at the same fraction of nominal; a differential overlap would")
+    L.append("     tilt the dB1/dR2 ratio. (2) the pi width uses 1/(2 Omega), ignoring that")
+    L.append("     delta_AC detunes the pulse (true rate sqrt(Omega^2+delta_AC^2)): ~%.1f%% timing." % (
+        100.0 * acs["pi_corr"]))
     return "\n".join(L)
 
 
@@ -364,6 +428,14 @@ def main(argv=None) -> int:
           "(width ~%.0f kHz)" % sim["fwhm_khz"])
     out2 = make_detuning_figure(sim)
     print("wrote", out2.relative_to(Path(__file__).resolve().parent.parent))
+    # heterodyne/mixer demonstration: detune the strobe -> cycle-domain IF beat
+    het = heterodyne_beat(omega_strobo_hz=info["omega_strobo"])
+    print("\nHETERODYNE BEAT (delta_t=0.02 us): f_IF -> first turning point (cycles):",
+          ", ".join("%g kHz~%s" % (c["f_IF_khz"],
+                    ("flop" if c["f_IF_khz"] == 0 else "%.0f" % c["half_beat_cyc"]))
+                    for c in het["curves"]))
+    out_h = make_heterodyne_figure(het)
+    print("wrote", out_h.relative_to(Path(__file__).resolve().parent.parent))
     # AC-Stark systematics vs N (B1 continuous, only R2 pulsed for a pi pulse)
     acs = ac_stark_vs_N(omega_strobo_hz=info["omega_strobo"])
     print(report_acstark(acs))

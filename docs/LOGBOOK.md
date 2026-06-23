@@ -13,6 +13,66 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-23 (later 2) — The phase grating as a RECEIVER (SDR / lock-in / heterodyne); + review fixes
+
+DIALOG (UW + assistant), recorded as a lab note. We discussed how the stroboscopic
+phase grating relates to established quantum-control / detection methods, and converged
+on a single "receiver" picture:
+
+  * Each cycle transfers only a MINUSCULE population (theta = Omega_strobo*delta_t ~ 0.06
+    rad -> ~0.1% per pulse); the pi builds up coherently over N. That weak-drive regime
+    is the AVERAGE-Hamiltonian / linear-response regime -- like CONTINUOUS dynamical
+    decoupling (spin-locking) and lock-in sensing, NOT hard-pulse CPMG/Ramsey.
+  * It is SELECTIVE DYNAMICAL RECOUPLING: the train is locked to the motional period, so
+    it RE-couples to one mode (the motion) while DEcoupling slow off-resonant noise --
+    the opposite emphasis to ordinary DD (which decouples from everything). It shares
+    Ramsey's "resolution ~ 1/total-time" (the 26 kHz comb teeth) and DD's slow-noise
+    filtering, but adds frequency selectivity. A constant detuning (B1 AC-Stark) is NOT
+    refocused (unlike an echo) -> genuinely complementary, not a substitute.
+  * HETERODYNE / sampling-MIXER (the tightest framing): strobe = local oscillator (comb
+    at 1/DELTA_t = f_lf), spin-motion coupling = signal, coherent spin accumulation =
+    mixer + integrator, drive detuning delta = intermediate frequency. ON a tooth
+    (delta=k*f_lf) -> homodyne (DC -> the pi flop); off by f_IF -> heterodyne (cycle-
+    domain nutation at f_IF). The detuning-scan comb IS a superheterodyne image
+    spectrum; the "aliasing" we noted (sidebands fold onto the carrier comb) is the
+    image-folding of a sampling mixer at LO = signal. Weak pulses -> LINEAR (undistorted)
+    mixer; the quantum limit is spin projection noise (~shot-noise-limited heterodyne).
+
+DEMONSTRATION (added). engines.strobo_sim.strobo_population_vs_cycles + twin_strobo.
+heterodyne_beat: fix delta_t = 0.02 us, detune the strobe by f_IF off the carrier tooth,
+plot P_flip vs the CYCLE INDEX N. On the tooth (f_IF=0) the population builds to the pi
+flop (homodyne); detuned, it nutates with first turning point ~ 1/(2 f_IF DELTA_t) --
+f_IF=50/100/200 kHz -> ~13/7/3 cycles (verified). The IF is literally down-converted
+into the slow cycle index. Figure twin_strobo_heterodyne_beat.png.
+
+REVIEW REACTIONS (a careful external review of strobo_sim.py / twin_strobo.py):
+  1. FIXED (real interpretation BUG): the strobo_sim docstring claimed a "red sideband
+     suppressed / red-blue ASYMMETRIC comb for the ground state." That is WRONG and the
+     engine's own output contradicts it. The teeth are FLOQUET sidebands of the pulsed
+     drive: at the exact strobe they are full-contrast and INDEPENDENT of eta -- present
+     even at eta=0 (verified: carrier/+-1 teeth identical for eta=0, 0.2, 0.389; and
+     symmetric +f_lf == -f_lf). The motion wraps to identity each cycle so D(i eta) is a
+     coherent passenger that cancels in the spin-flip sum. The MOTIONAL coupling only
+     appears when the strobe is DETUNED off the period (verified: 3% mismatch -> carrier
+     0.99999 -> 0.984 as eta 0 -> 0.389) or the motion is displaced. Docstring rewritten;
+     test renamed test_carrier_and_first_floquet_sidebands_present; added
+     test_comb_is_symmetric_floquet_independent_of_eta and
+     test_motional_coupling_appears_when_strobe_is_detuned.
+  2. FLAGGED: instantaneous-pulse approximation. The per-period DETUNING phase is exact
+     (delta*DELTA_t lumped into U_free -> comb POSITIONS exact), but the motion's
+     evolution DURING the pulse is neglected (sampling window omega_lf*delta_t ~ 0.16 rad
+     at 0.02 us, ~0.8 rad at 0.1 us). Documented; no decoherence model either.
+  3. FLAGGED in report_acstark: (a) the single kappa rescales both beams equally (exact
+     only at equal B1/R2 overlap); (b) the pi width 1/(2 Omega) ignores the delta_AC
+     detuning (true rate sqrt(Omega^2+delta_AC^2), ~0.2% timing here).
+  4. SOFTENED: the "stroboscopic structure DECOUPLES the dephasing" claim -> "CONSISTENT
+     WITH decoupling" -- it is a heuristic vs the 15-us continuous T_phi, not an engine
+     prediction (strobo_sim has no noise model). The filter-function build (driving
+     strobo_population_vs_cycles with a noise spectrum) is the way to make it quantitative.
+  Verdict accepted: the propagator is correct; the issue was interpretive. Tests +4.
+
+---
+
 ## 2026-06-23 (later) — Stroboscopic pi-pulse AC-Stark systematics vs N (B1 continuous, only R2 pulsed)
 
 UW clarified the pulse-train mechanics: B1 is kept ON CONTINUOUSLY and only R2 is

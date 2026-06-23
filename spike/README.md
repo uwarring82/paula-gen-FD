@@ -208,10 +208,20 @@ It also **forward-simulates a detuning scan** of the pulse train (`delta_t` fixe
 0.02 µs) via [`engines/strobo_sim.py`](engines/strobo_sim.py) — an exact small spin⊗Fock
 stroboscopic propagator (displacement matrix D(iη), per-cycle U_pulse × U_free(δ),
 N=50 cycles). The result is the **stroboscopic comb**: full-contrast resonances at the
-**carrier (δ=0) and the first sidebands (±f_lf = ±1.3 MHz)**, each ~26 kHz wide
-(1/N·DELTA_t) with finite-train sinc side lobes. Because DELTA_t = the motional period,
-the motional sidebands *alias onto* the carrier comb (the phase-grating coupling).
-Figure [`../docs/figures/twin_strobo_detuning_scan.png`](../docs/figures/twin_strobo_detuning_scan.png).
+**carrier (δ=0) and the ±k teeth at ±k·f_lf**, each ~26 kHz wide (1/N·DELTA_t) with
+finite-train sinc side lobes. These are **symmetric Floquet sidebands of the pulsed
+drive — not motional red/blue sidebands**: at the exact strobe they are full-contrast
+and *independent of η* (present even at η=0; the motion wraps to identity each cycle).
+The motional coupling only shows up when the strobe is detuned off the period or the
+motion is displaced. Figure [`../docs/figures/twin_strobo_detuning_scan.png`](../docs/figures/twin_strobo_detuning_scan.png).
+
+The same propagator demonstrates the train as a **sampling mixer / heterodyne receiver**
+(`heterodyne_beat`, `engines.strobo_sim.strobo_population_vs_cycles`): with `delta_t`
+fixed, detuning the strobe by f_IF off a tooth makes the **cycle-domain** population
+P_flip(N) the down-converted output — homodyne (the π flop) on the tooth, and a nutation
+at f_IF off it (first turning point ~1/(2·f_IF·DELTA_t); 50/100/200 kHz → ~13/7/3
+cycles). The detuning-scan comb is the corresponding superheterodyne image spectrum.
+Figure [`../docs/figures/twin_strobo_heterodyne_beat.png`](../docs/figures/twin_strobo_heterodyne_beat.png).
 
 It also estimates the **AC-Stark systematics vs N** (`ac_stark_vs_N`). In the pulse train
 **B1 stays on continuously and only R2 is pulsed**; for a π pulse the R2 width is
