@@ -13,6 +13,39 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-23 (later 4) — Tomography ENGINE + tutorial notebook (transfer function in code)
+
+UW: (1) draft an engine that also checks the transfer function numerically; (2) combine
+into a self-consistent tutorial notebook (principles + our regime + sampling effects).
+
+ENGINE engines/grating_tomography.py (pure Python): characteristic functions chi(beta) for
+vacuum/coherent/Fock/thermal/cat; analytic Wigner W(alpha) for the same; the two transfer-
+function kernels kernel_probability (double sum) and kernel_coherence (single-sum DFT of
+chi); exact_eta0_probability (the all-orders kicked-two-level form); a direct pure-Python
+chi->W transform wigner_from_samples; and self-checks check_*_vs_floquet. Tests
+test_grating_tomography.py (12): chi identities; exact_eta0 == Floquet to <1e-9; the
+ALL-ORDERS exact-strobe motion-blindness (P_flip == eta=0 form for eta=0.2,0.389 at the
+pi pulse); kernel_probability == Floquet (weak); coherence = DFT-of-chi; and chi->W
+reconstruction recovering the analytic Wigner of vacuum/coherent/Fock, incl. the ODD-cat
+negative central fringe W(0)=-2/pi.
+
+NOTEBOOK docs/notebooks/strobo_grating_tomography.{py,ipynb} (jupytext-paired; executed via
+nbconvert, 6 figures embedded): the comb + exact eta=0 overlay (matches Floquet to 1.4e-13,
+incl. eta=0.389 -> the all-orders motion-blindness shown live); the heterodyne IF beat;
+the kernels + weak-pulse theta^2 breakdown table; SDF chi->W tomography of an odd cat
+(reconstructs W incl. the negative fringe to ~6e-4); and the SAMPLING EFFECTS -- bare-grating
+ring (incomplete) vs SDF plane, finite |beta|_max PSF ~1/|beta|_max, and coarse-grid
+phase-space aliasing (Nyquist/Brillouin zone).
+
+KEY note refinements this round (review-driven, all verified): §5 corrected -- the
+off-diagonal k!=k' terms are PRESENT on the strobe but reduce to chi(0)=1 (not "zero");
+§4 strengthened -- the eta=0 form is the exact-strobe population for ARBITRARY eta and rho
+to ALL ORDERS (spin-dependent-displacement gauge W removes the kick since the motion wraps),
+verified vs Floquet at the pi pulse; §3b -- bare-grating coherence (ring-limited) distinguished
+from the deterministic SDF protocol. Engine registered in README + State-of-the-Twin.
+
+---
+
 ## 2026-06-23 (later 3) — Write-up: analytical transfer function of the phase grating
 
 UW requested a self-contained write-up of the grating's measurement transfer function.

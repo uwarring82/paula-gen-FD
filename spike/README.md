@@ -417,6 +417,7 @@ spike/
     raman_optical.py polarization+power-resolved light shifts + scattering (|J',mJ'> basis; scalar/vector; 6j cross-check; absolute differential_stark_hz)
     raman_dephasing.py relative-phase noise of the two beams: contrast envelopes + mutual-linewidth/T_phi readout of the residual
     strobo_sim.py    stroboscopic spin-motion propagator (displacement matrix + U_pulse/U_free) -> detuning-scan comb (carrier + sidebands)
+    grating_tomography.py  char.-function/Wigner transfer-function kernels (chi, double/single-sum kernels, exact eta=0, chi->W reconstruction) + self-checks vs strobo_sim
     rabi.py         damped Rabi-flop fit -> Omega (raw .dat duration scans)
     detection.py    bright/dark discrimination: threshold + fidelity + depumping/leak PMF + ML readout
     readout.py      single-shot fidelity + Fisher/Cramer-Rao P_down precision (diagnostic)

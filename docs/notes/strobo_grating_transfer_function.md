@@ -98,7 +98,11 @@ reconstruction scheme the grating **enables**, not what the present displ=0 data
 provides — that data is spin-flip probability vs $\delta t$; the coherence route needs an
 added MW reference/analysis pulse.* The modern trapped-ion realisation of this
 characteristic-function route (bichromatic state-dependent displacements mapping
-$\mathrm{Re}\,\chi,\mathrm{Im}\,\chi$ onto spin readout) is Flühmann & Home (2020).
+$\mathrm{Re}\,\chi,\mathrm{Im}\,\chi$ onto spin readout) is Flühmann & Home (2020). This
+weak, interferometrically-referenced coherence channel must **not** be conflated with the
+deterministic SDF protocol of §5: it accesses the same characteristic-function object only
+on the carrier-grating sampling ring $\lvert\beta\rvert=\eta$, whereas the SDF/bichromatic
+conditional displacement scans $\chi(\beta)$ over a controllable 2-D region.
 
 ## 4. Exact strobe — the comb, and the exact $\eta=0$ transfer function
 
@@ -130,8 +134,18 @@ $U_{\rm free}=\mathrm{diag}(e^{+i\pi\delta\Delta_t},e^{-i\pi\delta\Delta_t})$, s
 $\cos\lambda=\tfrac12\mathrm{Tr}\,U_{\rm cycle}=\cos(\theta/2)\cos(\pi\delta\Delta_t)$
 (reordering the step changes intermediate phases but not $\tfrac12\mathrm{Tr}$, hence not
 $P_\downarrow$). It matches `strobo_sim` to machine precision (§8) and reduces to the
-squared-Dirichlet comb for $\theta\ll1$. For
-$\eta\neq0$ the weak-pulse expansion (§3) remains the best closed-form handle.
+squared-Dirichlet comb for $\theta\ll1$.
+
+In fact this $\eta=0$ formula is the exact-strobe population for **arbitrary $\eta$ and
+arbitrary $\rho$, to all orders** in $\theta$ — so "motion-blind on resonance" is not a
+weak-pulse artefact. On the exact strobe the motional free evolution wraps to the identity
+each cycle, so the spin-dependent-displacement gauge
+$W=|\!\uparrow\rangle\langle\uparrow|\otimes\mathbb 1+|\!\downarrow\rangle\langle\downarrow|\otimes D(i\eta)$
+removes the kick ($W^\dagger U_{\rm pulse}W=e^{-i\theta\sigma_x/2}\otimes\mathbb 1$) and
+commutes with $U_{\rm free}$, leaving a pure two-level evolution whose flip probability is
+the boxed result independent of $\eta,\rho$ (verified vs the full Floquet propagator at
+$\theta$ up to the $\pi$-pulse, $\eta=0$ and $0.389$ — §8). For $\eta\neq0$ *off* the
+strobe, the weak-pulse expansion (§3) remains the best closed-form handle.
 
 ## 5. Off-strobe / phase-varying grating — sampling $\chi(\beta)$
 
@@ -142,9 +156,10 @@ the observable variation):
 - **Coherence:** $\mathrm{Tr}[\rho A]=-i\frac{\theta}{2}\sum_k e^{-i2\pi k\delta\Delta_t}\chi(i\eta e^{i(\phi_g-k\Phi)})$
   — a DFT of $\chi$ over the ring; $\phi_g$ rotates the ring, $\delta$ supplies the Fourier
   phase.
-- **Probability:** the §3(a) double sum; its $\eta$-dependence is entirely the
-  off-diagonal $k\neq k'$ terms (zero on the strobe). This is the $\sim13\%$ leading-order
-  variation of $P_\downarrow$ with $\eta$ seen at a 3% strobe mistune (§8).
+- **Probability:** the §3(a) double sum; its $\eta$- and state-dependence enters through
+  the off-diagonal $k\neq k'$ terms. On the exact strobe these terms *remain present* but
+  reduce to $\chi(0)=1$, so their motional dependence vanishes. Off-strobe this is the
+  $\sim13\%$ leading-order variation of $P_\downarrow$ with $\eta$ at a 3% strobe mistune (§8).
 
 **Reach (the architecture break).** For the *bare* grating, $\phi_g$ rotates a
 fixed-radius ring, $\delta$ re-weights the same sampled points, and $N$ changes the number
@@ -212,7 +227,9 @@ $\chi(\beta)=e^{-|\beta|^2/2}$). Error metric = $|P_{\rm analytic}-P_{\rm Floque
 against `strobo_detuning_scan` (the full Floquet propagator).
 
 - **Exact $\eta=0$ formula (§4):** matches the Floquet simulation to **machine precision**
-  ($\lesssim10^{-13}$) at $\delta t=0.02$ and $0.05\,\mu$s, on and off resonance.
+  ($\lesssim10^{-13}$) at $\delta t=0.02$ and $0.05\,\mu$s, on and off resonance — and (the
+  all-orders gauge result) equals the full-Floquet exact-strobe population for $\eta=0.389$
+  as well, at $\theta$ up to the $\pi$-pulse and several $\delta$.
 - **Weak-pulse double-sum kernel (§3a), off-strobe ($f_{\rm lf}\Delta_t=1.03$, $\eta=0.389$, $\delta=0$)** — a **small-signal** expansion; the *observed* relative error scales as $\theta^2$ away from kernel zeros (the amplitude correction is $O(\theta^3)$; near zeros the relative metric is ill-conditioned):
 
   | $\delta t$ ($\mu$s) | $\theta$ | $P_\downarrow$ | rel. err. |
