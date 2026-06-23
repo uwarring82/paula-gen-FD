@@ -46,7 +46,7 @@ validations; everything below is a diagnostic or a raw-data tool.
 | sideband | diagnostic | no (input_quantity) | η + sideband Rabi + carrier Debye-Waller |
 | scatter | capability | no | scalar Raman scatter + differential AC-Stark |
 | raman_optical | capability | no (input_quantity) | polarization+power-resolved shifts/scatter; absolute differential_stark_hz (saturation-anchored) |
-| strobo_sim | capability | n/a | spin⊗Fock stroboscopic propagator → symmetric Floquet comb + heterodyne cycle-domain IF beat |
+| strobo_sim | capability | n/a | spin⊗Fock stroboscopic propagator → symmetric Floquet comb + heterodyne IF beat; transfer function in [notes/strobo_grating_transfer_function.md](notes/strobo_grating_transfer_function.md) |
 | raman_dephasing | capability | no | relative-phase noise of the 2 beams → Δν/T_φ readout of the residual |
 | sideband (thermal) | capability | no | RSB/BSB thermal flops → nbar thermometry (twin_sideband discriminator) |
 | twin_strobo | raw-data | n/a | stroboscopic OC carrier flop (phase-grating n=0 baseline; strobo dephasing-decoupling; detuning-scan + AC-Stark-vs-N) |

@@ -13,6 +13,33 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-23 (later 3) — Write-up: analytical transfer function of the phase grating
+
+UW requested a self-contained write-up of the grating's measurement transfer function.
+New note: docs/notes/strobo_grating_transfer_function.md. In the impulsive weak-pulse
+limit the grating maps the motional state onto the qubit via the Wigner characteristic
+function chi(beta)=Tr[rho D(beta)], with the sampled displacement
+beta_k = i*eta*exp(i(phi_g - k*Phi)), Phi = omega_lf*Delta_t.
+
+KEY CLARIFICATION (resolving a subtlety in UW's draft): the qubit OBSERVABLE decides the
+functional of chi.
+  * spin COHERENCE <A> = -(i theta/2) Σ_k e^{-ik delta Dt} chi(beta_k) -- a single sum, a
+    DISCRETE FOURIER TRANSFORM of chi (UW's boxed formula; the clean reconstruction route).
+  * spin-flip PROBABILITY P = <A^dag A> = (theta/2)^2 Σ_{k,k'} e^{i(k-k')delta Dt}
+    e^{i Im(beta_k' beta_k*)} chi(beta_k' - beta_k) -- a DOUBLE sum at the kick
+    DIFFERENCES. <A^dag A> != |<A>|^2, which is exactly why P is motion-BLIND on the exact
+    strobe (all beta_k equal -> chi(0)=1 -> the Dirichlet comb) while the coherence still
+    reads chi(i eta). Off-strobe both are motion-sensitive.
+VALIDATED: the analytical double-sum P kernel for |0> (chi=e^{-|beta|^2/2}) matches
+strobo_sim to 0.05-0.2% (residual ~ theta -> leading order confirmed), exact strobe AND
+off it. Reconstruction routes: char.-function FFT (direct), Vogel-Risken Radon (the
+Fourier-slice dual), or Leibfried displaced parity (W directly, no transform). Reach: a
+single carrier grating samples only |beta|=eta; the SDF/sideband accumulation reaches
+|beta|~N*eta. Finite-pulse + decoherence -> PSF ~ 1/|beta|_max (the filter-function thread
+sets the resolution). No spike code changed; this is a docs note.
+
+---
+
 ## 2026-06-23 (later 2) — The phase grating as a RECEIVER (SDR / lock-in / heterodyne); + review fixes
 
 DIALOG (UW + assistant), recorded as a lab note. We discussed how the stroboscopic
