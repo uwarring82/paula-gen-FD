@@ -205,13 +205,16 @@ effective recoil-dressed rotation $U_{\beta_g}$, every constituent pulse must sh
 the same motional displacement $\beta_k=\beta_g$ **and** the same dressed *spin* phase. Exact
 motional strobing ($f_{\rm lf}\Delta_t=1$) guarantees the first. But the qubit detuning still
 advances the spin phase by $-2\pi k\delta\Delta_t$ per cycle, so the generators are
-$X_{\beta_g}^{(\phi_k)}$ with $\phi_k=\phi_0-2\pi k\delta\Delta_t$ — and these **do not
-commute** for $\phi_k\neq\phi_\ell$ (verified: $\lVert[X^{(\phi_k)},X^{(\phi_\ell)}]\rVert$
-runs from $0$ at $\Delta\phi=0$ to $2$ at $\Delta\phi=\pi/2$). The second condition therefore
-requires either $\delta\Delta_t\in\mathbb Z$ (the grating drive sits on a comb tooth) **or**
-cycle-by-cycle phase programming $\phi_{{\rm drive},k}=\phi_{\rm target}+2\pi k\delta\Delta_t$
-that cancels the accumulated detuning phase. Only then do all generators coincide and
-commute, so a calibrated total area $\sum_k\theta_k=\pi/2$ implements $U_{\beta_g}$.
+$X_{\beta_g}^{(\phi_k)}$ with $\phi_k=\phi_0-2\pi k\delta\Delta_t$ — and these **generically
+do not commute** for $\phi_k\neq\phi_\ell$ (verified: $\lVert[X^{(\phi_k)},X^{(\phi_\ell)}]\rVert$
+runs from $0$ at $\Delta\phi=0$ to $2$ at $\Delta\phi=\pi/2$; the lone exception
+$\Delta\phi\equiv0\bmod\pi$ has $X^{(\phi+\pi)}=-X^{(\phi)}$, which commutes but *reverses*
+the rotation sign — a negative-area pulse, not the target $\pi/2$). The operational
+requirement is therefore equal spin phase **mod $2\pi$**, met by either $\delta\Delta_t\in\mathbb Z$
+(the grating drive sits on a comb tooth) **or** cycle-by-cycle phase programming
+$\phi_{{\rm drive},k}=\phi_{\rm target}+2\pi k\delta\Delta_t$ that cancels the accumulated
+detuning phase. Only then do all generators coincide, so a calibrated total area
+$\sum_k\theta_k=\pi/2$ implements $U_{\beta_g}$.
 
 Define the **recoil-dressed flip** and its $\pi/2$:
 
@@ -317,9 +320,10 @@ against `strobo_detuning_scan` (the full Floquet propagator).
   off resonance — and (the all-orders gauge result) equals the full-Floquet exact-strobe
   population for $\eta=0.389$ as well, at $\theta$ up to the $\pi$-pulse and several $\delta$.
 - **Multipulse design criterion (§6):** the dressed generators $X^{(\phi_k)}$ commute iff
-  the spin phases coincide — $\lVert[X^{(\phi_k)},X^{(\phi_\ell)}]\rVert=0$ at $\Delta\phi=0$,
-  rising to $2$ at $\Delta\phi=\pi/2$ (so a clean single $X_{\beta_g}$ needs $\delta\Delta_t\in\mathbb Z$
-  or phase programming).
+  the spin phases coincide mod $\pi$ — $\lVert[X^{(\phi_k)},X^{(\phi_\ell)}]\rVert=0$ at
+  $\Delta\phi=0$, rising to $2$ at $\Delta\phi=\pi/2$, back to $0$ at $\Delta\phi=\pi$ (where
+  $X^{(\phi+\pi)}=-X^{(\phi)}$, a sign flip). So a clean *positive-area* single $X_{\beta_g}$
+  needs equal phase mod $2\pi$ ($\delta\Delta_t\in\mathbb Z$ or phase programming).
 - **Weak-pulse double-sum kernel (§3a), off-strobe ($f_{\rm lf}\Delta_t=1.03$, $\eta=0.389$, $\delta=0$)** — a **small-signal** expansion; the *observed* relative error scales as $\theta^2$ away from kernel zeros (the amplitude correction is $O(\theta^3)$; near zeros the relative metric is ill-conditioned):
 
   | $\delta t$ ($\mu$s) | $\theta$ | $P_\downarrow$ | rel. err. |
@@ -358,10 +362,11 @@ scalings; the realised numbers fold in contrast, noise, decoherence, heating, an
 ion is $\Phi_L(x,t)=k_{\rm eff}x-\omega_d t+\phi_{\rm drive}$. A programmed phase step
 translates the interaction grating in space, $\Delta x_{\rm grating}=-\Delta\phi/k_{\rm eff}$,
 so the *relative* phase between the reference and grating $\pi/2$ pulses sets their spatial
-registration. A detuning makes the grating *move*, $\phi(t)=\phi_0-2\pi\delta t$, i.e.
-$v_{\rm grating}=2\pi\delta/k_{\rm eff}$; an ion of velocity $v$ sees
-$\dot\Phi_L=k_{\rm eff}v-2\pi\delta$, so Doppler matching $k_{\rm eff}v=2\pi\delta$ is
-*equality of ion and grating velocity*:
+registration. An **effective** detuning $\delta_{\rm eff}$ — the programmed drive offset
+plus any qubit, AC-Stark, Zeeman, and Doppler shifts — makes the grating *move*,
+$\phi(t)=\phi_0-2\pi\delta_{\rm eff}t$, i.e. $v_{\rm grating}=2\pi\delta_{\rm eff}/k_{\rm eff}$;
+an ion of velocity $v$ sees $\dot\Phi_L=k_{\rm eff}v-2\pi\delta_{\rm eff}$, so Doppler matching
+$k_{\rm eff}v=2\pi\delta_{\rm eff}$ is *equality of ion and grating velocity*:
 
 $$\boxed{\ \text{phase = spatial registration;}\quad\text{detuning = grating velocity;}\quad\text{Doppler shift = relative velocity.}\ }$$
 
@@ -377,9 +382,12 @@ exactly the $\phi_{{\rm drive},k}=\phi_{\rm target}+2\pi k\delta\Delta_t$ that t
 criterion must program. **Exact strobing fixes the displacement direction; phase programming
 fixes the dressed spin-rotation axis.**
 
-**Kinematic figures of merit.** With interrogation $T=N\Delta_t$:
-- *Resolution* $\Delta\delta_{\rm res}\sim1/T$ — *the same* $1/(N\Delta_t)=26$ kHz comb-tooth
-  width of §4; in velocity, $\Delta v_{\rm res}\sim2\pi/(k_{\rm eff}T)$.
+**Kinematic figures of merit.** Distinguish two times: the coherent $N$-pulse grating
+duration $T_g=N\Delta_t$ (which sets the *comb* linewidth) and the two-arm Ramsey
+reference-to-analysis separation $T_R$ (which sets the *Ramsey* phase sensitivity). They
+coincide only when the grating arm itself defines the Ramsey interrogation interval.
+- *Comb resolution* $\Delta\delta_{\rm res}\sim1/T_g$ — *the same* $1/(N\Delta_t)=26$ kHz
+  comb-tooth width of §4; in velocity, $\Delta v_{\rm res}\sim2\pi/(k_{\rm eff}T_g)$.
 - *Update bandwidth* $B\lesssim1/T_{\rm cycle}$ (the usual resolution/bandwidth trade-off).
 - *Unaliased range* $\lvert\delta\rvert\lesssim1/(2\Delta_t)=650$ kHz — *half the comb spacing*
   $f_{\rm lf}/2$; in velocity $\lvert v\rvert\lesssim\pi/(k_{\rm eff}\Delta_t)$ (a grating
@@ -391,11 +399,11 @@ fixes the dressed spin-rotation axis.**
   $\Delta\alpha_{\rm res}\sim1/\lvert\Delta\beta\rvert_{\max}\gtrsim1/2\eta$ (the §8 PSF).
 - *Projection-noise sensitivity* at $P_\downarrow=\tfrac12[1+C\cos\Phi_{\rm sig}]$:
   $\Delta\Phi_{\rm sig}\sim1/(C\sqrt M)$ for $M$ shots and contrast $C$. For a **calibrated
-  signal phase** $\Phi_{\rm sig}=k_{\rm eff}x$ or $k_{\rm eff}vT$ this gives the *equivalent*
+  signal phase** $\Phi_{\rm sig}=k_{\rm eff}x$ or $k_{\rm eff}vT_R$ this gives the *equivalent*
   displacement / velocity sensitivities $\Delta x\sim1/(k_{\rm eff}C\sqrt M)$,
-  $\Delta v\sim1/(k_{\rm eff}TC\sqrt M)$, and $\Delta\delta\sim1/(2\pi TC\sqrt M)$ for a
-  detuning signal. (The *native* measured quantity is $\chi(\Delta\beta)$, not necessarily a
-  physical displacement or velocity.)
+  $\Delta v\sim1/(k_{\rm eff}T_R C\sqrt M)$, and $\Delta\delta\sim1/(2\pi T_R C\sqrt M)$ for a
+  detuning signal (using the Ramsey separation $T_R$). (The *native* measured quantity is
+  $\chi(\Delta\beta)$, not necessarily a physical displacement or velocity.)
 
 **Back-action — coherent, calibrated, but not QND.** The Ramsey readout measures the modular
 phase-space observable $M_\varphi(\Delta\beta)=\tfrac12[e^{i\phi_{\rm geo}}D(\Delta\beta)+e^{-i\phi_{\rm geo}}D(\Delta\beta)^\dagger]$,

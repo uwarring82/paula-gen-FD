@@ -74,7 +74,12 @@ explicitly scoped to travelling-wave/Raman k_eff!=0 (OC has Dk||z; near-uniform 
 for a trapped ion. (b) Dx, Dv recast as EQUIVALENT sensitivities for a calibrated signal
 phase Phi_sig=k_eff x or k_eff v T (the native quantity is chi(Db), not a physical
 displacement). (c) the 1/(2Dt) unaliased range labelled an ESTIMATOR/sampling (Nyquist)
-range, distinct from the driven-system response envelope.
+range, distinct from the driven-system response envelope. Final freeze patches: §10
+distinguishes the grating/comb duration T_g=N*Dt (comb linewidth) from the Ramsey arm
+separation T_R (Ramsey sensitivity); the Doppler detuning is an EFFECTIVE delta_eff
+(programmed offset + qubit/AC-Stark/Zeeman/Doppler). §6 commutator precision: X^(phi+pi)=
+-X^(phi) so [.,.]=0 also at dphi=pi (verified, antiparallel, sign-flip) -> the operational
+criterion is equal phase MOD 2pi (positive-area pi/2), not just mod pi.
 
 ---
 
