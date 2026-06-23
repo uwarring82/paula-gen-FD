@@ -58,6 +58,17 @@ parameterisation, now also asserts the EXACT direction, not just the magnitude).
 summary: Ramsey flagged as the direct finite-radius alternative; figures preserved via
 jupytext --update.
 
+New note §10 "Sensing metrics and measurement back-action": phase = spatial registration
+(Dx=-Dphi/k_eff), detuning = grating velocity (v=2pi delta/k_eff), Doppler = relative
+velocity; kinematic figures of merit tied to existing quantities (resolution 1/T = the
+26 kHz comb width; unaliased range 1/(2 Dt) = 650 kHz = half the comb spacing; recon scale
+~1/2eta; projection-noise Dx~1/(k_eff C sqrt(M)) etc.). Back-action: the readout measures
+the modular observable M_phi=1/2(e^{i phi_geo}D(Db)+h.c.) with P_down=1/2[1+<M_phi>]
+(verified = the §6 identity) -> a CONTROLLED DISPLACEMENT channel, NOT back-action-free /
+NOT QND ([D(Db),H_mot]!=0); benign limits Db=0 (closed, reversible) and |Db|<<1 (weak info).
+Principle: the protocol converts uncontrolled heating into a controllable, modelled
+phase-space back-action channel. Headers renumbered to 0-12 (engine->§11, refs->§12).
+
 ---
 
 ## 2026-06-23 (later 4) — Tomography ENGINE + tutorial notebook (transfer function in code)

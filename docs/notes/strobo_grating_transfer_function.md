@@ -348,7 +348,64 @@ These are implemented and tested in
 (`spike/test_grating_tomography.py`) and walked through in the tutorial notebook
 [`docs/notebooks/strobo_grating_tomography.ipynb`](../notebooks/strobo_grating_tomography.ipynb).
 
-## 10. From note to engine (spec sketch)
+## 10. Sensing metrics and measurement back-action
+
+The same construction fixes the *kinematic* structure of the grating as a sensor — its
+bandwidth, dynamic range, sensitivity — and the nature of its disturbance. (These are ideal
+scalings; the realised numbers fold in contrast, noise, decoherence, heating, and readout.)
+
+**Phase = spatial registration; detuning = grating velocity.** The drive phase seen by the
+ion is $\Phi_L(x,t)=k_{\rm eff}x-\omega_d t+\phi_{\rm drive}$. A programmed phase step
+translates the interaction grating in space, $\Delta x_{\rm grating}=-\Delta\phi/k_{\rm eff}$,
+so the *relative* phase between the reference and grating $\pi/2$ pulses sets their spatial
+registration. A detuning makes the grating *move*, $\phi(t)=\phi_0-2\pi\delta t$, i.e.
+$v_{\rm grating}=2\pi\delta/k_{\rm eff}$; an ion of velocity $v$ sees
+$\dot\Phi_L=k_{\rm eff}v-2\pi\delta$, so Doppler matching $k_{\rm eff}v=2\pi\delta$ is
+*equality of ion and grating velocity*:
+
+$$\boxed{\ \text{phase = spatial registration;}\quad\text{detuning = grating velocity;}\quad\text{Doppler shift = relative velocity.}\ }$$
+
+For the trapped oscillator the pulse timing selects which rotating motional quadrature is
+addressed; on the exact motional strobe the oscillator returns to the same phase-space
+orientation, and any residual pulse-to-pulse slip is a *drive-detuning* effect — exactly the
+$\phi_{{\rm drive},k}=\phi_{\rm target}+2\pi k\delta\Delta_t$ that the §6 design criterion
+must program. **Exact strobing fixes the displacement direction; phase programming fixes the
+dressed spin-rotation axis.**
+
+**Kinematic figures of merit.** With interrogation $T=N\Delta_t$:
+- *Resolution* $\Delta\delta_{\rm res}\sim1/T$ — *the same* $1/(N\Delta_t)=26$ kHz comb-tooth
+  width of §4; in velocity, $\Delta v_{\rm res}\sim2\pi/(k_{\rm eff}T)$.
+- *Update bandwidth* $B\lesssim1/T_{\rm cycle}$ (the usual resolution/bandwidth trade-off).
+- *Unaliased range* $\lvert\delta\rvert\lesssim1/(2\Delta_t)=650$ kHz — *half the comb spacing*
+  $f_{\rm lf}/2$; in velocity $\lvert v\rvert\lesssim\pi/(k_{\rm eff}\Delta_t)$ (a grating
+  slipping $>\!\tfrac12$ cycle per sample cannot be tracked unambiguously).
+- *Phase-space baseline* $\lvert\Delta\beta\rvert\le2\eta$ (§6) → reconstruction scale
+  $\Delta\alpha_{\rm res}\sim1/\lvert\Delta\beta\rvert_{\max}\gtrsim1/2\eta$ (the §8 PSF).
+- *Projection-noise sensitivity* at $P_\downarrow=\tfrac12[1+C\cos\Phi_{\rm sig}]$:
+  $\Delta\Phi_{\rm sig}\sim1/(C\sqrt M)$ for $M$ shots and contrast $C$, hence
+  $\Delta x\sim1/(k_{\rm eff}C\sqrt M)$, $\Delta v\sim1/(k_{\rm eff}TC\sqrt M)$,
+  $\Delta\delta\sim1/(2\pi TC\sqrt M)$.
+
+**Back-action — coherent, calibrated, but not QND.** The Ramsey readout measures the modular
+phase-space observable $M_\varphi(\Delta\beta)=\tfrac12[e^{i\phi_{\rm geo}}D(\Delta\beta)+e^{-i\phi_{\rm geo}}D(\Delta\beta)^\dagger]$,
+$\phi_{\rm geo}=\varphi+\mathrm{Im}(\beta_g\beta_r^*)$, so that $P_\downarrow=\tfrac12[1+\langle M_\varphi\rangle]$
+(verified — the §6 identity). Conditioned on the spin outcome the motion is transformed by
+coherent combinations of $\mathbb 1$ and $D(\Delta\beta)$: the back-action is a **controlled
+displacement channel**, not the absence of disturbance. It is *not* generically QND, since
+$[D(\Delta\beta),H_{\rm mot}]\neq0$ for $\Delta\beta\neq0$ (exact strobing makes it
+*repeatable relative to the Floquet cycle*, which is weaker than conservation-based QND).
+Two benign limits: the **closed interferometer** $\Delta\beta=0$ (branches recombine,
+reversible — but no nontrivial $\chi$ baseline), and the **weak-information** limit
+$\lvert\Delta\beta\rvert\ll1$ (small per-shot disturbance, small signal, many shots).
+
+$$\boxed{\ \text{The protocol converts uncontrolled heating into a controllable, modelled phase-space back-action channel.}\ }$$
+
+So the phase-programmed recoil Ramsey sequence is a **low-dissipation, phase-space-resolved**
+measurement whose back-action is coherent, calibrated, and reversible in the closed-loop
+limit — *not* generically back-action-free or QND; a nonzero $\chi$ baseline requires
+spin–motion entanglement and induces a controlled displacement-type back-action.
+
+## 11. From note to engine (spec sketch)
 
 ```python
 def kernel_probability(phase, det, rho_chi, eta, N, Delta_t, f_lf):
@@ -369,7 +426,7 @@ def reconstruct_wigner(chi_grid, beta_grid):
 `rho_chi` is a callable $\chi(\beta)$ for the state under test (analytic for Fock/coherent/
 cat/thermal; or `strobo_sim` in the SDF mode for the simulated state).
 
-## 11. References (verify bibliographic details before citing)
+## 12. References (verify bibliographic details before citing)
 
 - K. Vogel, H. Risken, *Phys. Rev. A* **40**, R2847 (1989) — quadrature/inverse-Radon
   tomography (Rapid Communication).
