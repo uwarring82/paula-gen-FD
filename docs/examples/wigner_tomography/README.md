@@ -43,10 +43,17 @@ note requires.
 
 ## Files
 
-- [`coherent_tomography_raw.dat`](coherent_tomography_raw.dat) — the raw simulated counts
-  (`beta_re beta_im M n_x n_y P_x P_y`, with a provenance header).
-- [`../../figures/twin_wigner_chi_data.png`](../../figures/twin_wigner_chi_data.png) — the
-  measured $\hat\chi(\beta)$ (Re, Im, and a 1-D cut with shot error bars vs analytic).
+- [`coherent_tomography_raw.dat`](coherent_tomography_raw.dat) — the raw scan log, one row
+  per experimental run. **Columns** = the *scanned parameters* (independent variables) then
+  the *measured population* (the dependent, y-axis quantity):
+  `disp_mag  disp_phase  readout_phase  M_shots  counts_down  P_down`, where the
+  conditional displacement is $\beta=\texttt{disp\_mag}\cdot e^{i\,\texttt{disp\_phase}}$ and
+  the readout phase $\varphi$ selects the quadrature ($0\to\mathrm{Re}\,\chi$,
+  $\pi/2\to\mathrm{Im}\,\chi$); two rows per $\beta$ (one per quadrature). Provenance header
+  on top.
+- [`../../figures/twin_wigner_raw_data.png`](../../figures/twin_wigner_raw_data.png) — the raw
+  **measured population $P_\downarrow$** vs the scanned probe displacement, for both readout
+  quadratures, plus a 1-D cut with shot error bars vs the ideal $P_\downarrow$.
 - [`../../figures/twin_wigner_reconstruction.png`](../../figures/twin_wigner_reconstruction.png) —
   analytic vs reconstructed $W$ and the residual (+ = input $\gamma$, × = recovered).
 

@@ -30,10 +30,13 @@ NEW DRIVER spike/twin_wigner_tomography.py (pure Python + matplotlib). Pipeline:
   3. ANALYSE: chi_hat=(2n/M-1)/C ; W=(1/pi^2) FT[chi_hat] (engine wigner_from_samples).
   4. VALIDATE: <alpha> centroid = gamma -> RECOVERED |gamma|=1.304 (input 1.300), arg=0.790
      (input 0.785); peak |W_rec-W_ana|=0.035 (shot-limited). Noise-free pipeline exact to ~1e-2.
-Figures: twin_wigner_chi_data.png (measured Re/Im chi + 1-D cut with shot error bars vs
-analytic) and twin_wigner_reconstruction.png (analytic vs reconstructed W + residual, with
-input + and recovered x markers overlapping). README docs/examples/wigner_tomography/ with
-provenance + the 4 analysis steps. Tests +4 (raw-file round-trip; noise-free reconstruction
+Figures: twin_wigner_raw_data.png (measured POPULATION P_down vs the scanned probe
+displacement, both readout quadratures + a 1-D cut with shot error bars vs ideal) and
+twin_wigner_reconstruction.png (analytic vs reconstructed W + residual, with input + and
+recovered x markers overlapping). README docs/examples/wigner_tomography/ with provenance +
+the 4 analysis steps. RAW DATA relabelled as the parameters VARIED in the runs (scanned:
+disp_mag, disp_phase=phi_g, readout_phase=varphi) with the measured P_down as the y-axis
+(dependent) column; one row per run (882 = 441 beta x 2 quadratures). Tests +4 (raw-file round-trip; noise-free reconstruction
 recovers gamma to <0.05 & W to <0.02; full shot-noisy pipeline recovers |gamma| & phase to
 0.1; chi_hat unbiased). FAIR: data unmistakably labelled twin-simulated.
 
