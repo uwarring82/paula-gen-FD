@@ -17,10 +17,20 @@ PIPELINE (run: python -m spike.twin_wigner_tomography):
 
 IMPORTANT (FAIR): the raw data here is SIMULATED by the digital twin, NOT a real
 measurement. It is written under docs/examples/ (separate from sources/data/, the real
-DAQ path) and every file is labelled twin-simulated. The single-pair Ramsey reach is only
-2 eta ~ 0.78, too small to sample chi out to its support; this demo therefore uses the
-spin-dependent-force / extended-reach route that scans beta over a controllable region (a
-calibrated conditional displacement up to ~N eta), as the note's tomography route requires.
+DAQ path) and every file is labelled twin-simulated.
+
+SCOPE -- what this DOES and does NOT use (read this). This validates the RECONSTRUCTION
+PIPELINE (populations -> chi -> Wigner) and the SDF/conditional-displacement MEASUREMENT
+MODEL. It does **NOT run the stroboscopic phase grating** (engines.strobo_sim): the
+characteristic function chi(beta) is the ANALYTIC chi of the prepared coherent state, and
+the readout is the idealized model P_down = 1/2(1 + C * Re/Im chi(beta)) + shot noise. So
+the actual grating physics -- the Floquet comb, the per-cycle kicks beta_k, the finite reach
+|Delta beta| <= 2 eta ~ 0.78, the multipulse phase-programming criterion, and the
+finite-pulse corrections (all in docs/notes/strobo_grating_transfer_function.md) -- is
+BYPASSED. A grating-faithful version would instead generate the chi samples from the
+propagator running in the SDF / conditional-displacement mode (an engine extension not yet
+built), inheriting those reach/phase/pulse limits. As written, this demonstrates the
+tomography MATHEMATICS and the measurement MODEL, not the grating hardware.
 
 Pure Python + matplotlib (Agg). Reproducible (seeded shot noise).
 """

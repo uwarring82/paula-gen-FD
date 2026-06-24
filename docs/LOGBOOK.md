@@ -45,7 +45,16 @@ figures + an EXPERIMENTAL SEQUENCE ILLUSTRATION (new docs/figures/wigner_tomogra
 from make_grating_schematics.py: cool+prepare -> pi/2 -> conditional displacement D(beta) ->
 analysis pi/2(varphi) -> detect, + the scan loop and a phase-space inset of |gamma> and the
 probe beta). Honesty: twin-simulated, 2-pulse reach 2eta~0.78 -> uses the SDF/extended-reach
-route. Example README points to the walkthrough. Tests +4 (raw-file round-trip; noise-free reconstruction
+route. Example README points to the walkthrough.
+
+SCOPE LABEL (UW flagged the drift): the tomography demo does NOT run the stroboscopic GRATING
+propagator -- chi(beta) is the ANALYTIC chi of the prepared coherent state and the readout is
+the IDEALIZED P_down=1/2(1+C Re/Im chi)+shot noise. It validates the reconstruction PIPELINE +
+measurement MODEL, not the grating hardware (the Floquet comb, per-cycle kicks, 2eta reach,
+phase-programming criterion, finite-pulse corrections are all BYPASSED). A grating-faithful
+version (chi samples from strobo_sim in an SDF/conditional-displacement mode) is a future
+engine extension. Labelled clearly in: the driver docstring (SCOPE block), the walkthrough
+note (top callout + Honesty&Scope), the example README (Scope callout), and State-of-the-Twin. Tests +4 (raw-file round-trip; noise-free reconstruction
 recovers gamma to <0.05 & W to <0.02; full shot-noisy pipeline recovers |gamma| & phase to
 0.1; chi_hat unbiased). FAIR: data unmistakably labelled twin-simulated.
 

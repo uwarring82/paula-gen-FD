@@ -13,6 +13,14 @@ Ramsey route of [`docs/notes/strobo_grating_transfer_function.md`](../../notes/s
 > the real DAQ path), and every file header repeats this. Regenerate with
 > `python -m spike.twin_wigner_tomography`.
 
+> ⚠️ **Scope — the stroboscopic grating is not run here.** This demonstrates the
+> reconstruction *pipeline* and the conditional-displacement *measurement model*: $\chi(\beta)$
+> is the **analytic** characteristic function of the prepared state, and the readout is the
+> **idealized** $P_\downarrow=\tfrac12(1+C\,\mathrm{Re}/\mathrm{Im}\,\chi)$. The grating
+> propagator (`engines.strobo_sim`) — its Floquet comb, finite reach $2\eta$, phase-programming
+> criterion and finite-pulse corrections — is **bypassed**. A grating-faithful version is a
+> future engine extension; see the walkthrough's *Honesty and scope*.
+
 ## The experiment (simulated)
 
 | quantity | value |
