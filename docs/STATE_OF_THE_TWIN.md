@@ -1,10 +1,10 @@
 # State of the Twin
 
 A maintained, structured summary of what is **validated**, what is **diagnostic**,
-and what is **open** — so a reader does not have to grep the >1300-line chronological
+and what is **open** — so a reader does not have to grep the >1800-line chronological
 [LOGBOOK](LOGBOOK.md). Regenerate the tables from the code:
 `python -m spike.validate_twin` (validations) and `python -m validator.validate`
-(source warnings). Last reconciled: 2026-06-23.
+(source warnings). Last reconciled: 2026-06-24.
 
 > **Glossary.** UW = Ulrich Warring (group lead, decisions). PAULA = the Freiburg
 > ²⁵Mg⁺ apparatus. *freddy* / *legacy* = apparatus generations (freddy = F. Dörr's
@@ -96,11 +96,12 @@ rate. Those engines are capability/diagnostic by necessity, not choice.
 
 ## 4. Source-traceability warnings (validator, non-fatal)
 
-6 `WARN`s, all FAIR-Accessible traceability (not correctness): `doerr2024`,
-`kaufmann2022`, `thomm2021`, `weber2025` have no resolvable DOI/permalink;
-`codata2018`, `stone2005` identifiers are unverified. Records count: **77 provisional,
-6 confirmed** — provisional is the honest default until a value is independently
-confirmed.
+8 `WARN`s, all FAIR-Accessible traceability (not correctness): `doerr2024`,
+`kaufmann2022`, `thomm2021`, `weber2025`, and the internal datasets
+`paula_oc_axial_2026`, `paula_strobo_2026` have no resolvable DOI/permalink;
+`codata2018`, `stone2005` identifiers are unverified. Records count: **84 provisional,
+4 confirmed** (88 total) — provisional is the honest default until a value is
+independently confirmed.
 
 ## 5. Known code-entropy follow-ups (from the 2026-06-22 review)
 

@@ -6,9 +6,12 @@ human-readable source; on top sits a **structured, schema-validated parameter
 layer** that cites *into* them, so every number is traceable to where it was
 measured or derived.
 
-> **Status:** schema frozen at task-card revision 3; seeded with a first
-> automated extraction pass (provisional, awaiting review). See
-> [`docs/LOGBOOK.md`](docs/LOGBOOK.md).
+> **Status:** the parameter layer's schema is frozen at task-card revision 3 and
+> seeded (provisional, under review). A digital-twin **spike** now lives alongside it
+> in [`spike/`](spike/) — physics engines + twin compositions that *consume* this
+> layer and are validated against held-out benchmarks. Day-by-day history in
+> [`docs/LOGBOOK.md`](docs/LOGBOOK.md); current state in
+> [`docs/STATE_OF_THE_TWIN.md`](docs/STATE_OF_THE_TWIN.md).
 
 ## The one idea: the `input` / `benchmark` wall
 
@@ -109,8 +112,11 @@ that malformed records are reported rather than crashing the run.
 
 ## Scope
 
-Seed coverage across fields / ions / beams — **coverage, not completeness**. No
-physics computation, no twin orchestration; this is the substrate they cite.
+This **reference layer** is seed coverage across fields / ions / beams —
+**coverage, not completeness** — and carries no physics computation of its own; it is
+the substrate the twin cites. The physics computation and twin orchestration live in
+the [`spike/`](spike/) sibling (engines, σ-validations, tomography), summarised in
+[`docs/STATE_OF_THE_TWIN.md`](docs/STATE_OF_THE_TWIN.md).
 
 ## License
 
