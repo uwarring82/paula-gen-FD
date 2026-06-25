@@ -666,9 +666,12 @@ class="math inline">\(\beta\)</span> is the <strong>relative</strong>
 displacement between the two branches. Rastering <span
 class="math inline">\(\phi_g\)</span> (direction) and <span
 class="math inline">\(\lvert\beta\rvert\)</span> (magnitude, grown to
-<span class="math inline">\(\sim N\eta\)</span> by applying the SDF over
-<span class="math inline">\(N\)</span> cycles) maps <span
-class="math inline">\(\chi\)</span> over a 2-D region — direct
+<span class="math inline">\(\sim N\eta\)</span> by driving the SDF
+<strong>coherently, in-phase</strong> over <span
+class="math inline">\(N\)</span> cycles — off-resonance the per-cycle
+kicks rotate and the reach is bounded, <span
+class="math inline">\(\lesssim\sqrt N\eta\)</span> or oscillatory) maps
+<span class="math inline">\(\chi\)</span> over a 2-D region — direct
 characteristic-function tomography.</p>
 <h2
 id="6-ramsey-characteristic-function-interferometer-population-only">6.
@@ -1195,7 +1198,7 @@ entanglement and induces a controlled displacement-type back-action.</p>
 (spec sketch)</h2>
 <p>Actual signatures (from <a
 href="../../spike/engines/grating_tomography.py"><code>spike/engines/grating_tomography.py</code></a>):</p>
-<pre class="python"><code>theta = theta_of(omega_strobo_hz, delta_t_us)          # theta = 2*pi*Omega_strobo*delta_t
+<pre class="python"><code>theta = theta_of(omega_strobo_hz, delta_t_us)          # theta = 2*pi*Omega_strobo*delta_t  (omega_strobo_hz = CYCLIC Hz, not angular)
 b_k   = beta_samples(eta, phi_g, n_cycles, DELTA_t_us, f_lf_hz)   # b_k = i*eta*exp(i(phi_g - k*Phi))
 
 def kernel_probability(chi, eta, phi_g, det_hz, n_cycles, DELTA_t_us, f_lf_hz, theta):

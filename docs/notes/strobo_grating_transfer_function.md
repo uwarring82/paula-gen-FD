@@ -287,8 +287,9 @@ so the two readout quadratures return $\mathrm{Re}\,\chi(\beta)$ and $-\mathrm{I
 assignment) conjugates $\beta$, and writing the branches as $D(\pm\beta)$ instead of $D(\pm\beta/2)$
 would give $\chi(\mp2\beta)$ — fix the convention against the actual pulse phases before use. Here
 $\beta$ is the **relative** displacement between the two branches. Rastering $\phi_g$ (direction)
-and $\lvert\beta\rvert$ (magnitude, grown to $\sim N\eta$ by applying the SDF over $N$ cycles) maps
-$\chi$ over a 2-D region — direct characteristic-function tomography.
+and $\lvert\beta\rvert$ (magnitude, grown to $\sim N\eta$ by driving the SDF **coherently, in-phase**
+over $N$ cycles — off-resonance the per-cycle kicks rotate and the reach is bounded, $\lesssim\sqrt N\eta$
+or oscillatory) maps $\chi$ over a 2-D region — direct characteristic-function tomography.
 
 ## 6. Ramsey characteristic-function interferometer (population-only)
 
@@ -561,7 +562,7 @@ spin–motion entanglement and induces a controlled displacement-type back-actio
 Actual signatures (from [`spike/engines/grating_tomography.py`](../../spike/engines/grating_tomography.py)):
 
 ```python
-theta = theta_of(omega_strobo_hz, delta_t_us)          # theta = 2*pi*Omega_strobo*delta_t
+theta = theta_of(omega_strobo_hz, delta_t_us)          # theta = 2*pi*Omega_strobo*delta_t  (omega_strobo_hz = CYCLIC Hz, not angular)
 b_k   = beta_samples(eta, phi_g, n_cycles, DELTA_t_us, f_lf_hz)   # b_k = i*eta*exp(i(phi_g - k*Phi))
 
 def kernel_probability(chi, eta, phi_g, det_hz, n_cycles, DELTA_t_us, f_lf_hz, theta):
