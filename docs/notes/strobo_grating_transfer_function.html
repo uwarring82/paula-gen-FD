@@ -71,16 +71,20 @@ hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
 </head>
 <body>
 <div class="wrap"><div class="topbar"><a href="../index.html">← iontrap-reference</a> &nbsp;·&nbsp; technical note</div></div><div class="wrap"><article class="content">
-<div class="wip">⚠ Work in progress — <strong>preliminary, unreviewed results</strong>; subject to change. Not a citable record.</div>
+<div class="wip">⚠ Work in progress — <strong>preliminary results, subject to change</strong>. Validation status is stated in each note's header.</div>
 <h1
 id="the-stroboscopic-phase-grating-as-a-phase-space-probe--transfer-function">The
 stroboscopic phase grating as a phase-space probe — transfer
 function</h1>
 <p><em>Technical note, 2026-06-23 (rev. after review). <strong>Work in
-progress — preliminary, unreviewed results.</strong> Self-contained
-derivation of the measurement transfer function of the Strobo2.0 "active
-phase grating" and its relation to motional-state (Wigner) tomography.
-All population-transfer formulas below are validated against <a
+progress</strong> — the population-transfer results (exact-strobe
+transfer function, weak-pulse kernels, Ramsey identity, χ–Wigner
+relations) are validated against the engine + tests; the coherence/SDF
+sections are established identities / specifications for the
+interferometric extension. Self-contained derivation of the measurement
+transfer function of the Strobo2.0 "active phase grating" and its
+relation to motional-state (Wigner) tomography. All population-transfer
+formulas below are validated against <a
 href="../../spike/engines/strobo_sim.py"><code>spike/engines/strobo_sim.py</code></a>;
 the coherence/SDF relations are established transfer-function identities
 that specify the required interferometric extension. See §9.</em></p>
@@ -120,11 +124,8 @@ angular versions carry a <span class="math inline">\(2\pi\)</span>).</p>
 </thead>
 <tbody>
 <tr>
-<td><span
-class="math inline">\(\lvert\!\uparrow\rangle,\lvert\!\downarrow\rangle\)</span></td>
-<td>the two qubit (internal-state) levels; <span
-class="math inline">\(P_\downarrow\)</span> = probability the qubit is
-found flipped</td>
+<td>$</td>
+<td>!\uparrow\rangle,</td>
 </tr>
 <tr>
 <td><span class="math inline">\(\rho\)</span></td>
@@ -155,7 +156,9 @@ zpf}\)</span> (zero-point motion in units of the optical wavelength);
 </tr>
 <tr>
 <td><span class="math inline">\(\Omega_{\rm strobo}\)</span></td>
-<td>per-pulse Rabi frequency (spin-flip rate) of the grating drive</td>
+<td>per-pulse Rabi frequency (spin-flip rate) of the grating drive (=
+<span class="math inline">\(\Omega_0\)</span> in the <a
+href="aom_finite_sound_velocity_rabi.md">AOM note</a>)</td>
 </tr>
 <tr>
 <td><span class="math inline">\(\theta=2\pi\,\Omega_{\rm strobo}\,\delta
@@ -461,8 +464,14 @@ cross terms</strong> between flips on different cycles (<span
 class="math inline">\(k\neq k&#39;\)</span>), sampling <span
 class="math inline">\(\chi\)</span> at the kick <em>differences</em>
 <span class="math inline">\(\beta_{k&#39;}-\beta_k\)</span> — chords of
-the <span class="math inline">\(\lvert\beta\rvert=\eta\)</span>
-ring.</p>
+the <span class="math inline">\(\lvert\beta\rvert=\eta\)</span> ring.
+(The summand is written in the <span
+class="math inline">\(k\!\leftrightarrow\!k&#39;\)</span>-relabelled
+form that matches the engine; the direct <span
+class="math inline">\(A^\dagger A\)</span> expansion gives the
+complex-conjugate summand <span
+class="math inline">\(e^{i2\pi(k&#39;-k)\delta\Delta_t}e^{i\,\mathrm{Im}(\beta_k\beta_{k&#39;}^*)}\chi(\beta_k-\beta_{k&#39;})\)</span>,
+identical after relabelling since the total sum is real.)</p>
 <p><strong>(b) Spin coherence.</strong> <span
 class="math inline">\(\langle A\rangle\)</span> is <em>not</em> by
 itself the qubit coherence — that requires an interferometric sequence.
@@ -480,8 +489,9 @@ ref}\,\mathrm{Tr}[\rho A]\big]+O(\theta^2),\qquad
 A]\big]+O(\theta^2),\]</span></p>
 <p>where <span class="math inline">\(C_{\rm ref}\)</span> is a complex
 coefficient fixed by the preparation, reference pathway, and
-analysis-pulse phase (set to <span class="math inline">\(1\)</span> only
-after calibration/normalisation — do not silently drop it), with</p>
+analysis-pulse phase (these are the ideal-limit relations; <span
+class="math inline">\(C_{\rm ref}=1\)</span> only after
+calibration/normalisation — do not silently drop it), with</p>
 <p><span class="math display">\[\boxed{\;\mathrm{Tr}[\rho
 A]=-\,i\,\frac{\theta}{2}\sum_{k=0}^{N-1} e^{-i2\pi
 k\delta\Delta_t}\,\chi(\beta_k)\;}\]</span></p>
@@ -555,19 +565,17 @@ class="math inline">\(R_x(\theta)=e^{-i\theta\sigma_x/2}\)</span> and
 <span class="math inline">\(U_{\rm
 free}=\mathrm{diag}(e^{+i\pi\delta\Delta_t},e^{-i\pi\delta\Delta_t})\)</span>,
 so <span class="math inline">\(\cos\lambda=\tfrac12\mathrm{Tr}\,U_{\rm
-cycle}=\cos(\theta/2)\cos(\pi\delta\Delta_t)\)</span> (reordering <span
-class="math inline">\(U_{\rm free}\)</span> and <span
-class="math inline">\(R_x\)</span> leaves <span
-class="math inline">\(\tfrac12\mathrm{Tr}\,U_{\rm cycle}\)</span>
-unchanged; for this sequence the two orderings are related by a <span
-class="math inline">\(z\)</span>-axis conjugation <span
-class="math inline">\(U&#39;=R_z^{-1}U R_z\)</span>, which only phases
-the <span class="math inline">\(z\)</span>-eigenstates <span
-class="math inline">\(|\!\uparrow\rangle,|\!\downarrow\rangle\)</span>
-and so preserves the <span
-class="math inline">\(|\!\uparrow\rangle\!\to\!|\!\downarrow\rangle\)</span>
-population). It matches <code>strobo_sim</code> to machine precision
-(§9) and reduces to the squared-Dirichlet comb for <span
+cycle}=\cos(\theta/2)\cos(\pi\delta\Delta_t)\)</span> (the flip
+population <span class="math inline">\(P_\downarrow\)</span> is
+invariant under a common <span class="math inline">\(z\)</span>-rotation
+of the cycle — <span class="math inline">\(U&#39;=R_z^{-1}U R_z\)</span>
+only phases the <span class="math inline">\(z\)</span>-eigenstates <span
+class="math inline">\(|\!\uparrow\rangle,|\!\downarrow\rangle\)</span> —
+so the intra-cycle ordering of <span class="math inline">\(U_{\rm
+free}\)</span> and <span class="math inline">\(R_x\)</span> is
+immaterial for <span class="math inline">\(P_\downarrow\)</span>). It
+matches <code>strobo_sim</code> to machine precision (§9) and reduces to
+the squared-Dirichlet comb for <span
 class="math inline">\(\theta\ll1\)</span>.</p>
 <p>Although derived in the <span class="math inline">\(\eta=0\)</span>
 gauge, <span class="math inline">\(P_\downarrow^{\rm strobe}\)</span> is
@@ -639,17 +647,27 @@ interaction). With the symmetric convention</p>
 SDF}=|\!\uparrow\rangle\langle\uparrow|\otimes
 D(+\beta/2)+|\!\downarrow\rangle\langle\downarrow|\otimes
 D(-\beta/2),\]</span></p>
-<p>an initial qubit superposition gives, exactly, <span
-class="math inline">\(\langle\sigma_+\rangle_{\rm
-out}=\tfrac12\,\mathrm{Tr}[\rho\,D(\beta)]=\tfrac12\chi(\beta)\)</span>,
-where <span class="math inline">\(\beta\)</span> is the
-<strong>relative</strong> displacement between the two branches (writing
-the branches as <span class="math inline">\(D(\pm\beta)\)</span> instead
-would give <span class="math inline">\(\chi(2\beta)\)</span> — fix the
-convention before use). Rastering <span
+<p>an initial qubit superposition gives, exactly (with <span
+class="math inline">\(\sigma_+=|\!\uparrow\rangle\langle\downarrow|\)</span>;
+verified numerically), <span
+class="math display">\[\langle\sigma_+\rangle_{\rm
+out}=\tfrac12\,\mathrm{Tr}[\rho\,D(-\beta)]=\tfrac12\chi(-\beta)=\tfrac12\chi(\beta)^*,\]</span>
+so the two readout quadratures return <span
+class="math inline">\(\mathrm{Re}\,\chi(\beta)\)</span> and <span
+class="math inline">\(-\mathrm{Im}\,\chi(\beta)\)</span>. <strong>The
+sign is convention-dependent:</strong> swapping the two branch
+displacements (or the <span class="math inline">\(\sigma_+\)</span>
+assignment) conjugates <span class="math inline">\(\beta\)</span>, and
+writing the branches as <span class="math inline">\(D(\pm\beta)\)</span>
+instead of <span class="math inline">\(D(\pm\beta/2)\)</span> would give
+<span class="math inline">\(\chi(\mp2\beta)\)</span> — fix the
+convention against the actual pulse phases before use. Here <span
+class="math inline">\(\beta\)</span> is the <strong>relative</strong>
+displacement between the two branches. Rastering <span
 class="math inline">\(\phi_g\)</span> (direction) and <span
-class="math inline">\(\lvert\beta\rvert\)</span> (magnitude, up to <span
-class="math inline">\(\sim N\eta\)</span>) maps <span
+class="math inline">\(\lvert\beta\rvert\)</span> (magnitude, grown to
+<span class="math inline">\(\sim N\eta\)</span> by applying the SDF over
+<span class="math inline">\(N\)</span> cycles) maps <span
 class="math inline">\(\chi\)</span> over a 2-D region — direct
 characteristic-function tomography.</p>
 <h2
@@ -1175,23 +1193,33 @@ limit — <em>not</em> generically back-action-free or QND; a nonzero
 entanglement and induces a controlled displacement-type back-action.</p>
 <h2 id="11-from-note-to-engine-spec-sketch">11. From note to engine
 (spec sketch)</h2>
-<pre class="python"><code>def kernel_probability(phase, det, rho_chi, eta, N, Delta_t, f_lf):
-    &quot;&quot;&quot;P_down(phi_g, delta) = (theta/2)^2 * sum_{k,k&#39;} e^{i2pi(k-k&#39;)*det*Delta_t}
-       * e^{i Im(b_k&#39; b_k*)} * chi(b_k&#39; - b_k),  b_k = i*eta*exp(i(phi - k*Phi)).&quot;&quot;&quot;
+<p>Actual signatures (from <a
+href="../../spike/engines/grating_tomography.py"><code>spike/engines/grating_tomography.py</code></a>):</p>
+<pre class="python"><code>theta = theta_of(omega_strobo_hz, delta_t_us)          # theta = 2*pi*Omega_strobo*delta_t
+b_k   = beta_samples(eta, phi_g, n_cycles, DELTA_t_us, f_lf_hz)   # b_k = i*eta*exp(i(phi_g - k*Phi))
 
-def kernel_coherence(phase, det, rho_chi, eta, N, Delta_t, f_lf):
-    &quot;&quot;&quot;Tr[rho A] = -i theta/2 * sum_k e^{-i2pi k det Delta_t} * chi(b_k)  (single-sum DFT).&quot;&quot;&quot;
+def kernel_probability(chi, eta, phi_g, det_hz, n_cycles, DELTA_t_us, f_lf_hz, theta):
+    &quot;&quot;&quot;P_down = (theta/2)^2 * sum_{k,k&#39;} e^{i2pi(k-k&#39;)*det*Delta_t} * e^{i Im(b_k&#39; b_k*)}
+       * chi(b_k&#39; - b_k)   (the §3a double-sum kernel).&quot;&quot;&quot;
 
-def ramsey_population(rho_chi, beta_r, beta_g, phi):
-    &quot;&quot;&quot;P_down(phi) = 1/2[1 + Re( e^{i[phi + Im(beta_g beta_r*)]} chi(beta_g - beta_r) )].
-       phi=0, pi/2 -&gt; Re, Im chi(Delta beta); ramsey_chi_from_populations inverts them.&quot;&quot;&quot;
+def kernel_coherence(chi, eta, phi_g, det_hz, n_cycles, DELTA_t_us, f_lf_hz, theta):
+    &quot;&quot;&quot;Tr[rho A] = -i theta/2 * sum_k e^{-i2pi k det Delta_t} * chi(b_k)   (single-sum DFT, §3b).&quot;&quot;&quot;
 
-def reconstruct_wigner(chi_grid, beta_grid):
-    &quot;&quot;&quot;2-D FFT of the (SDF/Ramsey-)sampled chi(beta) -&gt; W(alpha); or inverse-Radon of marginals.&quot;&quot;&quot;</code></pre>
-<p><code>rho_chi</code> is a callable <span
-class="math inline">\(\chi(\beta)\)</span> for the state under test
-(analytic for Fock/coherent/ cat/thermal; or <code>strobo_sim</code> in
-the SDF mode for the simulated state).</p>
+def ramsey_population(chi, beta_r, beta_g, phi=0.0):
+    &quot;&quot;&quot;P_down(phi) = 1/2[1 + Re( e^{i[phi + Im(beta_g beta_r*)]} chi(beta_g - beta_r) )]  (§6).&quot;&quot;&quot;
+
+def ramsey_chi_from_populations(p0, p90, beta_r, beta_g):
+    &quot;&quot;&quot;invert P_down(0), P_down(pi/2) -&gt; chi(beta_g - beta_r).&quot;&quot;&quot;
+
+def wigner_from_samples(beta_pts, chi_vals, alpha_pts, dbeta_area):
+    &quot;&quot;&quot;2-D Fourier sum of the (SDF/Ramsey-)sampled chi(beta) -&gt; W(alpha) on alpha_pts (§7).&quot;&quot;&quot;</code></pre>
+<p><code>chi</code> is a callable <span
+class="math inline">\(\chi(\beta)\)</span> for the state under test —
+analytic builders <code>chi_vacuum</code>, <code>chi_coherent</code>,
+<code>chi_fock</code>, <code>chi_thermal</code>, <code>chi_cat</code>
+are provided (or use <code>strobo_sim</code> in the SDF mode for the
+simulated state). All take <code>theta</code> explicitly (do not omit
+it). Detunings are in Hz, times in µs.</p>
 <h2 id="12-references-verify-bibliographic-details-before-citing">12.
 References (verify bibliographic details before citing)</h2>
 <ul>

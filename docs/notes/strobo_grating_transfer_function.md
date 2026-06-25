@@ -1,6 +1,9 @@
 # The stroboscopic phase grating as a phase-space probe — transfer function
 
-*Technical note, 2026-06-23 (rev. after review). **Work in progress — preliminary, unreviewed results.** Self-contained derivation of the
+*Technical note, 2026-06-23 (rev. after review). **Work in progress** — the population-transfer
+results (exact-strobe transfer function, weak-pulse kernels, Ramsey identity, χ–Wigner relations)
+are validated against the engine + tests; the coherence/SDF sections are established identities /
+specifications for the interferometric extension. Self-contained derivation of the
 measurement transfer function of the Strobo2.0 "active phase grating" and its relation to
 motional-state (Wigner) tomography. All population-transfer formulas below are validated against
 [`spike/engines/strobo_sim.py`](../../spike/engines/strobo_sim.py); the coherence/SDF
@@ -32,13 +35,13 @@ Fourier transforms); all other notation and jargon is defined just below.
 
 | symbol | meaning |
 |---|---|
-| $\lvert\!\uparrow\rangle,\lvert\!\downarrow\rangle$ | the two qubit (internal-state) levels; $P_\downarrow$ = probability the qubit is found flipped |
+| $|\!\uparrow\rangle,|\!\downarrow\rangle$ | the two qubit (internal-state) levels; $P_\downarrow$ = probability the qubit is found flipped |
 | $\rho$ | the motional quantum state (density matrix of the vibration) |
 | $a,a^\dagger$ | lowering / raising (annihilation / creation) operators of the motional mode |
 | $\omega_{\rm lf}=2\pi f_{\rm lf}$ | angular / cyclic frequency of the low-frequency (lf) axial motional mode ($f_{\rm lf}\!\approx\!1.30$ MHz) |
 | $\eta$ | **Lamb–Dicke parameter** — dimensionless recoil strength, $\eta=k_{\rm eff}x_{\rm zpf}$ (zero-point motion in units of the optical wavelength); $\eta\!\approx\!0.389$ here |
 | $\delta t$ | duration of *one* grating pulse |
-| $\Omega_{\rm strobo}$ | per-pulse Rabi frequency (spin-flip rate) of the grating drive |
+| $\Omega_{\rm strobo}$ | per-pulse Rabi frequency (spin-flip rate) of the grating drive (= $\Omega_0$ in the [AOM note](aom_finite_sound_velocity_rabi.md)) |
 | $\theta=2\pi\,\Omega_{\rm strobo}\,\delta t$ | **pulse area** — the spin-rotation angle of one pulse ($\theta\ll1$ = "weak pulse") |
 | $\Delta_t$ | strobe *period* (time between pulses), set equal to the motional period $1/f_{\rm lf}$ |
 | $N$ | number of pulses in the train |
@@ -172,7 +175,10 @@ $$\boxed{\;P_\downarrow(\delta,\phi_g)=\Big(\tfrac{\theta}{2}\Big)^2
 
 A real **quadratic** double sum with **coherent cross terms** between flips on different
 cycles ($k\neq k'$), sampling $\chi$ at the kick *differences* $\beta_{k'}-\beta_k$ —
-chords of the $\lvert\beta\rvert=\eta$ ring.
+chords of the $\lvert\beta\rvert=\eta$ ring. (The summand is written in the
+$k\!\leftrightarrow\!k'$-relabelled form that matches the engine; the direct $A^\dagger A$
+expansion gives the complex-conjugate summand $e^{i2\pi(k'-k)\delta\Delta_t}e^{i\,\mathrm{Im}(\beta_k\beta_{k'}^*)}\chi(\beta_k-\beta_{k'})$,
+identical after relabelling since the total sum is real.)
 
 **(b) Spin coherence.** $\langle A\rangle$ is *not* by itself the qubit coherence — that
 requires an interferometric sequence. Prepare a superposition, route the grating so the
@@ -184,8 +190,8 @@ $$\langle\sigma_x\rangle=2\,\mathrm{Re}\big[C_{\rm ref}\,\mathrm{Tr}[\rho A]\big
 \langle\sigma_y\rangle=-2\,\mathrm{Im}\big[C_{\rm ref}\,\mathrm{Tr}[\rho A]\big]+O(\theta^2),$$
 
 where $C_{\rm ref}$ is a complex coefficient fixed by the preparation, reference pathway,
-and analysis-pulse phase (set to $1$ only after calibration/normalisation — do not silently
-drop it), with
+and analysis-pulse phase (these are the ideal-limit relations; $C_{\rm ref}=1$ only after
+calibration/normalisation — do not silently drop it), with
 
 $$\boxed{\;\mathrm{Tr}[\rho A]=-\,i\,\frac{\theta}{2}\sum_{k=0}^{N-1} e^{-i2\pi k\delta\Delta_t}\,\chi(\beta_k)\;}$$
 
@@ -231,11 +237,10 @@ half-angle of the single-cycle Floquet rotation that `strobo_sim` implements,
 $U_{\rm cycle}=U_{\rm free}R_x(\theta)$ with $R_x(\theta)=e^{-i\theta\sigma_x/2}$ and
 $U_{\rm free}=\mathrm{diag}(e^{+i\pi\delta\Delta_t},e^{-i\pi\delta\Delta_t})$, so
 $\cos\lambda=\tfrac12\mathrm{Tr}\,U_{\rm cycle}=\cos(\theta/2)\cos(\pi\delta\Delta_t)$
-(reordering $U_{\rm free}$ and $R_x$ leaves $\tfrac12\mathrm{Tr}\,U_{\rm cycle}$ unchanged;
-for this sequence the two orderings are related by a $z$-axis conjugation $U'=R_z^{-1}U R_z$,
-which only phases the $z$-eigenstates $|\!\uparrow\rangle,|\!\downarrow\rangle$ and so
-preserves the $|\!\uparrow\rangle\!\to\!|\!\downarrow\rangle$ population). It matches `strobo_sim` to machine precision (§9) and reduces to the
-squared-Dirichlet comb for $\theta\ll1$.
+(the flip population $P_\downarrow$ is invariant under a common $z$-rotation of the cycle —
+$U'=R_z^{-1}U R_z$ only phases the $z$-eigenstates $|\!\uparrow\rangle,|\!\downarrow\rangle$ — so the
+intra-cycle ordering of $U_{\rm free}$ and $R_x$ is immaterial for $P_\downarrow$). It matches
+`strobo_sim` to machine precision (§9) and reduces to the squared-Dirichlet comb for $\theta\ll1$.
 
 Although derived in the $\eta=0$ gauge, $P_\downarrow^{\rm strobe}$ is the exact population
 transfer on the exact motional strobe for **arbitrary $\eta$ and arbitrary $\rho$, to all
@@ -274,12 +279,16 @@ i.e. a spin-*dependent* displacement (an MS — Mølmer–Sørensen — / SDF / 
 
 $$U_{\rm SDF}=|\!\uparrow\rangle\langle\uparrow|\otimes D(+\beta/2)+|\!\downarrow\rangle\langle\downarrow|\otimes D(-\beta/2),$$
 
-an initial qubit superposition gives, exactly,
-$\langle\sigma_+\rangle_{\rm out}=\tfrac12\,\mathrm{Tr}[\rho\,D(\beta)]=\tfrac12\chi(\beta)$,
-where $\beta$ is the **relative** displacement between the two branches (writing the
-branches as $D(\pm\beta)$ instead would give $\chi(2\beta)$ — fix the convention before
-use). Rastering $\phi_g$ (direction) and $\lvert\beta\rvert$ (magnitude, up to $\sim N\eta$)
-maps $\chi$ over a 2-D region — direct characteristic-function tomography.
+an initial qubit superposition gives, exactly (with $\sigma_+=|\!\uparrow\rangle\langle\downarrow|$;
+verified numerically),
+$$\langle\sigma_+\rangle_{\rm out}=\tfrac12\,\mathrm{Tr}[\rho\,D(-\beta)]=\tfrac12\chi(-\beta)=\tfrac12\chi(\beta)^*,$$
+so the two readout quadratures return $\mathrm{Re}\,\chi(\beta)$ and $-\mathrm{Im}\,\chi(\beta)$.
+**The sign is convention-dependent:** swapping the two branch displacements (or the $\sigma_+$
+assignment) conjugates $\beta$, and writing the branches as $D(\pm\beta)$ instead of $D(\pm\beta/2)$
+would give $\chi(\mp2\beta)$ — fix the convention against the actual pulse phases before use. Here
+$\beta$ is the **relative** displacement between the two branches. Rastering $\phi_g$ (direction)
+and $\lvert\beta\rvert$ (magnitude, grown to $\sim N\eta$ by applying the SDF over $N$ cycles) maps
+$\chi$ over a 2-D region — direct characteristic-function tomography.
 
 ## 6. Ramsey characteristic-function interferometer (population-only)
 
@@ -549,24 +558,33 @@ spin–motion entanglement and induces a controlled displacement-type back-actio
 
 ## 11. From note to engine (spec sketch)
 
+Actual signatures (from [`spike/engines/grating_tomography.py`](../../spike/engines/grating_tomography.py)):
+
 ```python
-def kernel_probability(phase, det, rho_chi, eta, N, Delta_t, f_lf):
-    """P_down(phi_g, delta) = (theta/2)^2 * sum_{k,k'} e^{i2pi(k-k')*det*Delta_t}
-       * e^{i Im(b_k' b_k*)} * chi(b_k' - b_k),  b_k = i*eta*exp(i(phi - k*Phi))."""
+theta = theta_of(omega_strobo_hz, delta_t_us)          # theta = 2*pi*Omega_strobo*delta_t
+b_k   = beta_samples(eta, phi_g, n_cycles, DELTA_t_us, f_lf_hz)   # b_k = i*eta*exp(i(phi_g - k*Phi))
 
-def kernel_coherence(phase, det, rho_chi, eta, N, Delta_t, f_lf):
-    """Tr[rho A] = -i theta/2 * sum_k e^{-i2pi k det Delta_t} * chi(b_k)  (single-sum DFT)."""
+def kernel_probability(chi, eta, phi_g, det_hz, n_cycles, DELTA_t_us, f_lf_hz, theta):
+    """P_down = (theta/2)^2 * sum_{k,k'} e^{i2pi(k-k')*det*Delta_t} * e^{i Im(b_k' b_k*)}
+       * chi(b_k' - b_k)   (the §3a double-sum kernel)."""
 
-def ramsey_population(rho_chi, beta_r, beta_g, phi):
-    """P_down(phi) = 1/2[1 + Re( e^{i[phi + Im(beta_g beta_r*)]} chi(beta_g - beta_r) )].
-       phi=0, pi/2 -> Re, Im chi(Delta beta); ramsey_chi_from_populations inverts them."""
+def kernel_coherence(chi, eta, phi_g, det_hz, n_cycles, DELTA_t_us, f_lf_hz, theta):
+    """Tr[rho A] = -i theta/2 * sum_k e^{-i2pi k det Delta_t} * chi(b_k)   (single-sum DFT, §3b)."""
 
-def reconstruct_wigner(chi_grid, beta_grid):
-    """2-D FFT of the (SDF/Ramsey-)sampled chi(beta) -> W(alpha); or inverse-Radon of marginals."""
+def ramsey_population(chi, beta_r, beta_g, phi=0.0):
+    """P_down(phi) = 1/2[1 + Re( e^{i[phi + Im(beta_g beta_r*)]} chi(beta_g - beta_r) )]  (§6)."""
+
+def ramsey_chi_from_populations(p0, p90, beta_r, beta_g):
+    """invert P_down(0), P_down(pi/2) -> chi(beta_g - beta_r)."""
+
+def wigner_from_samples(beta_pts, chi_vals, alpha_pts, dbeta_area):
+    """2-D Fourier sum of the (SDF/Ramsey-)sampled chi(beta) -> W(alpha) on alpha_pts (§7)."""
 ```
 
-`rho_chi` is a callable $\chi(\beta)$ for the state under test (analytic for Fock/coherent/
-cat/thermal; or `strobo_sim` in the SDF mode for the simulated state).
+`chi` is a callable $\chi(\beta)$ for the state under test — analytic builders `chi_vacuum`,
+`chi_coherent`, `chi_fock`, `chi_thermal`, `chi_cat` are provided (or use `strobo_sim` in the SDF
+mode for the simulated state). All take `theta` explicitly (do not omit it). Detunings are in Hz,
+times in µs.
 
 ## 12. References (verify bibliographic details before citing)
 
