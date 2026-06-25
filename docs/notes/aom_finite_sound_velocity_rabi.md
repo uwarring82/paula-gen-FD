@@ -47,6 +47,7 @@ in an alternative where **B1 (a double-pass AOM) is also switched** — there th
 | $T_r=0.64\,D/V$ | datasheet 10–90 % **intensity** rise time | **110 ns** (D=1 mm) |
 | $\tau_d=d/V$ | **propagation delay**, transducer→beam ($d$ = standoff) | 460–840 ns (see §1) |
 | $\delta t$ | nominal electronic gate width (the scanned variable `delta_t`) | 0–100 ns (this file) |
+| $\delta t_{\min}$ | DAQ timing step (smallest realizable gate / increment) | **10 ns** |
 | $\Delta_t$ | strobe period (= lf motional period $1/f_{\rm lf}$) | 0.769 µs |
 | $N$ | number of strobe pulses (`N_strobo_OC_lf_PDQ`) | 50 |
 | $f_{\rm lf}$ | low-frequency axial mode | 1.300 MHz |
@@ -223,7 +224,7 @@ The finest scan (`10_22_22…`, $\delta t$ = 0–100 ns, $N$=50) shows a **clean
 with a roughly constant ~38 ns period in $\delta t$ down to ~12 ns** — the signature of a rotation that is
 **linear in $\delta t$**, i.e. area-preserved ($n{=}1$). This is a strong *shape* discriminator, not a
 peak-height claim: an $n{=}3$ response (area $\propto\delta t^3$ at small $\delta t$) would reach its **first**
-fringe maximum only near ~95 ns, whereas the data show **~3 full oscillations within 0–100 ns**. The data
+fringe maximum only near ~95 ns, whereas the data show <strong>~3 full oscillations within 0–100 ns</strong>. The data
 are therefore consistent with $n{=}1$ and **rule out $n{=}3$**.
 
 ![predicted flop vs data](../figures/aom_flop_single_vs_double_pass.png)
@@ -306,6 +307,42 @@ above), it can be folded onto *any* comb the propagator returns: the function
 [`aom_rise.comb_envelope`](../../spike/engines/aom_rise.py) exists and is tested — wiring it onto the
 `strobo_sim` output is a small follow-up (not yet done).
 
+## 5c. DAQ timing resolution: the 10 ns step vs infinite resolution
+
+Everything above treats $\delta t$ as a continuous ("infinite-resolution") knob. The real
+sequencer can only set the gate in finite increments — the **smallest reliable step is
+$\delta t_{\min}=10$ ns** — so the shortest realizable pulse is 10 ns and the achievable
+operating points lie on a 10 ns grid. This is a **digital** limit, entirely separate from the
+analog AOM physics, and it lands on a **different axis**:
+
+- **The AOM sets the pulse *shape*** — the delivered pulse can't be narrower than the floor
+  $\sqrt{\pi}\,\tau_f\approx150$ ns (§3), no matter the timing.
+- **The DAQ sets the *requested-width granularity*** — hence how finely the **rotation** can be
+  dialled. Because the single-pass area is preserved, a 10 ns step is a faithful **rotation
+  quantum** $\Delta\theta = N\,\Omega_0\,\delta t_{\min}$.
+
+![10 ns DAQ vs infinite resolution](../figures/aom_daq_resolution.png)
+
+At the operating point ($N=50$, $\Omega_0/2\pi\approx0.53$ MHz from the ~38 ns fringe) this quantum
+is **$\Delta\theta\approx0.53\,\pi$ per 10 ns step** — so the flop is sampled at only <strong>~3.8 points
+per fringe</strong> (panel a). With infinite resolution the flop is continuous; the 10 ns DAQ just
+**undersamples** it (barely above Nyquist) and **cannot reach** $0<\delta t<10$ ns at all. Note the
+roles do **not** swap: infinite timing would *not* sharpen the pulse (that is the AOM's job) — it
+would only give continuous rotation control.
+
+Three consequences worth keeping in mind:
+
+- **The 10 ns floor wastes nothing.** At $\delta t=10$ ns the AOM peak is only ~7 % of full, but the
+  *area* is still $\Omega_0\cdot10$ ns (preserved) — the smallest realizable pulse still delivers its
+  full nominal rotation quantum, merely spread over ~150 ns.
+- **Finer rotation control ⇒ fewer pulses.** $\Delta\theta\propto N$ (panel b): halving $N$ halves the
+  quantum. The cost is a broader/weaker comb (tooth width $\propto1/N$), so it trades angle resolution
+  against frequency selectivity and contrast. Lowering $\Omega_0$ (drive power) does the same.
+- **Sub-10 ns scan structure is not trustworthy.** The example file requests $\delta t$ on a ~4 ns
+  nominal grid (0–100 ns, 26 pts) — finer than $\delta t_{\min}$ — so adjacent fine points fall within
+  the timing quantization and the realized $\delta t$ snaps toward the 10 ns grid; treat sub-10 ns
+  differences as unresolved (a likely contributor to point-to-point scatter in the fine flop).
+
 ## 6. Summary
 
 - The finite speed of sound enters as **three** scales: a **delay** $\tau_d=d/V$ (~0.46–0.84 µs, a benign
@@ -328,6 +365,11 @@ above), it can be folded onto *any* comb the propagator returns: the function
   **Gaussian roll-off** of $1/e$ half-width $\approx 2.1\,f_{\rm lf}$ that is **independent of $\delta t$**:
   the comb is narrowed and its width **saturates** instead of broadening as $1/\delta t$. The
   carrier-normalised $|k|{=}2$ tooth height is a direct, drift-robust read of $\tau_f$ (the AOM beam size).
+- **DAQ 10 ns timing step (≠ the AOM, different axis).** The sequencer quantises the *requested* width in
+  $\delta t_{\min}=10$ ns steps (min pulse 10 ns), which — via area preservation — quantises the **rotation**
+  in steps $\Delta\theta=N\Omega_0\delta t_{\min}\approx0.53\,\pi$ (here), i.e. only ~3.8 samples per flop
+  fringe. Infinite resolution gives a continuous flop but would **not** sharpen the pulse (that is the AOM
+  floor, ~150 ns ≫ 10 ns). Finer angle control ⇒ fewer pulses ($\Delta\theta\propto N$).
 
 ## Provenance & reproduce
 
@@ -342,7 +384,8 @@ above), it can be folded onto *any* comb the propagator returns: the function
 - Figures & table: `python docs/figures/make_aom_rise_figs.py` (matplotlib; imports the model above and reads
   the measured flop via [`spike/datfile.py`](../../spike/datfile.py)) → `aom_strobe_sequence.png`,
   `aom_acoustic_delay.png`, `aom_single_vs_double_pass.png`, `aom_effective_pulse_length.png`,
-  `aom_flop_single_vs_double_pass.png`, `aom_detuning_comb.png`, and the numeric table `aom_rise_table.csv`.
+  `aom_flop_single_vs_double_pass.png`, `aom_detuning_comb.png`, `aom_daq_resolution.png`, and the numeric
+  table `aom_rise_table.csv`.
 
 ## Caveats
 

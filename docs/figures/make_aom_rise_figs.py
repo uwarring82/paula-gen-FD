@@ -386,12 +386,64 @@ def fig_strobe_sequence(path, D_mm=1.0, DELTA_t=769.0, dt0=60.0, td=460.0, N=50,
     print("wrote", path)
 
 
+def fig_daq_resolution(path, N=50, T_fringe=38.0, daq=10.0, D_mm=1.0):
+    """The DAQ can only step the gate width in finite increments (daq = 10 ns, the smallest
+    reliable step), vs a continuous ('infinite-resolution') gate. Because the single-pass area
+    is preserved, each step is a faithful rotation quantum N*Omega0*daq -> the DAQ sets how
+    finely the rotation can be DIALLED, on a different axis from the AOM's analog width floor."""
+    Omega0 = 2 * np.pi / (N * T_fringe)              # rad/ns, from the measured ~38 ns fringe
+    quantum = N * Omega0 * daq                        # rad of total rotation per DAQ step
+    tf = tau_f(D_mm)
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(11.8, 4.7))
+
+    # (a) which operating points the 10 ns grid can reach --------------------
+    dt = np.linspace(0, 150, 700)
+    P = np.sin(N * Omega0 * dt / 2) ** 2
+    grid = np.arange(0, 150.001, daq)
+    fine = np.arange(0, 150.001, 2.0)
+    axA.plot(dt, P, "0.55", lw=2, label="infinite timing resolution", zorder=1)
+    axA.plot(fine, np.sin(N * Omega0 * fine / 2) ** 2, ".", color="0.7", ms=3, alpha=.5,
+             label="2 ns steps (≈ continuous)", zorder=2)
+    axA.plot(grid, np.sin(N * Omega0 * grid / 2) ** 2, "o", color=_C[1], ms=8,
+             label="10 ns DAQ steps", zorder=3)
+    axA.axvspan(0.001, daq, color="0.85", alpha=.85, lw=0)
+    axA.text(daq / 2, 0.52, "unreachable\n(min pulse 10 ns)", fontsize=7.4, rotation=90,
+             va="center", ha="center", color="0.4")
+    axA.text(34, 0.10, f"rotation quantum  $N\\Omega_0\\,\\delta t_{{\\min}}\\approx{quantum/np.pi:.2f}\\pi$ "
+             f"per step\n→ only ~{T_fringe/daq:.1f} samples per {T_fringe:.0f} ns fringe", fontsize=8, color=_C[1])
+    axA.set_xlim(-3, 150); axA.set_ylim(-0.03, 1.10)
+    axA.set_xlabel("requested pulse width  $\\delta t$  [ns]"); axA.set_ylabel("$P_\\downarrow$ (flip probability)")
+    axA.set_title("(a) what the 10 ns DAQ grid can sample"); axA.legend(fontsize=7.6, loc="upper right")
+    axA.grid(alpha=.3)
+
+    # (b) rotation-angle quantum vs number of pulses ------------------------
+    Ns = np.arange(1, 121)
+    dq = Ns * Omega0 * daq / np.pi                     # quantum [pi], at fixed Omega0
+    axB.plot(Ns, dq, _C[1], lw=2.4, label="10 ns DAQ:  $\\Delta\\theta=N\\Omega_0\\delta t_{\\min}$")
+    axB.axhline(0, color="0.55", lw=2, label="infinite resolution:  $\\Delta\\theta\\to0$ (continuous)")
+    axB.plot([N], [N * Omega0 * daq / np.pi], "o", color="#d62728", ms=9, zorder=5)
+    axB.annotate(f"operating point\nN={N}: {quantum/np.pi:.2f}π / step", xy=(N, quantum/np.pi),
+                 xytext=(N - 44, quantum/np.pi + 0.28), fontsize=8, color="#d62728",
+                 arrowprops=dict(arrowstyle="->", color="#d62728", lw=1))
+    axB.text(4, 1.18, "fewer pulses → finer rotation control\n(trade: broader comb / less contrast)",
+             fontsize=8, color=_C[1])
+    axB.set_xlim(0, 120); axB.set_ylim(0, 1.35)
+    axB.set_xlabel("number of strobe pulses  $N$"); axB.set_ylabel("rotation quantum per step  [$\\pi$]")
+    axB.set_title("(b) DAQ step → rotation-angle resolution (∝ N)"); axB.legend(fontsize=7.8, loc="lower right")
+    axB.grid(alpha=.3)
+    fig.suptitle(f"10 ns DAQ timing resolution vs infinite resolution  "
+                 f"(N={N}, $\\Omega_0/2\\pi$≈{Omega0/(2*np.pi)*1e3:.0f} kHz; DAQ step {daq:.0f} ns ≪ AOM floor "
+                 f"$\\sqrt{{\\pi}}\\tau_f$≈{w_equiv(1e-4, D_mm, 1):.0f} ns)", fontsize=9.5, y=1.02)
+    fig.tight_layout(); fig.savefig(path, dpi=140, bbox_inches="tight"); plt.close(fig)
+    print("wrote", path)
+
+
 def write_table(path, D_mm=1.0):
     """Dump the note's numeric tables so they are reproducible/verifiable (not just baked
     into the markdown). One row per nominal gate width, for D = D_mm."""
     gates = [10, 30, 60, 100, 200, 400, 1000]
     with open(path, "w", newline="") as fh:
-        w = csv.writer(fh)
+        w = csv.writer(fh, lineterminator="\n")
         # standard CSV header on row 1 (no leading '#', so strict parsers read it cleanly);
         # provenance carried in dedicated columns repeated per row.
         w.writerow(["delta_t_ns", "peak_n1", "R_area_n1", "R_area_n2", "R_area_n3",
@@ -417,4 +469,5 @@ if __name__ == "__main__":
     fig_acoustic_delay(os.path.join(_HERE, "aom_acoustic_delay.png"))
     fig_detuning_comb(os.path.join(_HERE, "aom_detuning_comb.png"))
     fig_strobe_sequence(os.path.join(_HERE, "aom_strobe_sequence.png"))
+    fig_daq_resolution(os.path.join(_HERE, "aom_daq_resolution.png"))
     write_table(os.path.join(_HERE, "aom_rise_table.csv"))

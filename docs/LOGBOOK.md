@@ -105,6 +105,18 @@ figures render in place, the 4 tables + math + code all style cleanly (shared em
 headless-Chrome screenshots. Rebuild: `python docs/build_site.py` (needs pandoc; viewing needs only a
 browser + CDN MathJax). To publish: GitHub Pages → source = main /docs. Generated HTML untracked like the PNGs.
 
+PUBLISHED + DEPLOYED. Pushed the bundle to main (3 commits; note + model engine + tests + figures + site +
+sources entry + LOGBOOK, then the static site, then `.github/workflows/pages.yml`). Enabled GitHub Pages
+(build_type=workflow). Live at https://uwarring82.github.io/paula-gen-FD/ — Pages-deploy + validate workflows
+both green; homepage/notes/figures return 200. Datasheet PDF kept local (gitignored; sources/spec sheets/README.md).
+
+DAQ TIMING ADDED (UW request). New §5c + figure `aom_daq_resolution.png`: the sequencer's 10 ns timing step
+(smallest gate) vs infinite resolution. Because single-pass area is preserved, a 10 ns step is a faithful
+rotation quantum Δθ=N·Ω₀·δt_min ≈ 0.53π (N=50, Ω₀/2π≈0.53 MHz) → only ~3.8 samples/flop-fringe; min pulse 10 ns
+(sub-10 ns unreachable). Key framing: the DAQ step (10 ns) and the AOM width floor (~150 ns) are on DIFFERENT
+axes — timing sets rotation-angle *granularity*, the AOM sets pulse *shape*; infinite timing would not sharpen
+the pulse. Δθ∝N (fewer pulses → finer angle, broader comb). Note-only refinement (no engine/test change).
+
 ## 2026-06-23 (later 7) — End-to-end Wigner tomography twin: displaced state (raw data -> W)
 
 UW: implement the tomography for a displaced state of fixed amplitude and phase with the

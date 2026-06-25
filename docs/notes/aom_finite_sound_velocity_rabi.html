@@ -167,6 +167,11 @@ class="math inline">\(d\)</span> = standoff)</td>
 <td>0–100 ns (this file)</td>
 </tr>
 <tr>
+<td><span class="math inline">\(\delta t_{\min}\)</span></td>
+<td>DAQ timing step (smallest realizable gate / increment)</td>
+<td><strong>10 ns</strong></td>
+</tr>
+<tr>
 <td><span class="math inline">\(\Delta_t\)</span></td>
 <td>strobe period (= lf motional period <span
 class="math inline">\(1/f_{\rm lf}\)</span>)</td>
@@ -598,8 +603,8 @@ class="math inline">\(n{=}3\)</span> response (area <span
 class="math inline">\(\propto\delta t^3\)</span> at small <span
 class="math inline">\(\delta t\)</span>) would reach its
 <strong>first</strong> fringe maximum only near ~95 ns, whereas the data
-show **~3 full oscillations within 0–100 ns**. The data are therefore
-consistent with <span class="math inline">\(n{=}1\)</span> and
+show <strong>~3 full oscillations within 0–100 ns</strong>. The data are
+therefore consistent with <span class="math inline">\(n{=}1\)</span> and
 <strong>rule out <span
 class="math inline">\(n{=}3\)</span></strong>.</p>
 <figure>
@@ -755,6 +760,72 @@ returns: the function <a
 href="../../spike/engines/aom_rise.py"><code>aom_rise.comb_envelope</code></a>
 exists and is tested — wiring it onto the <code>strobo_sim</code> output
 is a small follow-up (not yet done).</p>
+<h2
+id="5c-daq-timing-resolution-the-10-ns-step-vs-infinite-resolution">5c.
+DAQ timing resolution: the 10 ns step vs infinite resolution</h2>
+<p>Everything above treats <span class="math inline">\(\delta t\)</span>
+as a continuous ("infinite-resolution") knob. The real sequencer can
+only set the gate in finite increments — the <strong>smallest reliable
+step is <span class="math inline">\(\delta t_{\min}=10\)</span>
+ns</strong> — so the shortest realizable pulse is 10 ns and the
+achievable operating points lie on a 10 ns grid. This is a
+<strong>digital</strong> limit, entirely separate from the analog AOM
+physics, and it lands on a <strong>different axis</strong>:</p>
+<ul>
+<li><strong>The AOM sets the pulse <em>shape</em></strong> — the
+delivered pulse can't be narrower than the floor <span
+class="math inline">\(\sqrt{\pi}\,\tau_f\approx150\)</span> ns (§3), no
+matter the timing.</li>
+<li><strong>The DAQ sets the <em>requested-width
+granularity</em></strong> — hence how finely the
+<strong>rotation</strong> can be dialled. Because the single-pass area
+is preserved, a 10 ns step is a faithful <strong>rotation
+quantum</strong> <span class="math inline">\(\Delta\theta =
+N\,\Omega_0\,\delta t_{\min}\)</span>.</li>
+</ul>
+<figure>
+<img src="../figures/aom_daq_resolution.png"
+alt="10 ns DAQ vs infinite resolution" />
+<figcaption aria-hidden="true">10 ns DAQ vs infinite
+resolution</figcaption>
+</figure>
+<p>At the operating point (<span class="math inline">\(N=50\)</span>,
+<span class="math inline">\(\Omega_0/2\pi\approx0.53\)</span> MHz from
+the ~38 ns fringe) this quantum is <strong><span
+class="math inline">\(\Delta\theta\approx0.53\,\pi\)</span> per 10 ns
+step</strong> — so the flop is sampled at only <strong>~3.8 points per
+fringe</strong> (panel a). With infinite resolution the flop is
+continuous; the 10 ns DAQ just <strong>undersamples</strong> it (barely
+above Nyquist) and <strong>cannot reach</strong> <span
+class="math inline">\(0&lt;\delta t&lt;10\)</span> ns at all. Note the
+roles do <strong>not</strong> swap: infinite timing would <em>not</em>
+sharpen the pulse (that is the AOM's job) — it would only give
+continuous rotation control.</p>
+<p>Three consequences worth keeping in mind:</p>
+<ul>
+<li><strong>The 10 ns floor wastes nothing.</strong> At <span
+class="math inline">\(\delta t=10\)</span> ns the AOM peak is only ~7 %
+of full, but the <em>area</em> is still <span
+class="math inline">\(\Omega_0\cdot10\)</span> ns (preserved) — the
+smallest realizable pulse still delivers its full nominal rotation
+quantum, merely spread over ~150 ns.</li>
+<li><strong>Finer rotation control ⇒ fewer pulses.</strong> <span
+class="math inline">\(\Delta\theta\propto N\)</span> (panel b): halving
+<span class="math inline">\(N\)</span> halves the quantum. The cost is a
+broader/weaker comb (tooth width <span
+class="math inline">\(\propto1/N\)</span>), so it trades angle
+resolution against frequency selectivity and contrast. Lowering <span
+class="math inline">\(\Omega_0\)</span> (drive power) does the
+same.</li>
+<li><strong>Sub-10 ns scan structure is not trustworthy.</strong> The
+example file requests <span class="math inline">\(\delta t\)</span> on a
+~4 ns nominal grid (0–100 ns, 26 pts) — finer than <span
+class="math inline">\(\delta t_{\min}\)</span> — so adjacent fine points
+fall within the timing quantization and the realized <span
+class="math inline">\(\delta t\)</span> snaps toward the 10 ns grid;
+treat sub-10 ns differences as unresolved (a likely contributor to
+point-to-point scatter in the fine flop).</li>
+</ul>
 <h2 id="6-summary">6. Summary</h2>
 <ul>
 <li>The finite speed of sound enters as <strong>three</strong> scales: a
@@ -806,6 +877,17 @@ class="math inline">\(1/\delta t\)</span>. The carrier-normalised <span
 class="math inline">\(|k|{=}2\)</span> tooth height is a direct,
 drift-robust read of <span class="math inline">\(\tau_f\)</span> (the
 AOM beam size).</li>
+<li><strong>DAQ 10 ns timing step (≠ the AOM, different axis).</strong>
+The sequencer quantises the <em>requested</em> width in <span
+class="math inline">\(\delta t_{\min}=10\)</span> ns steps (min pulse 10
+ns), which — via area preservation — quantises the
+<strong>rotation</strong> in steps <span
+class="math inline">\(\Delta\theta=N\Omega_0\delta
+t_{\min}\approx0.53\,\pi\)</span> (here), i.e. only ~3.8 samples per
+flop fringe. Infinite resolution gives a continuous flop but would
+<strong>not</strong> sharpen the pulse (that is the AOM floor, ~150 ns ≫
+10 ns). Finer angle control ⇒ fewer pulses (<span
+class="math inline">\(\Delta\theta\propto N\)</span>).</li>
 </ul>
 <h2 id="provenance--reproduce">Provenance &amp; reproduce</h2>
 <ul>
@@ -837,8 +919,8 @@ href="../../spike/datfile.py"><code>spike/datfile.py</code></a>) →
 <code>aom_single_vs_double_pass.png</code>,
 <code>aom_effective_pulse_length.png</code>,
 <code>aom_flop_single_vs_double_pass.png</code>,
-<code>aom_detuning_comb.png</code>, and the numeric table
-<code>aom_rise_table.csv</code>.</li>
+<code>aom_detuning_comb.png</code>, <code>aom_daq_resolution.png</code>,
+and the numeric table <code>aom_rise_table.csv</code>.</li>
 </ul>
 <h2 id="caveats">Caveats</h2>
 <p><strong>Load-bearing assumptions</strong> (the "area preserved" and
