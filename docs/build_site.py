@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import html
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -127,13 +128,29 @@ def _page(title: str, body: str) -> str:
     )
 
 
+# A standalone image paragraph -> <figure> with the alt text as <figcaption>. We do this
+# OURSELVES (instead of pandoc's +implicit_figures) so the output is identical regardless of
+# the pandoc version: older pandocs ignore/!=handle implicit_figures, which silently dropped
+# the captions on the CI runner. Without the extension every pandoc emits <p><img .../></p>.
+_IMG_P = re.compile(r"<p>\s*(<img\b[^>]*>)\s*</p>")
+
+
+def _wrap_figures(frag: str) -> str:
+    def repl(m: "re.Match") -> str:
+        img = m.group(1)
+        alt = re.search(r'alt="([^"]*)"', img)
+        cap = f"<figcaption>{alt.group(1)}</figcaption>" if (alt and alt.group(1)) else ""
+        return f"<figure>{img}{cap}</figure>"
+    return _IMG_P.sub(repl, frag)
+
+
 def _pandoc(md_abs: str) -> str:
     out = subprocess.run(
-        ["pandoc", md_abs, "-f", "gfm+tex_math_dollars+implicit_figures",
+        ["pandoc", md_abs, "-f", "gfm+tex_math_dollars",
          "-t", "html", "--mathjax", "--no-highlight"],
         capture_output=True, text=True, check=True,
     )
-    return out.stdout
+    return _wrap_figures(out.stdout)
 
 
 def build_note(note: dict) -> None:
