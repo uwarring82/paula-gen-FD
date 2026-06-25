@@ -1,6 +1,6 @@
 # Finite acoustic-transit effects on the stroboscopic R2 Rabi rate — single- vs double-pass switching
 
-*Technical note, 2026-06-25. How the finite speed of sound in the Raman-beam AOM
+*Technical note, 2026-06-25. **Work in progress — preliminary, unreviewed results.** How the finite speed of sound in the Raman-beam AOM
 shapes the effective Rabi drive of the Strobo2.0 "active phase grating", why switching
 **only** the single-pass R2 beam **preserves the spin-rotation area** (so the ion still
 flops), why the ion nevertheless sees an **effectively longer pulse whose width saturates

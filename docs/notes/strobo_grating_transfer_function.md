@@ -1,6 +1,6 @@
 # The stroboscopic phase grating as a phase-space probe — transfer function
 
-*Technical note, 2026-06-23 (rev. after review). Self-contained derivation of the
+*Technical note, 2026-06-23 (rev. after review). **Work in progress — preliminary, unreviewed results.** Self-contained derivation of the
 measurement transfer function of the Strobo2.0 "active phase grating" and its relation to
 motional-state (Wigner) tomography. All population-transfer formulas below are validated against
 [`spike/engines/strobo_sim.py`](../../spike/engines/strobo_sim.py); the coherence/SDF
@@ -118,7 +118,9 @@ then sit at $\delta=m/\Delta_t=m f_{\rm lf}$.
   $a,a^\dagger$, Lamb–Dicke parameter $\eta$.
 - $N$ identical OC (orthogonal-carrier; see Notation) pulses, one per strobe period
   $\Delta_t$, each of area $\theta=\Omega_{\rm strobo}\,\delta t$. **Weak-pulse limit**
-  $\theta\ll1$ and short pulse $\omega_{\rm lf}\delta t\ll1$.
+  $\theta\ll1$ and short pulse $\omega_{\rm lf}\delta t\ll1$. (The short-pulse condition is the
+  marginal one in practice — the AOM floors the *delivered* pulse at $\sim150$ ns, $\omega_{\rm lf}w_{\rm eff}\approx1.2$ rad;
+  the pulse *area* $\theta$ is nonetheless preserved. See §8.)
 - One impulsive recoil-dressed pulse, retaining the **full** harmonic-oscillator
   displacement operator $D(i\eta)$ (not its Lamb–Dicke expansion $1+i\eta(a+a^\dagger)+\dots$),
   written so the $|\!\uparrow\rangle\!\to\!|\!\downarrow\rangle$ transition direction is
@@ -354,7 +356,9 @@ or cycle-by-cycle phase programming; otherwise the per-cycle spin-phase slip mak
 noncommuting multipath sequence, not one $X_{\beta_g}$. (ii) The threat is finite pulse duration, not large $\eta$:
 the requirement is impulsive control $\omega_{\rm lf}\delta t\ll1$ **and** a calibrated
 $\pi/2$ area, so free motion during a pulse does not spoil the common, state-independent
-dressed rotation. (iii) The disk is finite ($2\eta$; $\eta=0.389\Rightarrow0.78$) — high
+dressed rotation. **This impulsive floor is set by the AOM, not the gate**: the delivered
+pulse can't be shorter than $w_{\rm eff}\approx150$ ns ($\omega_{\rm lf}w_{\rm eff}\approx1.2$ rad),
+giving an irreducible $\sim11\%$ recoil reduction and a shrunk disk $2\eta_{\rm eff}\approx0.69$ — see §8. (iii) The disk is finite ($2\eta$; $\eta=0.389\Rightarrow0.78$) — high
 resolution / larger states still want bigger engineered $\lvert\Delta\beta\rvert$
 (concatenated Ramsey blocks or an SDF sequence). **Suggested first experiment:**
 demonstrate the two-pulse identity for vacuum / coherent / thermal, then test that
@@ -401,6 +405,31 @@ These are leading-order patches, not a universal substitution:
   carries a resolution that *scales* as $\sim1/\lvert\beta\rvert_{\max}$ (the actual
   point-spread depends on the sampling mask, weighting, and reconstruction
   regularisation) — so the noise/filter-function analysis sets the tomographic resolution.
+
+**AOM finite acoustic transit — the *real* impulsive floor (cross-reference).** The "motion
+during the pulse" bullet above uses the electronic gate $\delta t$ ($\omega_{\rm lf}\delta t\approx0.16$
+rad at 20 ns). But the pulse the *ion* sees is not $\delta t$ wide: the single-pass Raman AOM (finite
+speed of sound) rounds and **lengthens** it to an effective width that **saturates at
+$w_{\rm eff}\approx\sqrt{\pi}\,\tau_f\approx150$ ns** ($\tau_f=D/2V\approx84$ ns) — a hard floor
+independent of the gate. See the companion note
+[`aom_finite_sound_velocity_rabi.md`](aom_finite_sound_velocity_rabi.md). Impact on *this* note:
+
+- **The pulse *area* $\theta=\Omega_{\rm strobo}\delta t$ is preserved** (only R2 is switched, single-pass:
+  the slow turn-on is exactly cancelled by the turn-off tail). So everything **area-based survives unchanged**
+  — the comb positions, the exact-strobe transfer function (§4), the calibrated $\pi/2$ (§6), and the
+  $\chi\!\to\!W$ relations (§7). The AOM does **not** undermine the core results.
+- **The impulsive assumption is far more marginal than $\omega_{\rm lf}\delta t$ suggests — and floored.**
+  The true smearing angle is $\omega_{\rm lf}w_{\rm eff}\approx1.2$ rad. Averaging the recoil over the
+  *delivered* pulse multiplies the effective Lamb–Dicke kick by the single-pulse spectrum at the motional
+  frequency,
+  $$\frac{\eta_{\rm eff}}{\eta}=\mathrm{sinc}(\pi f_{\rm lf}\delta t)\,\underbrace{e^{-\pi^2\tau_f^2 f_{\rm lf}^2}}_{\text{AOM, irreducible}}\;\xrightarrow[\delta t\to0]{}\;e^{-\pi^2\tau_f^2 f_{\rm lf}^2}\approx0.89,$$
+  an **irreducible ~11 % recoil reduction set by the beam size $\tau_f$, not the gate** — the *same* Gaussian
+  roll-off as the detuning-comb envelope (AOM note §5b), here evaluated at $f_{\rm lf}$. The §6 disk shrinks,
+  $2\eta_{\rm eff}\approx0.69$ (vs 0.78). To approach the truly impulsive regime, **shrink the AOM beam**
+  ($\tau_f\propto D$), not the gate.
+- **DAQ 10 ns timing.** The calibrated total area $\sum_k\theta_k=\pi/2$ (§6) is set on a 10 ns grid →
+  rotation quantum $N\Omega_0\delta t_{\min}\approx0.53\pi$ at $N=50$, so precise $\pi/2$ setting favours
+  fewer pulses or trimming $\Omega_0$ (AOM note §5c).
 
 ## 9. Numerical validation
 

@@ -42,6 +42,11 @@ thead th{background:#eef1f5}
 tbody tr:nth-child(even){background:#fafbfc}
 hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
 .foot{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);font-size:.84rem;color:var(--muted)}
+/* work-in-progress label */
+.wip{background:#fff8e1;border:1px solid #f0d27a;border-left:4px solid #e0a800;color:#7a5c00;
+     padding:9px 14px;border-radius:0 8px 8px 0;font-size:.9rem;font-weight:600;margin:0 0 18px}
+.chip{display:inline-block;background:#fff3cd;color:#8a6d00;border:1px solid #f0d27a;border-radius:999px;
+      padding:0 9px;font-size:.7rem;font-weight:700;letter-spacing:.02em;vertical-align:middle;white-space:nowrap}
 /* homepage cards */
 .lead{font-size:1.06rem}
 .wall{margin:1.5em 0;padding:16px 20px;background:var(--card);border:1px solid var(--line);
@@ -66,11 +71,13 @@ hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
 </head>
 <body>
 <div class="wrap"><div class="topbar"><a href="../index.html">← iontrap-reference</a> &nbsp;·&nbsp; technical note</div></div><div class="wrap"><article class="content">
+<div class="wip">⚠ Work in progress — <strong>preliminary, unreviewed results</strong>; subject to change. Not a citable record.</div>
 <h1
 id="the-stroboscopic-phase-grating-as-a-phase-space-probe--transfer-function">The
 stroboscopic phase grating as a phase-space probe — transfer
 function</h1>
-<p><em>Technical note, 2026-06-23 (rev. after review). Self-contained
+<p><em>Technical note, 2026-06-23 (rev. after review). <strong>Work in
+progress — preliminary, unreviewed results.</strong> Self-contained
 derivation of the measurement transfer function of the Strobo2.0 "active
 phase grating" and its relation to motional-state (Wigner) tomography.
 All population-transfer formulas below are validated against <a
@@ -365,7 +372,13 @@ class="math inline">\(\Delta_t\)</span>, each of area <span
 class="math inline">\(\theta=\Omega_{\rm strobo}\,\delta t\)</span>.
 <strong>Weak-pulse limit</strong> <span
 class="math inline">\(\theta\ll1\)</span> and short pulse <span
-class="math inline">\(\omega_{\rm lf}\delta t\ll1\)</span>.</li>
+class="math inline">\(\omega_{\rm lf}\delta t\ll1\)</span>. (The
+short-pulse condition is the marginal one in practice — the AOM floors
+the <em>delivered</em> pulse at <span
+class="math inline">\(\sim150\)</span> ns, <span
+class="math inline">\(\omega_{\rm lf}w_{\rm eff}\approx1.2\)</span> rad;
+the pulse <em>area</em> <span class="math inline">\(\theta\)</span> is
+nonetheless preserved. See §8.)</li>
 <li>One impulsive recoil-dressed pulse, retaining the
 <strong>full</strong> harmonic-oscillator displacement operator <span
 class="math inline">\(D(i\eta)\)</span> (not its Lamb–Dicke expansion
@@ -770,8 +783,16 @@ pulse duration, not large <span class="math inline">\(\eta\)</span>: the
 requirement is impulsive control <span class="math inline">\(\omega_{\rm
 lf}\delta t\ll1\)</span> <strong>and</strong> a calibrated <span
 class="math inline">\(\pi/2\)</span> area, so free motion during a pulse
-does not spoil the common, state-independent dressed rotation. (iii) The
-disk is finite (<span class="math inline">\(2\eta\)</span>; <span
+does not spoil the common, state-independent dressed rotation.
+<strong>This impulsive floor is set by the AOM, not the gate</strong>:
+the delivered pulse can't be shorter than <span
+class="math inline">\(w_{\rm eff}\approx150\)</span> ns (<span
+class="math inline">\(\omega_{\rm lf}w_{\rm eff}\approx1.2\)</span>
+rad), giving an irreducible <span
+class="math inline">\(\sim11\%\)</span> recoil reduction and a shrunk
+disk <span class="math inline">\(2\eta_{\rm eff}\approx0.69\)</span> —
+see §8. (iii) The disk is finite (<span
+class="math inline">\(2\eta\)</span>; <span
 class="math inline">\(\eta=0.389\Rightarrow0.78\)</span>) — high
 resolution / larger states still want bigger engineered <span
 class="math inline">\(\lvert\Delta\beta\rvert\)</span> (concatenated
@@ -847,6 +868,58 @@ class="math inline">\(\sim1/\lvert\beta\rvert_{\max}\)</span> (the
 actual point-spread depends on the sampling mask, weighting, and
 reconstruction regularisation) — so the noise/filter-function analysis
 sets the tomographic resolution.</li>
+</ul>
+<p><strong>AOM finite acoustic transit — the <em>real</em> impulsive
+floor (cross-reference).</strong> The "motion during the pulse" bullet
+above uses the electronic gate <span class="math inline">\(\delta
+t\)</span> (<span class="math inline">\(\omega_{\rm lf}\delta
+t\approx0.16\)</span> rad at 20 ns). But the pulse the <em>ion</em> sees
+is not <span class="math inline">\(\delta t\)</span> wide: the
+single-pass Raman AOM (finite speed of sound) rounds and
+<strong>lengthens</strong> it to an effective width that
+<strong>saturates at <span class="math inline">\(w_{\rm
+eff}\approx\sqrt{\pi}\,\tau_f\approx150\)</span> ns</strong> (<span
+class="math inline">\(\tau_f=D/2V\approx84\)</span> ns) — a hard floor
+independent of the gate. See the companion note <a
+href="aom_finite_sound_velocity_rabi.md"><code>aom_finite_sound_velocity_rabi.md</code></a>.
+Impact on <em>this</em> note:</p>
+<ul>
+<li><strong>The pulse <em>area</em> <span
+class="math inline">\(\theta=\Omega_{\rm strobo}\delta t\)</span> is
+preserved</strong> (only R2 is switched, single-pass: the slow turn-on
+is exactly cancelled by the turn-off tail). So everything
+<strong>area-based survives unchanged</strong> — the comb positions, the
+exact-strobe transfer function (§4), the calibrated <span
+class="math inline">\(\pi/2\)</span> (§6), and the <span
+class="math inline">\(\chi\!\to\!W\)</span> relations (§7). The AOM does
+<strong>not</strong> undermine the core results.</li>
+<li><strong>The impulsive assumption is far more marginal than <span
+class="math inline">\(\omega_{\rm lf}\delta t\)</span> suggests — and
+floored.</strong> The true smearing angle is <span
+class="math inline">\(\omega_{\rm lf}w_{\rm eff}\approx1.2\)</span> rad.
+Averaging the recoil over the <em>delivered</em> pulse multiplies the
+effective Lamb–Dicke kick by the single-pulse spectrum at the motional
+frequency, <span class="math display">\[\frac{\eta_{\rm
+eff}}{\eta}=\mathrm{sinc}(\pi f_{\rm lf}\delta
+t)\,\underbrace{e^{-\pi^2\tau_f^2 f_{\rm lf}^2}}_{\text{AOM,
+irreducible}}\;\xrightarrow[\delta t\to0]{}\;e^{-\pi^2\tau_f^2 f_{\rm
+lf}^2}\approx0.89,\]</span> an <strong>irreducible ~11 % recoil
+reduction set by the beam size <span
+class="math inline">\(\tau_f\)</span>, not the gate</strong> — the
+<em>same</em> Gaussian roll-off as the detuning-comb envelope (AOM note
+§5b), here evaluated at <span class="math inline">\(f_{\rm lf}\)</span>.
+The §6 disk shrinks, <span class="math inline">\(2\eta_{\rm
+eff}\approx0.69\)</span> (vs 0.78). To approach the truly impulsive
+regime, <strong>shrink the AOM beam</strong> (<span
+class="math inline">\(\tau_f\propto D\)</span>), not the gate.</li>
+<li><strong>DAQ 10 ns timing.</strong> The calibrated total area <span
+class="math inline">\(\sum_k\theta_k=\pi/2\)</span> (§6) is set on a 10
+ns grid → rotation quantum <span class="math inline">\(N\Omega_0\delta
+t_{\min}\approx0.53\pi\)</span> at <span
+class="math inline">\(N=50\)</span>, so precise <span
+class="math inline">\(\pi/2\)</span> setting favours fewer pulses or
+trimming <span class="math inline">\(\Omega_0\)</span> (AOM note
+§5c).</li>
 </ul>
 <h2 id="9-numerical-validation">9. Numerical validation</h2>
 <p>Parameters unless stated: <span class="math inline">\(f_{\rm
