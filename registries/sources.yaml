@@ -478,3 +478,17 @@ paula_strobo_2026:
     Local: sources/data/Strobo2.0/ (group's own .dat scans, 2026-06-12). Active
     phase-grating: stroboscopic OC carrier drive locked to the lf motional period
     (+- displacement). Analyzed by spike/twin_strobo. kalis2017 = .dat FORMAT ref only.
+
+intraaction_asm2202b3:
+  title: "IntraAction ASM-2202B3 acousto-optic modulator — instruction manual / datasheet (S/N 419735)"
+  author: "IntraAction Corp."
+  year: 2017
+  degree: misc
+  archived: false
+  verified: false
+  note: >-
+    Local: sources/spec sheets/intraact_aom220uv_specs.pdf. The R2/B1 Raman-beam AOM:
+    UV-grade fused silica, LiNbO3 transducer, RF center 220 MHz, sound-field aperture
+    height 2 mm, AR-coated 230-280 nm. Acoustic velocity V = 5.95 mm/us; 10-90% intensity
+    rise time Tr = 0.64 D/V = 110*D[mm] ns. Source of the finite-sound-velocity Rabi model
+    in docs/notes/aom_finite_sound_velocity_rabi.md.

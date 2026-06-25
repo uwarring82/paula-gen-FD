@@ -11,6 +11,11 @@ sources/pdf/*
 sources/Mathematica/*
 !sources/Mathematica/README.md
 
+# Manufacturer datasheets / spec sheets: third-party copyrighted, kept LOCAL and
+# registered in registries/sources.yaml (e.g. intraaction_asm2202b3). See ADR-0002.
+sources/spec sheets/*
+!sources/spec sheets/README.md
+
 # Raw measurement data (DAQ .dat blobs): kept LOCAL for now. The twins/engines
 # read these when present and their tests skip when absent (e.g. twin_oc_flop).
 # Re-include a dataset selectively once it ships with the analysis that cites it.

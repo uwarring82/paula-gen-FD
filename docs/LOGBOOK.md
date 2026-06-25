@@ -13,6 +13,98 @@ Load-bearing decisions are captured as ADRs under
 
 ---
 
+## 2026-06-25 — Finite acoustic-transit model of the stroboscopic R2 Rabi drive (single- vs double-pass)
+
+UW: analyse the Strobo2.0 `FlopN` script, extract the stroboscopic features, and model how the
+finite speed of sound in the single-pass R2 AOM varies the effective Rabi rate for pulse widths
+10 µs → 10 ns; further highlight the effective *delay*, the effectively *longer* pulse and its
+saturation, and compare with an alternative where the B1 (double-pass) AOM is switched too.
+
+NEW SOURCE registered: `intraaction_asm2202b3` (datasheet just added by UW,
+`sources/spec sheets/intraact_aom220uv_specs.pdf`, IntraAction ASM-2202B3): UV fused silica,
+220 MHz, 2 mm aperture, **V = 5.95 mm/µs**, **Tr = 0.64 D/V = 110·D[mm] ns**. (`misc`, archived:false
+→ validator will WARN, accepted accessibility flag, like the `paula_*` notebooks.)
+
+SEQUENCE (decoded `<sourcecode>` of `…/1_FlopN_3p3_2p2_PDQ_displ_strobo/10_22_22…dat`):
+`main()` = cool → sbc → spin-up → `tickle_pdq` (lf **displacement**) →
+`active_phase_grating_Laser(b1, r2, …)` → detect. The grating keeps **B1 ON continuously** and
+**chops only R2** (single-pass AOM) into N=50 pulses of width `delta_t` per period `DELTA_t`=0.769 µs.
+The 19-file campaign scans `delta_t` across ~0–1.2 µs (different DELTA_t/N); the opened file is the
+0–100 ns zoom — exactly across the AOM turn-on.
+
+MODEL ([`docs/notes/aom_finite_sound_velocity_rabi.md`](notes/aom_finite_sound_velocity_rabi.md),
+figures from [`docs/figures/make_aom_rise_figs.py`](figures/make_aom_rise_figs.py)). Three independent
+scales = length/V: (1) **delay** τ_d=d/V (transducer→beam ~3–5 mm → 0.46–0.84 µs; apparatus
+`delay_Raman_r2`=0.46, `delay_Raman_b1`=0.50 µs — a benign compensated shift, but the **B1–R2
+differential** must be matched, done in `turn_2_Raman_AOMs`); (2) **rise** τ_f=D/2V≈84 ns (D=1 mm);
+(3) **pass multiplicity** n. Field envelope a(t)=½[erf(t/τ_f)−erf((t−δt)/τ_f)]; Ω(t)∝a^n with n =
+number of switched diffraction-amplitude factors (current R2 single = **n=1**; +B1 double = **n=3**).
+
+KEY RESULTS.
+- **Single-pass (n=1): pulse AREA is preserved exactly** (∫a dt = δt) — slow turn-on cancelled by the
+  turn-off tail (B1 stays on). No first-order spin-rotation reduction; flop stays **linear in δt**.
+  **Data confirm it:** the 0–100 ns flop oscillates with ~constant ~38 ns period down to ~12 ns
+  (tracks the n=1 curve, not n=3) — `aom_flop_single_vs_double_pass.png`.
+- **The ion sees an effectively LONGER pulse**, w_eff=δt/erf(δt/2τ_f), **saturating at √π·τ_f ≈ 150 ns**
+  (D=1 mm) — a hard floor: sub-150 ns kicks impossible; each kick smears ω_lf·w_eff≈1.2 rad of motional
+  phase (= the in-pulse sampling term flagged in strobo_sim) — `aom_effective_pulse_length.png`.
+- **PEAK amplitude / diffracted energy ARE strongly suppressed** for δt≲Tr (peak ×0.39 at 60 ns, ×0.07
+  at 10 ns) — matters for power budget / SNR / any intensity-coupled use — `aom_single_vs_double_pass.png`.
+- **Alternative (also switch B1, double-pass → n=3): rotation area COLLAPSES** as (δt/τ_f)² (~9 % at
+  60 ns) in exchange for sharper pulses + better extinction (floor √(π/3)τ_f≈86 ns). Recovering the flop
+  needs ~11.6× more two-photon Rabi *amplitude* (Ω∝P_B1·√P_R2 → ~5× power in EACH beam if both scaled,
+  ~12× B1 alone, ~130× R2 alone). Only worth it for δt≳Tr or with power headroom. Genuinely shorter/sharper
+  kicks ⇒ **shrink the AOM beam** (τ_f∝D; D≈0.3 mm → floor ~45 ns).
+- **Frequency-domain fingerprint** (`aom_detuning_comb.png`): the detuning-scan Floquet comb keeps its
+  tooth positions (k·f_lf) but the single-pulse spectral envelope = FT of the delivered pulse. AOM transit
+  adds a **Gaussian roll-off** exp(−2π²τ_f²δ²), 1/e half-width ≈2.1 f_lf (≈2.7 MHz), **independent of δt** →
+  the comb is narrowed and its width **saturates** (vs ∝1/δt without the effect). The Fourier mirror of the
+  pulse-length floor; the |k|=2 tooth height is a drift-robust read of τ_f (the AOM beam size). Folds onto
+  strobo_sim (instantaneous → flat comb) as a multiplicative, motion-independent spectral filter.
+- Also addressed (UW): ion finite size is irrelevant — x_zpf≈12.5 nm vs beam-at-ion w≈50 µm
+  (ratio 2.5e-4; intensity flat to 1e-7 across the ion; beam-gradient coupling 6400× below the optical η).
+
+REVIEW PASS (UW, same day). UW reviewed the note + figure script and flagged concrete issues; all
+actioned:
+  (1) **Portability** — the figure script used `np.trapezoid` (numpy ≥2.0). Verified `np.trapz` is
+      *removed* in this env's numpy 2.4.4 AND `np.trapezoid` is absent in numpy 1.23.5, so neither single
+      name is portable. FIX: extracted the model into NEW pure-Python `spike/engines/aom_rise.py` (own
+      integration, no numpy) — the canonical, tested source of truth; the figure script now imports it
+      (no trapz/trapezoid call anywhere). Runs on both numpy lines.
+  (2) **Power scaling** — "~12× more drive power" was wrong (that's the amplitude/Ω factor). Corrected in
+      note §4 + above: ~11.6× Rabi amplitude = ~5× power EACH beam (Ω∝P^{3/2}) / ~12× B1 / ~130× R2.
+  (3) **turn_2_Raman_AOMs** — clarified it is NOT used in the grating (B1 continuous; differential delay
+      absorbed by the 38.5 µs initial wait); it is the ordinary-Raman helper and what the alternative needs.
+  (4) Added `spike/test_aom_rise.py` (+9 tests: area theorem, peak, width floor, n=3 regression, comb
+      envelope/width saturation) — full suite 301 passed. CSV dump `aom_rise_table.csv` for the tables.
+  (5) Strengthened Caveats: D unmeasured → numbers PROVISIONAL ($|k|=2$ tooth method to pin τ_f);
+      saturation/area-loss bound (DAC settings ≠ η, needs scope); on/off asymmetry; weak-pulse limit of the
+      comb factorisation; B1 turn-on ramp; acoustic attenuation/echoes, RF settling, clipping, leakage,
+      thermal. Softened the flop "confirmed"→"consistent with / rules out n=3" (shape discriminator: n=3's
+      first fringe ~95 ns vs ~3 fringes in 0-100 ns); a damped-cosine global fit is the named follow-up.
+Registered source `intraaction_asm2202b3` already added. Reproduce: `python docs/figures/make_aom_rise_figs.py`;
+`pytest spike/test_aom_rise.py`.
+
+SECOND REVIEW PASS (UW). Polish + one new figure: (a) `aom_rise_table.csv` now uses a standard header row
+(D_mm/tau_f_ns as repeated columns) instead of a leading `#` metadata line, for strict CSV parsers.
+(b) NEW figure `aom_strobe_sequence.png` (embedded in note §0): annotated timing diagram of one section of
+the train — B1 (always on), the R2 TTL gate (delta_t / DELTA_t / sleep(DELTA_t−delta_t) / ×N_strobo), the
+delivered R2 light (rounded by τ_f, w_eff; τ_d annotated, drawn aligned for clarity), and the Rabi rate
+Ω(t)∝E_B1·E_R2=(B1 const)·a(t) with the ideal instant-switch box (same area) overlaid — every lane labelled
+with its script parameter. Still untracked: generated PNGs/CSV + the datasheet PDF (commit decision pending).
+  Follow-up (UW): the sequence figure now SHOWS the delay — light/Rabi pulses are drawn one τ_d to the right
+  of the (dotted) TTL-gate times with a labelled arrow, so "R2 TTL gate" stays the literal control signal
+  (not "effective") and the figure is fully faithful.
+
+STATIC SITE (UW request). NEW `docs/build_site.py` renders a GitHub-Pages-friendly site under docs/:
+`docs/index.html` (homepage: short repo intro + the input/benchmark wall + a featured-note card with
+thumbnail) and `docs/notes/aom_finite_sound_velocity_rabi.html` (the note rendered from its .md via pandoc:
+gfm + `$`-math→MathJax + implicit figure captions). The note HTML is written NEXT TO its .md so every
+relative link (../figures/*.png, ../../registries/*, sibling *.md) stays valid without rewriting; the 6
+figures render in place, the 4 tables + math + code all style cleanly (shared embedded CSS). Verified by
+headless-Chrome screenshots. Rebuild: `python docs/build_site.py` (needs pandoc; viewing needs only a
+browser + CDN MathJax). To publish: GitHub Pages → source = main /docs. Generated HTML untracked like the PNGs.
+
 ## 2026-06-23 (later 7) — End-to-end Wigner tomography twin: displaced state (raw data -> W)
 
 UW: implement the tomography for a displaced state of fixed amplitude and phase with the
